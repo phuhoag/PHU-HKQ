@@ -1,6 +1,6 @@
 # Ecommerce Project
 
-Full-stack ecommerce application using React, Node.js, Express.js, and MySQL.
+Full-stack ecommerce application using React, Node.js, Express.js, and MongoDB
 
 ## Tech Stack
 
