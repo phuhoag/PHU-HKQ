@@ -6,7 +6,7 @@ Full-stack ecommerce application using React, Node.js, Express.js, and MySQL.
 
 - **Frontend**: React + Vite
 - **Backend**: Node.js + Express.js
-- **Database**: MySQL
+- **Database**: MongoDB
 - **State Management**: Redux / Context API
 - **Styling**: CSS / Tailwind CSS / Material-UI
 
