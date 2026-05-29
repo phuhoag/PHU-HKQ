@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MdVisibility,
   MdVisibilityOff,
@@ -8,14 +9,17 @@ import {
   MdCheckCircle,
 } from "react-icons/md";
 import { Link } from "react-router-dom";
+import authService from "../../services/authService";
 
 export default function RegisterForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
+    phone: "",
     agreeTerms: false,
   });
 
@@ -24,6 +28,7 @@ export default function RegisterForm() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const validateForm = () => {
     const newErrors = {};
@@ -42,15 +47,14 @@ export default function RegisterForm() {
       newErrors.email = "Please enter a valid email";
     }
 
+    if (!formData.phone) {
+      newErrors.phone = "Phone number is required";
+    }
+
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-    } else if (!/(?=.*[A-Z])/.test(formData.password)) {
-      newErrors.password =
-        "Password must contain at least one uppercase letter";
-    } else if (!/(?=.*[0-9])/.test(formData.password)) {
-      newErrors.password = "Password must contain at least one number";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     if (!formData.confirmPassword) {
@@ -89,20 +93,29 @@ export default function RegisterForm() {
     }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Registration attempt:", {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+    setApiError("");
+
+    try {
+      const result = await authService.register({
         email: formData.email,
+        password: formData.password,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        phone: formData.phone,
       });
-      setSuccess(true);
+
+      if (result.success) {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      }
+    } catch (error) {
+      setApiError(error.message || "Registration failed. Please try again.");
+      console.error("Registration error:", error);
+    } finally {
       setLoading(false);
-      setTimeout(() => {
-        // Redirect to login after 2 seconds
-        window.location.href = "/login";
-      }, 2000);
-    }, 1500);
+    }
   };
 
   const handleOAuthClick = (provider) => {
@@ -137,6 +150,14 @@ export default function RegisterForm() {
           Join TechStore and start shopping today.
         </p>
       </div>
+
+      {/* API Error Message */}
+      {apiError && (
+        <div className="mb-stack-md p-3 bg-error/10 border border-error rounded-lg flex items-center gap-2">
+          <MdError className="text-error text-[20px]" />
+          <p className="text-error text-sm">{apiError}</p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-stack-md">
         {/* Name Grid */}
@@ -314,6 +335,35 @@ export default function RegisterForm() {
               <p className="mt-2 text-error text-[12px] flex items-center gap-1">
                 <MdError className="text-[16px]" />
                 {errors.confirmPassword}
+              </p>
+            )}
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label
+              htmlFor="phone"
+              className="block font-label-caps text-label-caps text-on-surface-variant mb-2"
+            >
+              PHONE NUMBER
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="0912345678"
+              className={`w-full px-4 py-3 bg-surface-container rounded-lg border-2 outline-none transition-all font-body-md text-on-surface ${
+                errors.phone
+                  ? "border-error focus:border-error focus:ring-2 focus:ring-error/20"
+                  : "border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20"
+              }`}
+            />
+            {errors.phone && (
+              <p className="mt-2 text-error text-[12px] flex items-center gap-1">
+                <MdError className="text-[16px]" />
+                {errors.phone}
               </p>
             )}
           </div>

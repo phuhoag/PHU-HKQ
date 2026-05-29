@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MdVisibility,
   MdVisibilityOff,
@@ -7,14 +8,17 @@ import {
   MdError,
 } from "react-icons/md";
 import { Link } from "react-router-dom";
+import authService from "../../services/authService";
 
 export default function LoginForm() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const validateForm = () => {
     const newErrors = {};
@@ -44,12 +48,22 @@ export default function LoginForm() {
     }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Login attempt:", { email, password, rememberMe });
+    setApiError("");
+
+    try {
+      const result = await authService.login(email, password);
+
+      if (result.success) {
+        // Login successful
+        alert("Login successful!");
+        navigate("/dashboard"); // Redirect to dashboard
+      }
+    } catch (error) {
+      setApiError(error.message || "Login failed. Please try again.");
+      console.error("Login error:", error);
+    } finally {
       setLoading(false);
-      alert("Login successful! (This is a demo)");
-    }, 1000);
+    }
   };
 
   const handleOAuthClick = (provider) => {
@@ -65,6 +79,14 @@ export default function LoginForm() {
           Access your dashboard with secure verification.
         </p>
       </div>
+
+      {/* API Error Message */}
+      {apiError && (
+        <div className="mb-stack-md p-3 bg-error/10 border border-error rounded-lg flex items-center gap-2">
+          <MdError className="text-error text-[20px]" />
+          <p className="text-error text-sm">{apiError}</p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-stack-md">
         {/* Email Input */}
