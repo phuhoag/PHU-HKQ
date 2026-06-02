@@ -15,7 +15,7 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
       minlength: 6,
-      select: false, // Don't include password in queries by default
+      select: false,
     },
     first_name: {
       type: String,
@@ -47,42 +47,62 @@ const userSchema = mongoose.Schema(
       enum: Object.values(USER_ROLES),
       default: USER_ROLES.CUSTOMER,
     },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpiry: {
+      type: Date,
+      select: false,
+    },
+    // SMTP Configuration for forgot password emails
+    smtpEmail: {
+      type: String,
+      select: false,
+    },
+    smtpPassword: {
+      type: String,
+      select: false,
+    },
+    smtpHost: {
+      type: String,
+      default: "smtp.gmail.com",
+      select: false,
+    },
+    smtpPort: {
+      type: Number,
+      default: 587,
+      select: false,
+    },
   },
   { timestamps: true, versionKey: false },
 );
 
-// Pre-save middleware: Hash password before saving
-userSchema.pre("save", async function (next) {
-  // Only hash password if it's been modified
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
   try {
-    // Check if password is already hashed (starts with $2a, $2b, or $2y for bcrypt)
     if (
       this.password.startsWith("$2a$") ||
       this.password.startsWith("$2b$") ||
       this.password.startsWith("$2y$")
     ) {
-      return next();
+      return;
     }
 
-    // Hash password with bcryptjs
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
   } catch (error) {
-    next(error);
+    throw error;
   }
 });
 
-// Method to compare passwords
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Method to exclude sensitive fields
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
