@@ -54,9 +54,13 @@ export default function LoginForm() {
       const result = await authService.login(email, password);
 
       if (result.success) {
-        // Login successful
-        alert("Login successful!");
-        navigate("/dashboard"); // Redirect to dashboard
+        // Redirect based on user role
+        const user = result.data?.user;
+        if (user?.role === "admin") {
+          navigate("/dashboard"); // Admin to main dashboard
+        } else {
+          navigate("/"); // Customer to home page
+        }
       }
     } catch (error) {
       setApiError(error.message || "Login failed. Please try again.");
