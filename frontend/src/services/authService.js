@@ -154,6 +154,62 @@ export const authService = {
   isAuthenticated: () => {
     return !!localStorage.getItem("token");
   },
+
+  /**
+   * Forgot password - send reset link to email
+   */
+  forgotPassword: async (email) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to send reset email");
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Reset password with reset token
+   */
+  resetPassword: async (resetToken, newPassword, confirmPassword) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          resetToken,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to reset password");
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Reset password error:", error);
+      throw error;
+    }
+  },
 };
 
 export default authService;
