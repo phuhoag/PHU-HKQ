@@ -48,5 +48,5 @@ export const handleValidationErrors = (req, res, next) => {
       })),
     });
   }
-  return next();
+  next();
 };
