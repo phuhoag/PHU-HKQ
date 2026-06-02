@@ -4,11 +4,12 @@ import {
   registerController,
   getCurrentUserController,
   logoutController,
+  forgotPasswordController,
+  resetPasswordController,
 } from "../controllers/auth.controller.js";
 import {
   loginValidator,
   registerValidator,
-  handleValidationErrors,
 } from "../validators/auth.validator.js";
 import {
   authenticateToken,
@@ -18,19 +19,13 @@ import {
 const authRoutes = express.Router();
 
 // Public routes
-authRoutes.post(
-  "/login",
-  loginValidator,
-  handleValidationErrors,
-  loginController,
-);
+authRoutes.post("/login", ...loginValidator, loginController);
 
-authRoutes.post(
-  "/register",
-  registerValidator,
-  handleValidationErrors,
-  registerController,
-);
+authRoutes.post("/register", ...registerValidator, registerController);
+
+authRoutes.post("/forgot-password", forgotPasswordController);
+
+authRoutes.post("/reset-password", resetPasswordController);
 
 // Protected routes
 authRoutes.get("/me", authenticateToken, getCurrentUserController);
