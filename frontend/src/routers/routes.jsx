@@ -1,7 +1,8 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import React from "react";
 import LazyLoading from "../utils/LazyLoading.jsx";
 import ErrorBoundary from "../components/error/ErrorBoundary.jsx";
+import ProtectedRoute from "./ProtectedRoute.jsx";
 
 // Lazy load pages
 const App = React.lazy(() => import("../App.jsx"));
@@ -11,6 +12,9 @@ const LoginPage = React.lazy(() => import("../pages/LoginPage"));
 const RegisterPage = React.lazy(() => import("../pages/RegisterPage"));
 const ForgotPasswordPage = React.lazy(
   () => import("../pages/ForgotPasswordPage"),
+);
+const ResetPasswordPage = React.lazy(
+  () => import("../pages/ResetPasswordPage"),
 );
 const AdminLoginPage = React.lazy(() => import("../pages/AdminLoginPage"));
 const AdminForgotPasswordPage = React.lazy(
@@ -38,9 +42,11 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: (
-          <ErrorBoundary>
-            <LazyLoading children={<HomePage />} />
-          </ErrorBoundary>
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<HomePage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
         ),
       },
       {
@@ -108,6 +114,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/reset-password/:token",
+        element: (
+          <ErrorBoundary>
+            <LazyLoading children={<ResetPasswordPage />} />
+          </ErrorBoundary>
+        ),
+      },
+      {
         path: "/admin/login",
         element: (
           <ErrorBoundary>
@@ -124,11 +138,17 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/admin/dashboard",
+        element: <Navigate to="/dashboard" replace />,
+      },
+      {
         path: "/dashboard",
         element: (
-          <ErrorBoundary>
-            <LazyLoading children={<DashboardPage />} />
-          </ErrorBoundary>
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<DashboardPage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
         ),
       },
       {
