@@ -5,9 +5,29 @@ import {
   logoutService,
   forgotPasswordService,
   resetPasswordService,
+  googleAuthService,
 } from "../services/auth.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { validationResult } from "express-validator";
+
+export const googleAuthController = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+
+  if (!credential) {
+    return res.status(400).json({
+      success: false,
+      message: "Google credential is required",
+    });
+  }
+
+  const result = await googleAuthService(credential);
+
+  return res.status(200).json({
+    success: true,
+    message: "Đăng nhập Google thành công",
+    data: result,
+  });
+});
 
 export const loginController = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
