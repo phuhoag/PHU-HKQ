@@ -3,6 +3,9 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "../utils/emailService.js";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Login service
 export const loginService = async (email, password) => {
@@ -136,16 +139,91 @@ export const logoutService = async (token) => {
   return { success: true };
 };
 
+// Google OAuth service
+export const googleAuthService = async (credential) => {
+  try {
+    // Verify Google ID token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture, given_name, family_name } = payload;
+
+    // Check if user already exists
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+    if (user) {
+      // Update googleId nếu user đăng ký bình thường trước đó
+      if (!user.googleId) {
+        user.googleId = googleId;
+        if (picture && !user.avatar) user.avatar = picture;
+        await user.save();
+      }
+
+      if (!user.is_active) {
+        throw new Error("Tài khoản đã bị vô hiệu hóa");
+      }
+    } else {
+      // Tạo user mới từ Google
+      user = new User({
+        email,
+        googleId,
+        first_name: given_name || name?.split(" ")[0] || "Google",
+        last_name: family_name || name?.split(" ").slice(1).join(" ") || "User",
+        full_name: name,
+        avatar: picture,
+        phone: "",
+        is_active: true,
+        role: "customer",
+      });
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "7d" },
+    );
+
+    const userResponse = {
+      id: user._id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      full_name: user.full_name,
+      phone: user.phone,
+      avatar: user.avatar,
+      role: user.role,
+      is_active: user.is_active,
+    };
+
+    return { user: userResponse, token };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 // Forgot password service
 export const forgotPasswordService = async (email) => {
   try {
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Find user by email (select reset fields so they are included on save)
+    const user = await User.findOne({ email }).select(
+      "+passwordResetToken +passwordResetExpiry",
+    );
     if (!user) {
       // Don't reveal if email exists or not for security
-      throw new Error(
-        "Nếu email tồn tại, bạn sẽ nhận được email đặt lại mật khẩu",
-      );
+      // Return success message without throwing error
+      return {
+        success: true,
+        message: "Nếu email tồn tại, bạn sẽ nhận được email đặt lại mật khẩu",
+      };
     }
 
     // Generate reset token (random 32 bytes)
