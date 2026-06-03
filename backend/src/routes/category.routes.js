@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getCategories,
+  getCategoriesWithProductCount,
   getCategoryById,
   createCategory,
   updateCategory,
@@ -15,10 +16,17 @@ const router = express.Router();
 
 /**
  * @route  GET /api/categories
- * @desc   Lấy danh sách tất cả danh mục
+ * @desc   Lấy danh sách tất cả danh mục (hỗ trợ search + pagination)
  * @access Public
  */
 router.get("/", getCategories);
+
+/**
+ * @route  GET /api/categories/with-count
+ * @desc   Lấy danh mục kèm số lượng sản phẩm
+ * @access Public
+ */
+router.get("/with-count", getCategoriesWithProductCount);
 
 /**
  * @route  GET /api/categories/:id
