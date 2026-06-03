@@ -72,6 +72,38 @@ export const authService = {
   },
 
   /**
+   * Google OAuth2 Login
+   */
+  googleLogin: async (credential) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ credential }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Google login failed");
+      }
+
+      // Store token in localStorage
+      if (data.data?.token) {
+        localStorage.setItem("token", data.data.token);
+        localStorage.setItem("user", JSON.stringify(data.data.user));
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Google login error:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Get current user info
    */
   getCurrentUser: async () => {
