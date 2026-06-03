@@ -6,6 +6,7 @@ import {
   logoutController,
   forgotPasswordController,
   resetPasswordController,
+  googleAuthController,
 } from "../controllers/auth.controller.js";
 import {
   loginValidator,
@@ -27,9 +28,13 @@ authRoutes.post("/forgot-password", forgotPasswordController);
 
 authRoutes.post("/reset-password", resetPasswordController);
 
+// Google OAuth
+authRoutes.post("/google", googleAuthController);
+
 // Protected routes
 authRoutes.get("/me", authenticateToken, getCurrentUserController);
 
 authRoutes.post("/logout", authenticateToken, logoutController);
 
 export default authRoutes;
+
