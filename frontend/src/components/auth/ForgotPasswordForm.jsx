@@ -55,14 +55,14 @@ export default function ForgotPasswordForm() {
       {!submitted ? (
         <>
           <div className="mb-stack-lg">
+            {/* API Error Message */}
+            {apiError && (
+              <div className="mb-stack-md p-3 bg-error/10 border border-error rounded-lg flex items-center gap-2">
+                <MdError className="text-error text-[20px]" />
+                <p className="text-error text-sm">{apiError}</p>
+              </div>
+            )}
             <h1 className="font-h1 text-h1 text-primary mb-2">
-              {/* API Error Message */}
-              {apiError && (
-                <div className="mb-stack-md p-3 bg-error/10 border border-error rounded-lg flex items-center gap-2">
-                  <MdError className="text-error text-[20px]" />
-                  <p className="text-error text-sm">{apiError}</p>
-                </div>
-              )}
               Reset Your Password
             </h1>
             <p className="font-body-md text-on-surface-variant">
