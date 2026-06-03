@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   MdDashboard,
   MdShoppingCart,
@@ -11,6 +12,20 @@ import {
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const userString = localStorage.getItem("user");
+    if (userString) {
+      try {
+        setCurrentUser(JSON.parse(userString));
+      } catch {
+        setCurrentUser(null);
+      }
+    }
+  }, []);
 
   const menuItems = [
     { icon: MdDashboard, label: "Dashboard", href: "/dashboard" },
@@ -20,6 +35,34 @@ export default function Sidebar() {
     { icon: MdPeople, label: "Customers", href: "/customers" },
     { icon: MdSettings, label: "Settings", href: "/settings" },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("rememberMe");
+    navigate("/login");
+  };
+
+  const getInitials = () => {
+    if (!currentUser) return "?";
+    const first = currentUser.first_name?.[0] || "";
+    const last = currentUser.last_name?.[0] || "";
+    return (first + last).toUpperCase() || currentUser.email?.[0]?.toUpperCase() || "U";
+  };
+
+  const getDisplayName = () => {
+    if (!currentUser) return "User";
+    if (currentUser.first_name || currentUser.last_name) {
+      return `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim();
+    }
+    return currentUser.email || "User";
+  };
+
+  const getRoleLabel = () => {
+    if (!currentUser) return "";
+    if (currentUser.role === "admin") return "Super Admin";
+    return "Customer";
+  };
 
   return (
     <aside
@@ -57,18 +100,19 @@ export default function Sidebar() {
       <nav className="p-4 space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const isActive = location.pathname === item.href;
           return (
             <a
               key={item.label}
               href={item.href}
               className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${
-                item.label === "Dashboard"
+                isActive
                   ? "bg-primary text-surface text-body-md font-body-md"
                   : "text-on-surface hover:bg-surface-container"
               }`}
             >
               <Icon size={24} />
-              <span className={isCollapsed && "hidden"}>{item.label}</span>
+              <span className={isCollapsed ? "hidden" : ""}>{item.label}</span>
             </a>
           );
         })}
@@ -77,25 +121,26 @@ export default function Sidebar() {
       {/* User Profile Section */}
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-outline-variant">
         <div className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-surface-container transition">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-surface text-h4 font-h4">
-            JD
+          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-surface text-h4 font-h4 flex-shrink-0">
+            {getInitials()}
           </div>
-          <div className={isCollapsed && "hidden"}>
-            <p className="text-body-md font-body-md text-on-background">
-              John Doe
+          <div className={isCollapsed ? "hidden" : ""}>
+            <p className="text-body-md font-body-md text-on-background truncate max-w-[130px]">
+              {getDisplayName()}
             </p>
-            <p className="text-body-sm text-on-surface-variant">Super Admin</p>
+            <p className="text-body-sm text-on-surface-variant">{getRoleLabel()}</p>
           </div>
         </div>
 
         {/* Logout Button */}
         <button
+          onClick={handleLogout}
           className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-error hover:bg-error/10 transition mt-2 ${
             isCollapsed && "justify-center"
           }`}
         >
           <MdLogout size={24} />
-          <span className={isCollapsed && "hidden"}>Logout</span>
+          <span className={isCollapsed ? "hidden" : ""}>Logout</span>
         </button>
       </div>
     </aside>

@@ -12,7 +12,7 @@ export default function ProductGrid({ products }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-gutter">
       {products.map((product, index) => (
-        <ProductCard key={product.id} product={product} badge={badges[index]} />
+        <ProductCard key={product._id || product.id} product={product} badge={badges[index]} />
       ))}
     </div>
   );

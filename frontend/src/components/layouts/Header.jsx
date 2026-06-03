@@ -19,10 +19,20 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
-  const { getTotalItems } = useCart();
+  const { getTotalItems, onLogout } = useCart();
   const { getWishlistCount } = useWishlist();
   const cartItemCount = getTotalItems();
   const wishlistCount = getWishlistCount();
+
+  // Lấy thông tin user từ localStorage
+  const storedUser = localStorage.getItem("user");
+  const currentUser = storedUser ? JSON.parse(storedUser) : null;
+  const displayName = currentUser?.full_name
+    || (currentUser?.first_name && currentUser?.last_name
+        ? `${currentUser.first_name} ${currentUser.last_name}`
+        : currentUser?.first_name || currentUser?.email || "User");
+  const displayEmail = currentUser?.email || "";
+  const displayAvatar = currentUser?.avatar || null;
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -37,8 +47,10 @@ export default function Header() {
   }, []);
 
   const handleLogout = () => {
-    // TODO: Implement actual logout logic
-    localStorage.removeItem("userToken");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("cart_guest");
+    onLogout();
     setShowUserMenu(false);
     navigate("/login");
   };
@@ -130,7 +142,15 @@ export default function Header() {
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="p-2 hover:bg-surface-container-low dark:hover:bg-on-secondary-fixed-variant transition-all rounded-full active:scale-90 flex items-center gap-1"
               >
-                <MdOutlineAccountCircle className="text-on-surface" size={24} />
+                {displayAvatar ? (
+                  <img
+                    src={displayAvatar}
+                    alt={displayName}
+                    className="w-8 h-8 rounded-full object-cover border-2 border-primary/30"
+                  />
+                ) : (
+                  <MdOutlineAccountCircle className="text-on-surface" size={24} />
+                )}
                 <MdExpandMore
                   className={`text-on-surface transition-transform ${
                     showUserMenu ? "rotate-180" : ""
@@ -141,26 +161,43 @@ export default function Header() {
 
               {/* Dropdown Menu */}
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-surface border border-outline-variant rounded-lg shadow-lg py-1 z-50">
+                <div className="absolute right-0 mt-2 w-64 bg-surface border border-outline-variant rounded-lg shadow-lg py-1 z-50">
                   {/* User Info */}
-                  <div className="px-4 py-3 border-b border-outline-variant">
-                    <p className="text-body-sm font-body-sm text-on-surface">
-                      Welcome Back!
-                    </p>
-                    <p className="text-label-sm text-on-surface-variant">
-                      user@example.com
-                    </p>
+                  <div className="px-4 py-3 border-b border-outline-variant flex items-center gap-3">
+                    {displayAvatar ? (
+                      <img
+                        src={displayAvatar}
+                        alt={displayName}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-primary/30 flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <span className="text-primary font-bold text-body-md">
+                          {displayName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-body-sm font-bold text-on-surface truncate">
+                        {displayName}
+                      </p>
+                      <p className="text-label-sm text-on-surface-variant truncate">
+                        {displayEmail}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Menu Items */}
-                  <Link
-                    to="/dashboard"
-                    onClick={() => setShowUserMenu(false)}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors text-on-surface"
-                  >
-                    <MdDashboard size={20} className="text-primary" />
-                    <span className="text-body-sm font-body-sm">Dashboard</span>
-                  </Link>
+                  {currentUser?.role === "admin" && (
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors text-on-surface"
+                    >
+                      <MdDashboard size={20} className="text-primary" />
+                      <span className="text-body-sm font-body-sm">Dashboard</span>
+                    </Link>
+                  )}
 
                   <Link
                     to="/profile"

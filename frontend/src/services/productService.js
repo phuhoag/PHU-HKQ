@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 /**
  * Product Service
@@ -7,7 +8,78 @@ const API_BASE_URL = "http://localhost:5000/api";
 
 export const productService = {
   /**
-   * Get all products
+   * Get products with filters, search, pagination
+   * Returns normalized: { success, data: { products, pagination } }
+   */
+  getProducts: async (params = {}) => {
+    try {
+      const query = new URLSearchParams();
+      if (params.page) query.set("page", params.page);
+      if (params.limit) query.set("limit", params.limit);
+      if (params.search) query.set("search", params.search);
+      if (params.category) query.set("category", params.category);
+      if (params.minPrice) query.set("minPrice", params.minPrice);
+      if (params.maxPrice) query.set("maxPrice", params.maxPrice);
+      if (params.sort) {
+        const sortMap = {
+          newest: "-createdAt",
+          oldest: "createdAt",
+          "price-low": "price",
+          "price-high": "-price",
+          "name-asc": "name",
+          "name-desc": "-name",
+        };
+        query.set("sort", sortMap[params.sort] || "-createdAt");
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/products?${query.toString()}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch products");
+      const data = await response.json();
+
+      // Normalize to shape ProductCatalog.jsx expects: res.data.products & res.data.pagination
+      return {
+        success: data.success,
+        message: data.message,
+        data: {
+          products: data.data || [],
+          pagination: data.pagination || {
+            currentPage: parseInt(params.page) || 1,
+            totalPages: 1,
+            totalItems: (data.data || []).length,
+          },
+        },
+      };
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      return {
+        success: false,
+        message: error.message,
+        data: {
+          products: [],
+          pagination: { currentPage: 1, totalPages: 1, totalItems: 0 },
+        },
+      };
+    }
+  },
+
+  /**
+   * Get all categories
+   */
+  getCategories: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories`);
+      if (!response.ok) throw new Error("Failed to fetch categories");
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      return { success: false, data: [] };
+    }
+  },
+
+  /**
+   * Get all products (no filter)
    */
   getAllProducts: async () => {
     try {
@@ -21,7 +93,7 @@ export const productService = {
   },
 
   /**
-   * Get product by ID with images
+   * Get product by ID
    */
   getProductById: async (id) => {
     try {
@@ -105,9 +177,7 @@ export const productService = {
         `${API_BASE_URL}/products/${productId}/images`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(imageData),
         },
       );
@@ -126,9 +196,7 @@ export const productService = {
     try {
       const response = await fetch(
         `${API_BASE_URL}/products/${productId}/images/${imageId}`,
-        {
-          method: "DELETE",
-        },
+        { method: "DELETE" },
       );
       if (!response.ok) throw new Error("Failed to delete image");
       return await response.json();
@@ -145,9 +213,7 @@ export const productService = {
     try {
       const response = await fetch(
         `${API_BASE_URL}/products/${productId}/images/${imageId}/set-primary`,
-        {
-          method: "POST",
-        },
+        { method: "POST" },
       );
       if (!response.ok) throw new Error("Failed to set primary image");
       return await response.json();

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   MdSettings,
   MdNotifications,
@@ -7,6 +7,7 @@ import {
   MdPrivacyTip,
   MdToggleOn,
   MdToggleOff,
+  MdEmail,
 } from "react-icons/md";
 import Header from "../components/layouts/Header.jsx";
 import Footer from "../components/layouts/Footer.jsx";
@@ -22,8 +23,147 @@ export default function SettingsPage() {
     dataCollection: true,
   });
 
+  const [smtpSettings, setSmtpSettings] = useState({
+    smtpEmail: "",
+    smtpPassword: "",
+    smtpHost: "smtp.gmail.com",
+    smtpPort: 587,
+  });
+
+  const [loadingSmtp, setLoadingSmtp] = useState(false);
+  const [messageSmtp, setMessageSmtp] = useState("");
+  const [errorSmtp, setErrorSmtp] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [testingSmtp, setTestingSmtp] = useState(false);
+
+  const API_URL = import.meta.env.VITE_API_URL;
+  const token = localStorage.getItem("token");
+
+  // Fetch SMTP settings on mount
+  useEffect(() => {
+    const fetchSmtpSettings = async () => {
+      try {
+        const response = await fetch(`${API_URL}/user/settings/smtp`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const result = await response.json();
+        if (result.success) {
+          setSmtpSettings((prev) => ({
+            ...prev,
+            smtpEmail: result.data.smtpEmail || "",
+            smtpHost: result.data.smtpHost || "smtp.gmail.com",
+            smtpPort: result.data.smtpPort || 587,
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching SMTP settings:", err);
+      }
+    };
+
+    fetchSmtpSettings();
+  }, []);
+
   const toggleSetting = (key) => {
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSmtpChange = (e) => {
+    const { name, value } = e.target;
+    setSmtpSettings((prev) => ({
+      ...prev,
+      [name]: name === "smtpPort" ? parseInt(value) : value,
+    }));
+  };
+
+  const handleSmtpSave = async (e) => {
+    e.preventDefault();
+    setLoadingSmtp(true);
+    setMessageSmtp("");
+    setErrorSmtp("");
+
+    try {
+      const response = await fetch(`${API_URL}/user/settings/smtp`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(smtpSettings),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMessageSmtp("✅ Cấu hình SMTP đã được lưu thành công!");
+        setTimeout(() => setMessageSmtp(""), 3000);
+      } else {
+        setErrorSmtp(result.message || "Lỗi khi lưu cấu hình");
+      }
+    } catch (err) {
+      setErrorSmtp("Lỗi: " + err.message);
+    } finally {
+      setLoadingSmtp(false);
+    }
+  };
+
+  const handleTestSmtpConnection = async () => {
+    setTestingSmtp(true);
+    setMessageSmtp("");
+    setErrorSmtp("");
+
+    try {
+      const response = await fetch(`${API_URL}/user/settings/smtp/test`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(smtpSettings),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setMessageSmtp("✅ " + result.message);
+        setTimeout(() => setMessageSmtp(""), 3000);
+      } else {
+        setErrorSmtp(result.message || "Lỗi khi kiểm tra kết nối");
+      }
+    } catch (err) {
+      setErrorSmtp("Lỗi: " + err.message);
+    } finally {
+      setTestingSmtp(false);
+    }
+  };
+
+  const handleClearSmtp = async () => {
+    if (confirm("Bạn có chắc chắn muốn xóa cấu hình SMTP?")) {
+      try {
+        const response = await fetch(`${API_URL}/user/settings/smtp`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setSmtpSettings({
+            smtpEmail: "",
+            smtpPassword: "",
+            smtpHost: "smtp.gmail.com",
+            smtpPort: 587,
+          });
+          setMessageSmtp("✅ Cấu hình SMTP đã được xóa");
+          setTimeout(() => setMessageSmtp(""), 3000);
+        }
+      } catch (err) {
+        setErrorSmtp("Lỗi: " + err.message);
+      }
+    }
   };
 
   return (
@@ -133,6 +273,146 @@ export default function SettingsPage() {
                     <button className="px-4 py-2 bg-primary text-on-primary rounded-lg text-body-sm font-body-sm hover:bg-primary/90 transition">
                       Change Password
                     </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* SMTP Email Configuration */}
+              <div className="bg-surface border border-outline-variant rounded-xl p-6">
+                <h2 className="text-h2 font-h2 text-on-surface mb-6 flex items-center gap-3">
+                  <MdEmail size={24} className="text-primary" />
+                  Email SMTP Configuration
+                </h2>
+
+                <div className="space-y-4">
+                  {messageSmtp && (
+                    <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded text-body-sm">
+                      {messageSmtp}
+                    </div>
+                  )}
+
+                  {errorSmtp && (
+                    <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded text-body-sm">
+                      {errorSmtp}
+                    </div>
+                  )}
+
+                  <p className="text-label-sm text-on-surface-variant mb-4">
+                    Configure your SMTP email to send password reset emails from your email account.
+                  </p>
+
+                  <form onSubmit={handleSmtpSave} className="space-y-4">
+                    {/* SMTP Email */}
+                    <div>
+                      <label className="block text-label-sm text-on-surface mb-2">
+                        Email SMTP *
+                      </label>
+                      <input
+                        type="email"
+                        name="smtpEmail"
+                        value={smtpSettings.smtpEmail}
+                        onChange={handleSmtpChange}
+                        placeholder="your-email@gmail.com"
+                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary text-body-sm"
+                      />
+                    </div>
+
+                    {/* SMTP Password */}
+                    <div>
+                      <label className="block text-label-sm text-on-surface mb-2">
+                        SMTP Password / App Password *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="smtpPassword"
+                          value={smtpSettings.smtpPassword}
+                          onChange={handleSmtpChange}
+                          placeholder="Gmail App Password"
+                          className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary text-body-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-2.5 text-on-surface-variant"
+                        >
+                          {showPassword ? "🙈" : "👁️"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* SMTP Host */}
+                    <div>
+                      <label className="block text-label-sm text-on-surface mb-2">
+                        SMTP Host *
+                      </label>
+                      <input
+                        type="text"
+                        name="smtpHost"
+                        value={smtpSettings.smtpHost}
+                        onChange={handleSmtpChange}
+                        placeholder="smtp.gmail.com"
+                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary text-body-sm"
+                      />
+                    </div>
+
+                    {/* SMTP Port */}
+                    <div>
+                      <label className="block text-label-sm text-on-surface mb-2">
+                        SMTP Port *
+                      </label>
+                      <input
+                        type="number"
+                        name="smtpPort"
+                        value={smtpSettings.smtpPort}
+                        onChange={handleSmtpChange}
+                        placeholder="587"
+                        className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary text-body-sm"
+                      />
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex gap-2 pt-4">
+                      <button
+                        type="submit"
+                        disabled={loadingSmtp}
+                        className="px-4 py-2 bg-primary text-on-primary rounded-lg text-body-sm font-body-sm hover:bg-primary/90 disabled:opacity-50 transition"
+                      >
+                        {loadingSmtp ? "Saving..." : "💾 Save Config"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleTestSmtpConnection}
+                        disabled={testingSmtp || !smtpSettings.smtpEmail}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg text-body-sm font-body-sm hover:bg-green-700 disabled:opacity-50 transition"
+                      >
+                        {testingSmtp ? "Testing..." : "✔️ Test Connection"}
+                      </button>
+
+                      {smtpSettings.smtpEmail && (
+                        <button
+                          type="button"
+                          onClick={handleClearSmtp}
+                          className="px-4 py-2 bg-red-600 text-white rounded-lg text-body-sm font-body-sm hover:bg-red-700 transition"
+                        >
+                          🗑️ Clear
+                        </button>
+                      )}
+                    </div>
+                  </form>
+
+                  <div className="mt-4 p-3 bg-primary-container rounded text-on-primary-container text-label-sm">
+                    <p className="font-body-sm mb-2">📧 How to setup for Gmail:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-label-sm">
+                      <li>Login to your Google Account</li>
+                      <li>Visit myaccount.google.com/apppasswords</li>
+                      <li>Select Mail and Windows Computer</li>
+                      <li>Copy the 16-character app password</li>
+                      <li>Paste into "SMTP Password" field above</li>
+                      <li>Click "Test Connection" to verify</li>
+                      <li>Click "Save Config"</li>
+                    </ol>
                   </div>
                 </div>
               </div>

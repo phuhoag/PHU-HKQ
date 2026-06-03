@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MdVisibility,
   MdVisibilityOff,
@@ -7,14 +8,21 @@ import {
   MdError,
 } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import authService from "../../services/authService";
+import { useCart } from "../../context/CartContext.jsx";
 
 export default function LoginForm() {
+  const navigate = useNavigate();
+  const { onLogin } = useCart();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -44,17 +52,42 @@ export default function LoginForm() {
     }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Login attempt:", { email, password, rememberMe });
+    setApiError("");
+
+    try {
+      const result = await authService.login(email, password);
+
+      if (result.success) {
+        await onLogin();
+        navigate("/");
+      }
+    } catch (error) {
+      setApiError(error.message || "Login failed. Please try again.");
+      console.error("Login error:", error);
+    } finally {
       setLoading(false);
-      alert("Login successful! (This is a demo)");
-    }, 1000);
+    }
   };
 
-  const handleOAuthClick = (provider) => {
-    console.log(`${provider} OAuth login`);
-    alert(`${provider} login coming soon!`);
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setGoogleLoading(true);
+    setApiError("");
+    try {
+      const result = await authService.googleLogin(credentialResponse.credential);
+      if (result.success) {
+        await onLogin();
+        navigate("/");
+      }
+    } catch (error) {
+      setApiError(error.message || "Đăng nhập Google thất bại. Vui lòng thử lại.");
+      console.error("Google login error:", error);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setApiError("Đăng nhập Google thất bại. Vui lòng thử lại.");
   };
 
   return (
@@ -65,6 +98,14 @@ export default function LoginForm() {
           Access your dashboard with secure verification.
         </p>
       </div>
+
+      {/* API Error Message */}
+      {apiError && (
+        <div className="mb-stack-md p-3 bg-error/10 border border-error rounded-lg flex items-center gap-2">
+          <MdError className="text-error text-[20px]" />
+          <p className="text-error text-sm">{apiError}</p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-stack-md">
         {/* Email Input */}
@@ -195,31 +236,31 @@ export default function LoginForm() {
             OR CONTINUE WITH
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-stack-sm">
-          <button
-            type="button"
-            onClick={() => handleOAuthClick("Google")}
-            className="flex items-center justify-center gap-2 py-3 px-4 border border-outline-variant rounded-lg font-button text-button text-on-surface-variant hover:bg-surface-container-low transition-all"
-          >
-            <img
-              alt="Google"
-              className="w-5 h-5"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuADDQqyxAZMavihoVbu2Ah-9wYvfd1F5OrwzAv0JM6uAgQmls6heD3862vLO5I0qRqThEBAVK2eM9n05m4qR7OMF8JGPADStcFj2LGYLGXYrdl7kmUF_8vaQukypuZTQwiVzAQf5MVEbzc2hIYod2X523k_CVKUcwuoSoyuFEo9evxeSXhOFhkKsOuNULTjQmlcCSxa164xJXY41Zer6UeNyuuBZOHBapGgLUgWCRcsdP3zQHN_f9FItGKB7zVF2NeC68_T6Wri3ud8"
-            />
-            Google
-          </button>
-          <button
-            type="button"
-            onClick={() => handleOAuthClick("GitHub")}
-            className="flex items-center justify-center gap-2 py-3 px-4 border border-outline-variant rounded-lg font-button text-button text-on-surface-variant hover:bg-surface-container-low transition-all"
-          >
-            <img
-              alt="GitHub"
-              className="w-5 h-5"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGdq2Fe6F5eXiZ2tfl7LRdmovTCDw0yKhAi_JXi1Nz4Why64B8bp2YbVejVNFk1sbybUYY3uphkGmvspyFs__LCB-o7yRs1MSddBQoWjCHQYZErj1VYGoo0svwusVR0P0jcYfEQlDuutKKZ0MAsEFkqzV297k6hjobDJQ6oriym4a4SIr67HjM3z2QTd4V6idgxh2EkIMX-E-pL5Uh0yDWqJH2m4DHpfkvsO-CnY_aoOSdVSaHAzrv7YoB6dLAdoCg9eJ7u5ri7_tN"
-            />
-            GitHub
-          </button>
+
+        {/* Google Login Button */}
+        <div className="flex flex-col items-center gap-3">
+          {googleLoading ? (
+            <div className="w-full flex items-center justify-center gap-2 py-3 px-4 border border-outline-variant rounded-lg text-on-surface-variant bg-surface-container-low">
+              <svg className="animate-spin h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span className="font-button text-button">Đang đăng nhập...</span>
+            </div>
+          ) : (
+            <div className="w-full flex justify-center [&>div]:w-full [&_iframe]:w-full">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="large"
+                text="signin_with"
+                shape="rectangular"
+                logo_alignment="center"
+                width="100%"
+              />
+            </div>
+          )}
         </div>
       </div>
 

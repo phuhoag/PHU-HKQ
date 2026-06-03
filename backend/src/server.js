@@ -1,59 +1,61 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { testConnection } from "./config/database.js";
-import productRoutes from "./routes/productRoutes.js";
+import connectDB from "./config/database.js";
+import mainRoutes from "./routes/index.js";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const port = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+connectDB();
+
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:3001",
+    ],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.get("/api", (req, res) => {
+app.get("/", (req, res) => {
   res.json({ message: "Ecommerce API" });
 });
 
-// Health check endpoint
+app.use("/api", mainRoutes);
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "Server is running" });
 });
 
-// Product routes
-app.use("/api/products", productRoutes);
-
-// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
-});
+  console.error("Error:", err);
 
-// Start server with database connection test
-const startServer = async () => {
-  // Test database connection
-  const isConnected = await testConnection();
-
-  if (!isConnected) {
-    console.error(
-      "❌ Could not establish database connection. Server not starting.",
-    );
-    process.exit(1);
+  // Handle validation errors
+  if (err.status === 400) {
+    return res.status(400).json({
+      success: false,
+      message: err.message || "Validation error",
+      errors: err.errors,
+    });
   }
 
-  app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-    console.log(`📍 API available at http://localhost:${PORT}/api`);
+  // Default error response
+  return res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Something went wrong!",
+    error: process.env.NODE_ENV === "development" ? err.message : undefined,
   });
-};
-
-startServer().catch((error) => {
-  console.error("Failed to start server:", error);
-  process.exit(1);
 });
 
-export default app;
+app.listen(port, () => {
+  console.log(` Server running on http://localhost:${port}`);
+  console.log(` API available at http://localhost:${port}/api`);
+});

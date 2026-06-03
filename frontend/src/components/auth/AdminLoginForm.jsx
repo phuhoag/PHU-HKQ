@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MdVisibility,
   MdVisibilityOff,
@@ -15,6 +16,8 @@ export default function AdminLoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const navigate = useNavigate();
 
   const validateForm = () => {
     const newErrors = {};
@@ -44,14 +47,62 @@ export default function AdminLoginForm() {
     }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Admin login attempt:", { email, password, rememberMe });
+    setMessage({ type: "", text: "" });
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage({
+          type: "error",
+          text: data.message || "Login failed",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Check if user is admin
+      if (data.data.user.role !== "admin") {
+        setMessage({
+          type: "error",
+          text: "❌ Bạn không có quyền truy cập Admin Portal",
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Store token and user info
+      localStorage.setItem("token", data.data.token);
+      localStorage.setItem("user", JSON.stringify(data.data.user));
+
+      if (rememberMe) {
+        localStorage.setItem("rememberMe", "true");
+      }
+
+      setMessage({
+        type: "success",
+        text: "✅ Đăng nhập thành công!",
+      });
+
+      // Redirect to dashboard after 1.5 seconds
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: "Lỗi kết nối: " + error.message,
+      });
       setLoading(false);
-      alert("Admin login successful! (This is a demo)");
-      // In production, redirect to dashboard
-      // window.location.href = "/dashboard";
-    }, 1000);
+    }
   };
 
   return (
@@ -153,6 +204,19 @@ export default function AdminLoginForm() {
             </p>
           )}
         </div>
+
+        {/* Message Display */}
+        {message.text && (
+          <div
+            className={`p-4 rounded-lg font-body-md text-body-md ${
+              message.type === "success"
+                ? "bg-success/10 text-success border border-success/20"
+                : "bg-error/10 text-error border border-error/20"
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
 
         {/* Remember Me Checkbox */}
         <div className="flex items-center gap-2 py-2">

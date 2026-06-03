@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { MdEmail, MdError, MdArrowBack, MdCheckCircle } from "react-icons/md";
 import { Link } from "react-router-dom";
+import authService from "../../services/authService";
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const validateForm = () => {
     const newErrors = {};
@@ -30,12 +32,22 @@ export default function ForgotPasswordForm() {
     }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Password reset request for:", email);
-      setSubmitted(true);
+    setApiError("");
+
+    try {
+      const result = await authService.forgotPassword(email);
+
+      if (result.success) {
+        setSubmitted(true);
+      }
+    } catch (error) {
+      setApiError(
+        error.message || "Failed to send reset email. Please try again.",
+      );
+      console.error("Forgot password error:", error);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -43,6 +55,13 @@ export default function ForgotPasswordForm() {
       {!submitted ? (
         <>
           <div className="mb-stack-lg">
+            {/* API Error Message */}
+            {apiError && (
+              <div className="mb-stack-md p-3 bg-error/10 border border-error rounded-lg flex items-center gap-2">
+                <MdError className="text-error text-[20px]" />
+                <p className="text-error text-sm">{apiError}</p>
+              </div>
+            )}
             <h1 className="font-h1 text-h1 text-primary mb-2">
               Reset Your Password
             </h1>
