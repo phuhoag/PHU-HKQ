@@ -13,21 +13,25 @@ const userSchema = mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       minlength: 6,
       select: false,
     },
+    googleId: {
+      type: String,
+      sparse: true,
+    },
     first_name: {
       type: String,
-      required: true,
+      required: false,
     },
     last_name: {
       type: String,
-      required: true,
+      required: false,
     },
     phone: {
       type: String,
-      required: true,
+      required: false,
     },
     avatar: {
       type: String,
