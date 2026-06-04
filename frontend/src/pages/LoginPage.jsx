@@ -14,9 +14,6 @@ export default function LoginPage() {
             />
             <div className="absolute inset-0 bg-primary/10 mix-blend-multiply"></div>
             <div className="absolute inset-0 flex flex-col justify-end p-margin-desktop bg-gradient-to-t from-primary/80 to-transparent">
-              <h2 className="font-h2 text-h2 text-on-primary mb-stack-sm">
-                TechStore Admin Portal
-              </h2>
               <p className="font-body-md text-body-md text-on-primary/90">
                 Experience seamless session management and secure JWT-verified
                 access for all your enterprise needs.
