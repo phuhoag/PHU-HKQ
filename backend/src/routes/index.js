@@ -3,8 +3,10 @@ import authRoutes from "./auth.routes.js";
 import adminRoutes from "./admin.routes.js";
 import userRoutes from "./user.routes.js";
 import productRoutes from "./product.routes.js";
+import productImageRoutes from "./product-image.routes.js";
 import categoryRoutes from "./category.routes.js";
 import cartRoutes from "./cart.routes.js";
+import orderRoutes from "./order.routes.js";
 
 const router = express.Router();
 
@@ -18,6 +20,9 @@ router.use("/auth", authRoutes);
 // Product routes (public - xem sản phẩm không cần login)
 router.use("/products", productRoutes);
 
+// Product image routes (gallery ảnh sản phẩm)
+router.use("/products/:productId/images", productImageRoutes);
+
 // Category routes (public)
 router.use("/categories", categoryRoutes);
 
@@ -30,6 +35,9 @@ router.use("/user", userRoutes);
 
 // Cart routes (cần authentication)
 router.use("/cart", cartRoutes);
+
+// Order routes (cần authentication)
+router.use("/orders", orderRoutes);
 
 // ============================================
 // ADMIN ROUTES (cần admin role)
