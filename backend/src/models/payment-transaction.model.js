@@ -38,7 +38,12 @@ const paymentTransactionSchema = mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
     },
   },
-  { timestamps: true, versionKey: false },
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: { getters: true },
+    toObject: { getters: true },
+  },
 );
 
 const PaymentTransaction = mongoose.model(
