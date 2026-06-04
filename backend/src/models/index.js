@@ -1,6 +1,7 @@
 import User from "./user.model.js";
 import Category from "./category.model.js";
 import Product from "./product.model.js";
+import ProductImage from "./product-image.model.js";
 import Order from "./order.model.js";
 import OrderItem from "./order-item.model.js";
 import Cart from "./cart.model.js";
@@ -13,6 +14,7 @@ export {
   User,
   Category,
   Product,
+  ProductImage,
   Order,
   OrderItem,
   Cart,
