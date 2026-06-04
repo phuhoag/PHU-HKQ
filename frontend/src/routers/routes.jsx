@@ -27,8 +27,12 @@ const ProductDetailPage = React.lazy(
 const DashboardPage = React.lazy(() => import("../pages/DashboardPage"));
 const CartPage = React.lazy(() => import("../pages/CartPage"));
 const WishlistPage = React.lazy(() => import("../pages/WishlistPage"));
+const CheckoutPage = React.lazy(() => import("../pages/CheckoutPage"));
+const OrdersPage = React.lazy(() => import("../pages/OrdersPage"));
+const OrderDetailPage = React.lazy(() => import("../pages/OrderDetailPage"));
 const ProfilePage = React.lazy(() => import("../pages/ProfilePage"));
 const SettingsPage = React.lazy(() => import("../pages/SettingsPage"));
+
 
 const router = createBrowserRouter([
   {
@@ -180,6 +184,30 @@ const router = createBrowserRouter([
         element: (
           <ErrorBoundary>
             <LazyLoading children={<SettingsPage />} />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/checkout",
+        element: (
+          <ErrorBoundary>
+            <LazyLoading children={<CheckoutPage />} />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/orders",
+        element: (
+          <ErrorBoundary>
+            <LazyLoading children={<OrdersPage />} />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/orders/:orderId",
+        element: (
+          <ErrorBoundary>
+            <LazyLoading children={<OrderDetailPage />} />
           </ErrorBoundary>
         ),
       },
