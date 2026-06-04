@@ -222,6 +222,142 @@ export const productService = {
       throw error;
     }
   },
+
+  // ============================================================
+  // PRODUCT IMAGES API
+  // ============================================================
+
+  /**
+   * Lấy tất cả ảnh gallery của sản phẩm
+   */
+  getProductImages: async (productId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/${productId}/images`);
+      if (!response.ok) throw new Error("Failed to fetch product images");
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching product images:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Thêm ảnh vào gallery sản phẩm (Admin)
+   * @param {string} productId
+   * @param {{ image_url, alt_text?, display_order?, is_primary? }} imageData
+   */
+  addProductImage: async (productId, imageData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/products/${productId}/images`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(imageData),
+      });
+      if (!response.ok) throw new Error("Failed to add product image");
+      return await response.json();
+    } catch (error) {
+      console.error("Error adding product image:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Cập nhật ảnh (Admin)
+   */
+  updateProductImage: async (productId, imageId, imageData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_BASE_URL}/products/${productId}/images/${imageId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(imageData),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to update product image");
+      return await response.json();
+    } catch (error) {
+      console.error("Error updating product image:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Đặt ảnh làm ảnh chính (Admin)
+   */
+  setPrimaryImage: async (productId, imageId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_BASE_URL}/products/${productId}/images/${imageId}/set-primary`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to set primary image");
+      return await response.json();
+    } catch (error) {
+      console.error("Error setting primary image:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Xóa ảnh khỏi gallery (Admin)
+   */
+  deleteProductImage: async (productId, imageId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_BASE_URL}/products/${productId}/images/${imageId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to delete product image");
+      return await response.json();
+    } catch (error) {
+      console.error("Error deleting product image:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Sắp xếp lại thứ tự ảnh (Admin)
+   * @param {string} productId
+   * @param {{ id: string, display_order: number }[]} images
+   */
+  reorderProductImages: async (productId, images) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_BASE_URL}/products/${productId}/images/reorder`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ images }),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to reorder product images");
+      return await response.json();
+    } catch (error) {
+      console.error("Error reordering product images:", error);
+      throw error;
+    }
+  },
 };
 
 export default productService;

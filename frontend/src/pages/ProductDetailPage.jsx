@@ -32,18 +32,34 @@ export default function ProductDetailPage() {
   const [addedToCart, setAddedToCart] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
 
+  // Gallery state
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [activeImage, setActiveImage] = useState(null);
+  const [imageError, setImageError] = useState(false); // track ảnh lỗi bằng React state
+
+  // Reset lỗi ảnh mỗi khi ảnh chính thay đổi
+  useEffect(() => {
+    setImageError(false);
+  }, [activeImage]);
+
   const inWishlist = product ? isInWishlist(product._id || product.id) : false;
 
+  // STEP 1: Load thông tin sản phẩm
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     setError(null);
+    setGalleryImages([]);
+    setActiveImage(null);
+    setImageError(false);
 
     productService
       .getProductById(id)
       .then((res) => {
         if (res.success && res.data) {
           setProduct(res.data);
+          // Đặt ảnh tạm thời từ product.image cho đến khi gallery load
+          setActiveImage(res.data.image || null);
         } else {
           setError(res.message || "Không tìm thấy sản phẩm");
         }
@@ -53,6 +69,29 @@ export default function ProductDetailPage() {
       })
       .finally(() => setLoading(false));
   }, [id]);
+
+  // STEP 2: Load gallery SAU khi có product (để gallery primary LUÔN ưu tiên hơn product.image)
+  useEffect(() => {
+    if (!id || !product) return; // Đợi product load xong mới fetch gallery
+
+    productService
+      .getProductImages(id)
+      .then((res) => {
+        if (res.success && res.data?.length > 0) {
+          setGalleryImages(res.data);
+          // Gallery primary luôn ưu tiên hơn product.image
+          const primary = res.data.find((img) => img.is_primary);
+          if (primary) {
+            setActiveImage(primary.image_url);
+          } else {
+            // Nếu không có primary, dùng ảnh đầu tiên trong gallery
+            setActiveImage(res.data[0].image_url);
+          }
+        }
+        // Nếu không có gallery, giữ nguyên product.image đã set ở trên
+      })
+      .catch(() => {}); // silent fail
+  }, [id, product]); // phụ thuộc vào product để chạy sau STEP 1
 
   const getPrice = (p) => {
     if (!p?.price) return 0;
@@ -187,31 +226,72 @@ export default function ProductDetailPage() {
 
         {/* Product Hero */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
-          {/* Image */}
-          <div className="relative group">
-            <div className="aspect-square rounded-2xl overflow-hidden bg-surface-container-lowest border border-outline-variant shadow-sm">
-              {product.image ? (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+          {/* Image + Gallery Thumbnails */}
+          <div className="flex flex-col gap-3">
+            {/* Main Image */}
+            <div className="relative group">
+              <div className="aspect-square rounded-2xl overflow-hidden bg-surface-container-lowest border border-outline-variant shadow-sm">
+                {/* Hiển thị ảnh nếu có và chưa lỗi */}
+                {activeImage && !imageError && (
+                  <img
+                    src={activeImage}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={() => setImageError(true)}
+                  />
+                )}
+                {/* Placeholder khi không có ảnh hoặc ảnh lỗi */}
+                {(!activeImage || imageError) && (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-surface-container">
+                    <MdInventory size={60} className="text-on-surface-variant/30" />
+                    <span className="text-body-sm text-on-surface-variant/50">Chưa có hình ảnh</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Stock badge */}
+              {isInStock ? (
+                <span className="absolute top-4 left-4 px-3 py-1 bg-success text-surface rounded-full text-body-sm font-semibold shadow">
+                  Còn hàng
+                </span>
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <MdInventory size={80} className="text-on-surface-variant/30" />
-                </div>
+                <span className="absolute top-4 left-4 px-3 py-1 bg-error text-surface rounded-full text-body-sm font-semibold shadow">
+                  Hết hàng
+                </span>
               )}
             </div>
 
-            {/* Stock badge */}
-            {isInStock ? (
-              <span className="absolute top-4 left-4 px-3 py-1 bg-success text-surface rounded-full text-body-sm font-semibold shadow">
-                Còn hàng
-              </span>
-            ) : (
-              <span className="absolute top-4 left-4 px-3 py-1 bg-error text-surface rounded-full text-body-sm font-semibold shadow">
-                Hết hàng
-              </span>
+            {/* Thumbnail Strip - chỉ hiện khi có gallery */}
+            {galleryImages.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {galleryImages.map((img) => (
+                  <button
+                    key={img._id}
+                    onClick={() => {
+                      setActiveImage(img.image_url);
+                      setImageError(false); // reset lỗi khi click thumbnail
+                    }}
+                    title={img.alt_text || product.name}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      activeImage === img.image_url && !imageError
+                        ? "border-primary shadow-md scale-105"
+                        : "border-outline-variant hover:border-primary/50 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <img
+                      src={img.image_url}
+                      alt={img.alt_text || product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.parentNode.style.cssText =
+                          "background:#f3f4f6;display:flex;align-items:center;justify-content:center";
+                        e.target.insertAdjacentHTML("afterend", "<span style='font-size:18px'>🖼️</span>");
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
@@ -352,6 +432,64 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* ===== GALLERY SECTION ===== */}
+
+        {galleryImages.length > 0 && (
+          <div className="mb-12">
+            <h2 className="text-h3 font-h3 text-on-surface mb-6">
+              🖼️ Hình ảnh sản phẩm
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+              {galleryImages.map((img) => (
+                <button
+                  key={img._id}
+                  onClick={() => setActiveImage(img.image_url)}
+                  title={img.alt_text || product.name}
+                  className={`relative group aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                    activeImage === img.image_url
+                      ? "border-primary ring-2 ring-primary/30 shadow-lg"
+                      : "border-outline-variant hover:border-primary/60 hover:shadow-md"
+                  }`}
+                >
+                  <img
+                    src={img.image_url}
+                    alt={img.alt_text || product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      const fallback = e.target.parentNode.querySelector(".gallery-fallback");
+                      if (fallback) fallback.style.display = "flex";
+                    }}
+                  />
+                  {/* Fallback khi ảnh lỗi */}
+                  <div
+                    className="gallery-fallback absolute inset-0 bg-surface-container items-center justify-center"
+                    style={{ display: "none" }}
+                  >
+                    <span className="text-2xl">🖼️</span>
+                  </div>
+                  {/* Primary badge */}
+                  {img.is_primary && (
+                    <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-primary text-surface text-[10px] font-bold rounded-full z-10">
+                      Chính
+                    </span>
+                  )}
+                  {/* Active overlay */}
+                  {activeImage === img.image_url && (
+                    <div className="absolute inset-0 bg-primary/10 flex items-center justify-center z-10">
+                      <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Product Details Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
