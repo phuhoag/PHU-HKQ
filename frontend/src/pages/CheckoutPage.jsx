@@ -12,12 +12,14 @@ import {
   MdCreditCard,
   MdAccountBalance,
   MdAttachMoney,
+  MdQrCodeScanner,
 } from "react-icons/md";
 import Header from "../components/layouts/Header.jsx";
 import Footer from "../components/layouts/Footer.jsx";
 import { useCart } from "../context/CartContext.jsx";
 import { orderService } from "../services/orderService.js";
 import { useToast } from "../context/ToastContext.jsx";
+import VietQrPaymentCard from "../components/checkout/VietQrPaymentCard.jsx";
 
 const PAYMENT_OPTIONS = [
   {
@@ -25,6 +27,12 @@ const PAYMENT_OPTIONS = [
     label: "Thanh toán khi nhận hàng (COD)",
     icon: MdAttachMoney,
     desc: "Trả tiền mặt khi nhận hàng",
+  },
+  {
+    value: "qr_code",
+    label: "Thanh toán qua mã QR (VietQR)",
+    icon: MdQrCodeScanner,
+    desc: "Quét mã QR để chuyển khoản nhanh qua App Ngân hàng",
   },
   {
     value: "bank_transfer",
@@ -220,6 +228,14 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
+
+            {/* VietQR Payment Card */}
+            {orderSuccess.payment_method === "qr_code" && (
+              <VietQrPaymentCard
+                orderId={orderSuccess._id}
+                totalAmount={parseFloat(orderSuccess.total_amount?.toString() || "0")}
+              />
+            )}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button

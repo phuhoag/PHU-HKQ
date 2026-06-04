@@ -20,6 +20,7 @@ export const PAYMENT_METHODS = {
   PAYPAL: "paypal",
   BANK_TRANSFER: "bank_transfer",
   CASH_ON_DELIVERY: "cash_on_delivery",
+  QR_CODE: "qr_code",
 };
 
 

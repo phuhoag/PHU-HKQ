@@ -16,6 +16,7 @@ import {
 import Header from "../components/layouts/Header.jsx";
 import Footer from "../components/layouts/Footer.jsx";
 import { orderService } from "../services/orderService.js";
+import VietQrPaymentCard from "../components/checkout/VietQrPaymentCard.jsx";
 
 const STATUS_STEPS = [
   { key: "pending", label: "Chờ xác nhận", icon: MdHourglassEmpty, desc: "Đơn hàng đã được đặt thành công" },
@@ -204,6 +205,16 @@ export default function OrderDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* VietQR Payment Card if order is pending and unpaid */}
+            {order.status === "pending" &&
+              order.payment_method === "qr_code" &&
+              order.payment_status === "pending" && (
+                <VietQrPaymentCard
+                  orderId={order._id}
+                  totalAmount={totalAmount}
+                />
+              )}
 
             {/* ─── Order Items ─── */}
             <div className="bg-surface-container rounded-2xl border border-outline-variant overflow-hidden">
