@@ -8,7 +8,7 @@ export default function VietQrPaymentCard({ orderId, totalAmount }) {
   const EXCHANGE_RATE = 25000;
   const amountInVnd = Math.round(totalAmount * EXCHANGE_RATE);
   const transferContent = `THANH TOAN DON HANG ${orderId.slice(-8).toUpperCase()}`;
-  const qrCodeUrl = `https://img.vietqr.io/image/MB-0848606918-compact.png?amount=${amountInVnd}&addInfo=${encodeURIComponent(transferContent)}&accountName=HOANG%20KIM%20QUY%20PHU`;
+  const qrCodeUrl = `https://qr.sepay.vn/img?acc=VQRQAJMLF1010&bank=MBBank&amount=${amountInVnd}&des=${encodeURIComponent(transferContent)}`;
 
   const copyToClipboard = (text, setCopied) => {
     navigator.clipboard.writeText(text);
@@ -51,11 +51,11 @@ export default function VietQrPaymentCard({ orderId, totalAmount }) {
             </div>
 
             <div className="flex justify-between border-b border-outline-variant/60 pb-2 items-center">
-              <span className="text-on-surface-variant text-body-sm">Số tài khoản</span>
+              <span className="text-on-surface-variant text-body-sm">Số tài khoản nhận</span>
               <div className="flex items-center gap-1.5">
-                <span className="font-mono font-semibold text-on-surface text-body-sm">0848606918</span>
+                <span className="font-mono font-semibold text-on-surface text-body-sm">VQRQAJMLF1010</span>
                 <button
-                  onClick={() => copyToClipboard("0848606918", setCopiedAccount)}
+                  onClick={() => copyToClipboard("VQRQAJMLF1010", setCopiedAccount)}
                   className="p-1 hover:bg-primary/10 rounded text-primary transition"
                   title="Sao chép số tài khoản"
                 >
