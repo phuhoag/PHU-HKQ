@@ -15,9 +15,21 @@ import {
 export const handleSepayWebhook = async (req, res) => {
   try {
     // 1. Xác thực Secret Key gửi từ SePay
-    const secretKey = req.headers["x-secret-key"];
+    let secretKey = req.headers["x-secret-key"];
+    
+    // Nếu không có x-secret-key, hỗ trợ lấy từ Authorization header (định dạng "Apikey KEY")
+    const authHeader = req.headers["authorization"];
+    if (!secretKey && authHeader) {
+      if (authHeader.startsWith("Apikey ")) {
+        secretKey = authHeader.slice(7).trim();
+      } else {
+        secretKey = authHeader.trim();
+      }
+    }
+
     if (!secretKey || secretKey !== process.env.SEPAY_WEBHOOK_SECRET_KEY) {
       console.warn("⚠️ [SePay Webhook] Unauthorized request. Secret key mismatch or missing.");
+      console.warn(`Received headers: ${JSON.stringify(req.headers)}`);
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
