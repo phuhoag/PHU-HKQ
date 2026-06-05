@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { MdQrCodeScanner, MdContentCopy, MdCheck } from "react-icons/md";
 
-export default function VietQrPaymentCard({ orderId, totalAmount }) {
+export default function SepayPaymentCard({ orderId, totalAmount }) {
   const [copiedAccount, setCopiedAccount] = useState(false);
   const [copiedContent, setCopiedContent] = useState(false);
 
@@ -20,7 +20,7 @@ export default function VietQrPaymentCard({ orderId, totalAmount }) {
     <div className="bg-surface-container-high rounded-2xl border border-outline-variant p-6 mb-8 text-left shadow-sm">
       <h3 className="text-h3 font-h3 text-on-surface mb-6 flex items-center gap-2">
         <MdQrCodeScanner className="text-primary" size={24} />
-        Thanh toán chuyển khoản qua mã QR (VietQR)
+        Thanh toán chuyển khoản qua mã QR (SePay)
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-center">
@@ -29,7 +29,7 @@ export default function VietQrPaymentCard({ orderId, totalAmount }) {
           <div className="bg-white p-3 rounded-xl border border-outline-variant shadow-sm max-w-[240px]">
             <img
               src={qrCodeUrl}
-              alt="Mã QR Thanh Toán VietQR"
+              alt="Mã QR Thanh Toán SePay"
               className="w-full h-auto object-contain"
             />
           </div>
