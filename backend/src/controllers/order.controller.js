@@ -296,14 +296,29 @@ export const getAllOrders = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [orders, total] = await Promise.all([
-      Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)),
+      Order.find(filter)
+        .populate("user_id", "first_name last_name email phone")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
       Order.countDocuments(filter),
     ]);
+
+    // Lấy items cho từng order
+    const ordersWithItems = await Promise.all(
+      orders.map(async (order) => {
+        const items = await OrderItem.find({ order_id: order._id }).populate(
+          "product_id",
+          "name price image"
+        );
+        return { ...order.toObject(), items };
+      })
+    );
 
     return res.status(200).json({
       success: true,
       data: {
-        orders,
+        orders: ordersWithItems,
         pagination: {
           total,
           page: parseInt(page),
