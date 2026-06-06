@@ -5,23 +5,23 @@ export default function SalesAnalytics({ monthlySales }) {
 
   const data = monthlySales && monthlySales.length > 0
     ? monthlySales.map((item) => ({
-        month: item.month,
+        month: item.month.replace(/^T(\d+)/, "Tháng $1"),
         value: item.sales,
         orders: item.orders || 0,
       }))
     : [
-        { month: "T1", value: 0, orders: 0 },
-        { month: "T2", value: 0, orders: 0 },
-        { month: "T3", value: 0, orders: 0 },
-        { month: "T4", value: 0, orders: 0 },
-        { month: "T5", value: 0, orders: 0 },
-        { month: "T6", value: 0, orders: 0 },
-        { month: "T7", value: 0, orders: 0 },
-        { month: "T8", value: 0, orders: 0 },
-        { month: "T9", value: 0, orders: 0 },
-        { month: "T10", value: 0, orders: 0 },
-        { month: "T11", value: 0, orders: 0 },
-        { month: "T12", value: 0, orders: 0 },
+        { month: "Tháng 1", value: 0, orders: 0 },
+        { month: "Tháng 2", value: 0, orders: 0 },
+        { month: "Tháng 3", value: 0, orders: 0 },
+        { month: "Tháng 4", value: 0, orders: 0 },
+        { month: "Tháng 5", value: 0, orders: 0 },
+        { month: "Tháng 6", value: 0, orders: 0 },
+        { month: "Tháng 7", value: 0, orders: 0 },
+        { month: "Tháng 8", value: 0, orders: 0 },
+        { month: "Tháng 9", value: 0, orders: 0 },
+        { month: "Tháng 10", value: 0, orders: 0 },
+        { month: "Tháng 11", value: 0, orders: 0 },
+        { month: "Tháng 12", value: 0, orders: 0 },
       ];
 
   const maxValue = Math.max(...data.map((d) => d.value), 1000);
