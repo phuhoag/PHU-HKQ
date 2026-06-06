@@ -244,45 +244,64 @@ export default function AnalyticsPage() {
                   </div>
                 ) : (
                   <div>
-                    {/* SVG Chart */}
-                    <div className="relative h-64 flex items-end justify-between gap-3 pt-6 px-4">
-                      {monthlyData.map((item, index) => {
-                        const heightPct = (item.sales / maxSales) * 100;
-                        const isHovered = hoveredBar === index;
-                        return (
-                          <div
-                            key={index}
-                            className="relative flex-1 flex flex-col justify-end items-center h-full group"
-                            onMouseEnter={() => setHoveredBar(index)}
-                            onMouseLeave={() => setHoveredBar(null)}
-                          >
-                            {/* Hover Tooltip */}
-                            {isHovered && (
-                              <div className="absolute -top-12 z-10 bg-on-background text-background text-body-sm font-semibold py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap animate-bounce">
-                                <div>Doanh thu: {formatCurrency(item.sales)}</div>
-                                <div className="text-center text-xs opacity-75">{item.orders} đơn hàng</div>
-                              </div>
-                            )}
-
-                            {/* Bar Visual */}
-                            <div
-                              className="w-full bg-primary rounded-t-lg hover:bg-primary/80 transition-all duration-300 cursor-pointer shadow-sm relative overflow-hidden"
-                              style={{
-                                height: `${Math.max(heightPct, 5)}%`,
-                              }}
-                            >
-                              {/* Glowing effect inside bar */}
-                              <div className="absolute inset-x-0 top-0 h-1 bg-white/20" />
+                    {/* SVG Chart Container */}
+                    <div className="relative h-64 border-l border-b border-outline-variant/60 ml-16 mr-4">
+                      {/* Y-Axis Grid Lines & Tick Labels */}
+                      <div className="absolute left-0 right-0 bottom-0 top-0 flex flex-col justify-between pointer-events-none z-0">
+                        {[1, 0.75, 0.5, 0.25, 0].map((pct, i) => {
+                          const val = maxSales * pct;
+                          return (
+                            <div key={i} className="w-full border-t border-outline-variant/20 relative h-0">
+                              <span className="absolute right-full mr-3 -top-2 text-[10px] text-on-surface-variant font-bold whitespace-nowrap">
+                                {formatCurrency(val)}
+                              </span>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
+
+                      {/* Bars Container */}
+                      <div className="absolute inset-0 flex items-end justify-around gap-4 z-10 pt-6 px-4">
+                        {monthlyData.map((item, index) => {
+                          const heightPct = (item.sales / maxSales) * 100;
+                          const isHovered = hoveredBar === index;
+                          return (
+                            <div
+                              key={index}
+                              className="relative flex-1 max-w-[64px] flex flex-col justify-end items-center h-full group"
+                              onMouseEnter={() => setHoveredBar(index)}
+                              onMouseLeave={() => setHoveredBar(null)}
+                            >
+                              {/* Hover Tooltip */}
+                              {isHovered && (
+                                <div className="absolute -top-14 z-20 bg-on-background text-background text-body-sm font-semibold py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap animate-bounce">
+                                  <div>Doanh thu: {formatCurrency(item.sales)}</div>
+                                  <div className="text-center text-xs opacity-75">{item.orders} đơn hàng</div>
+                                </div>
+                              )}
+
+                              {/* Bar Visual */}
+                              <div
+                                className="w-12 bg-gradient-to-t from-primary/30 to-primary rounded-t-lg hover:from-primary/50 hover:to-primary transition-all duration-300 cursor-pointer shadow-sm relative overflow-hidden"
+                                style={{
+                                  height: `${Math.max(heightPct, 5)}%`,
+                                }}
+                              >
+                                {/* Glowing effect inside bar */}
+                                <div className="absolute inset-x-0 top-0 h-1 bg-white/20" />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     {/* Month Labels */}
-                    <div className="flex justify-between border-t border-outline-variant mt-4 pt-3 text-body-sm text-on-surface-variant font-semibold px-4">
+                    <div className="flex justify-around mt-4 pt-3 text-body-sm text-on-surface-variant font-bold ml-16 mr-4">
                       {monthlyData.map((item, index) => (
-                        <span key={index}>{item.month}</span>
+                        <span key={index} className="w-12 text-center truncate">
+                          {item.month}
+                        </span>
                       ))}
                     </div>
                   </div>
