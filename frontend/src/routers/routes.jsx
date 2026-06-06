@@ -25,6 +25,7 @@ const ProductDetailPage = React.lazy(
   () => import("../pages/ProductDetailPage"),
 );
 const DashboardPage = React.lazy(() => import("../pages/DashboardPage"));
+const ProductsPage = React.lazy(() => import("../pages/ProductsPage"));
 const CartPage = React.lazy(() => import("../pages/CartPage"));
 const WishlistPage = React.lazy(() => import("../pages/WishlistPage"));
 const CheckoutPage = React.lazy(() => import("../pages/CheckoutPage"));
@@ -151,6 +152,16 @@ const router = createBrowserRouter([
           <ProtectedRoute>
             <ErrorBoundary>
               <LazyLoading children={<DashboardPage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/products",
+        element: (
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<ProductsPage />} />
             </ErrorBoundary>
           </ProtectedRoute>
         ),
