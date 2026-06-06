@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 const encryptPassword = (password) => {
   return Buffer.from(password).toString("base64");
@@ -179,6 +180,77 @@ export const updateUserProfileController = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const changePasswordController = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu hiện tại và mật khẩu mới là bắt buộc",
+      });
+    }
+
+    // Lấy user kèm theo mật khẩu để so sánh
+    const user = await User.findById(req.user.id).select("+password");
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Người dùng không tồn tại",
+      });
+    }
+
+    // So sánh mật khẩu hiện tại
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu hiện tại không chính xác",
+      });
+    }
+
+    // Mã hóa mật khẩu mới
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Đổi mật khẩu thành công",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const deleteOwnAccountController = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Người dùng không tồn tại",
+      });
+    }
+
+    // Soft delete: Vô hiệu hóa tài khoản
+    user.is_active = false;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Tài khoản đã được vô hiệu hóa thành công",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 

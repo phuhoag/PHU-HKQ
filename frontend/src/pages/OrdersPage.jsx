@@ -14,6 +14,7 @@ import {
 import Header from "../components/layouts/Header.jsx";
 import Footer from "../components/layouts/Footer.jsx";
 import { orderService } from "../services/orderService.js";
+import Pagination from "../components/common/Pagination.jsx";
 
 const STATUS_CONFIG = {
   pending: {
@@ -63,22 +64,33 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
   const [cancellingId, setCancellingId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const LIMIT = 5;
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = 1) => {
     setLoading(true);
     const res = await orderService.getMyOrders({
-      limit: 50,
+      page,
+      limit: LIMIT,
       status: statusFilter || undefined,
     });
     if (res.success) {
       setOrders(res.data.orders || []);
+      setTotalPages(res.data.pagination?.totalPages || 1);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchOrders();
+    setCurrentPage(1);
+    fetchOrders(1);
   }, [statusFilter]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchOrders(page);
+  };
 
   const handleCancelOrder = async (orderId) => {
     if (!window.confirm("Bạn có chắc muốn hủy đơn hàng này?")) return;
@@ -126,7 +138,7 @@ export default function OrdersPage() {
               Lịch sử đơn hàng
             </h1>
             <button
-              onClick={fetchOrders}
+              onClick={() => fetchOrders(currentPage)}
               className="flex items-center gap-2 px-4 py-2 border-2 border-outline-variant rounded-xl text-on-surface-variant hover:border-primary hover:text-primary transition"
             >
               <MdRefresh size={18} />
@@ -282,6 +294,14 @@ export default function OrdersPage() {
               );
             })}
           </div>
+        )}
+
+        {!loading && totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         )}
       </main>
 

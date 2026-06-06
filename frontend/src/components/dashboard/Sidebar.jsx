@@ -27,14 +27,20 @@ export default function Sidebar() {
     }
   }, []);
 
-  const menuItems = [
-    { icon: MdDashboard, label: "Dashboard", href: "/dashboard" },
-    { icon: MdShoppingCart, label: "Products", href: "/products" },
-    { icon: MdReceipt, label: "Orders", href: "/orders" },
-    { icon: MdAnalytics, label: "Analytics", href: "/analytics" },
-    { icon: MdPeople, label: "Customers", href: "/customers" },
-    { icon: MdSettings, label: "Settings", href: "/settings" },
-  ];
+  const menuItems = currentUser?.role === "admin"
+    ? [
+        { icon: MdDashboard, label: "Dashboard", href: "/dashboard" },
+        { icon: MdShoppingCart, label: "Products", href: "/products" },
+        { icon: MdReceipt, label: "Orders", href: "/orders" },
+        { icon: MdAnalytics, label: "Analytics", href: "/analytics" },
+        { icon: MdPeople, label: "Customers", href: "/customers" },
+        { icon: MdSettings, label: "Settings", href: "/settings" },
+      ]
+    : [
+        { icon: MdDashboard, label: "Tổng quan", href: "/dashboard" },
+        { icon: MdReceipt, label: "Đơn hàng của tôi", href: "/orders" },
+        { icon: MdShoppingCart, label: "Tiếp tục mua sắm", href: "/shop" },
+      ];
 
   const handleLogout = () => {
     localStorage.removeItem("token");
