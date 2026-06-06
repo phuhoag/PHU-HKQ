@@ -82,10 +82,7 @@ export default function AnalyticsPage() {
   };
 
   // Math for monthly sales SVG chart
-  const monthlyData = (data.monthlySales || []).map((item) => ({
-    ...item,
-    month: item.month.replace(/^T(\d+)/, "Tháng $1"),
-  }));
+  const monthlyData = data.monthlySales || [];
   const maxSales = monthlyData.length > 0 ? Math.max(...monthlyData.map((d) => d.sales)) : 1000;
   
   // Math for category sales
