@@ -92,9 +92,9 @@ export default function AnalyticsPage() {
   // Palette of premium colors for categories
   const categoryColors = [
     "bg-primary",
-    "bg-success",
-    "bg-warning",
-    "bg-info",
+    "bg-emerald-500",
+    "bg-amber-500",
+    "bg-cyan-500",
     "bg-error",
     "bg-indigo-500",
     "bg-purple-500",
