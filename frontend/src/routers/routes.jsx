@@ -33,6 +33,7 @@ const OrdersPage = React.lazy(() => import("../pages/OrdersPage"));
 const OrderDetailPage = React.lazy(() => import("../pages/OrderDetailPage"));
 const ProfilePage = React.lazy(() => import("../pages/ProfilePage"));
 const SettingsPage = React.lazy(() => import("../pages/SettingsPage"));
+const AnalyticsPage = React.lazy(() => import("../pages/AnalyticsPage"));
 
 
 const router = createBrowserRouter([
@@ -162,6 +163,16 @@ const router = createBrowserRouter([
           <ProtectedRoute>
             <ErrorBoundary>
               <LazyLoading children={<ProductsPage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/analytics",
+        element: (
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<AnalyticsPage />} />
             </ErrorBoundary>
           </ProtectedRoute>
         ),
