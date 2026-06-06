@@ -18,16 +18,13 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Admin user management state
-  const [users, setUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [usersError, setUsersError] = useState(null);
-  const [adminStats, setAdminStats] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-  });
+  // Admin state
+  const [adminStats, setAdminStats] = useState(null);
+  const [monthlySales, setMonthlySales] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [loadingAdmin, setLoadingAdmin] = useState(false);
+  const [adminError, setAdminError] = useState(null);
 
   // Customer states
   const [activeTab, setActiveTab] = useState("profile");
@@ -226,86 +223,72 @@ export default function DashboardPage() {
   };
 
   const fetchAdminData = async (token) => {
-    setLoadingUsers(true);
+    setLoadingAdmin(true);
+    setAdminError(null);
     try {
-      const response = await fetch("/api/admin/users", {
-        method: "GET",
+      // 1. Fetch analytics summary & monthly sales
+      const analyticsRes = await fetch("/api/admin/analytics", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
+      const analyticsData = await analyticsRes.json();
 
-      const data = await response.json();
+      // 2. Fetch 5 recent orders
+      const ordersRes = await fetch("/api/orders/admin/all?limit=5", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const ordersData = await ordersRes.json();
 
-      if (response.ok) {
-        setUsers(data.data || []);
-        const activeCount = data.data?.filter((u) => u.is_active === true).length;
+      if (analyticsRes.ok && ordersRes.ok) {
+        const summary = analyticsData.data?.summary || {};
+        const mSales = analyticsData.data?.monthlySales || [];
+        const rOrders = ordersData.data?.orders || [];
+
+        // Calculate conversion rate: (totalOrders / totalUsers) * 100
+        const totalUsers = summary.totalUsers || 0;
+        const totalOrders = summary.totalOrders || 0;
+        const convRate = totalUsers > 0 ? ((totalOrders / totalUsers) * 100).toFixed(2) : "0.00";
+
         setAdminStats({
-          totalUsers: data.data?.length || 0,
-          activeUsers: activeCount,
-          totalOrders: Math.floor(Math.random() * 100) + 10,
-          totalRevenue: Math.floor(Math.random() * 50000) + 10000,
+          totalRevenue: summary.totalRevenue || 0,
+          totalOrders: summary.totalOrders || 0,
+          completedOrders: summary.completedOrders || 0,
+          totalUsers: summary.totalUsers || 0,
+          activeUsers: summary.activeUsers || 0,
+          conversionRate: convRate,
         });
+
+        setMonthlySales(mSales);
+        setRecentOrders(rOrders);
+
+        // 3. Generate dynamic activities based on recent orders
+        const activities = [];
+        rOrders.forEach((o, index) => {
+          const custName = `${o.user_id?.first_name || ""} ${o.user_id?.last_name || ""}`.trim() || "Khách hàng";
+          activities.push({
+            id: `order-${o._id}-${index}`,
+            title: `Đơn hàng mới #${o._id?.slice(-8).toUpperCase()} từ ${custName}`,
+            detail: `Tổng thanh toán: $${parseFloat(o.total_amount || 0).toFixed(2)} (${o.payment_method?.replace(/_/g, " ").toUpperCase()})`,
+            date: new Date(o.createdAt).toLocaleDateString("vi-VN"),
+            icon: MdShoppingCart,
+            color: "text-primary",
+            bgColor: "bg-primary/10",
+          });
+        });
+
+        setRecentActivities(activities.slice(0, 5));
       } else {
-        setUsersError(data.message || "Failed to fetch users");
+        setAdminError(analyticsData.message || ordersData.message || "Không thể tải dữ liệu quản trị viên");
       }
     } catch (err) {
-      setUsersError("Error fetching users: " + err.message);
+      setAdminError("Lỗi kết nối đến máy chủ: " + err.message);
     } finally {
-      setLoadingUsers(false);
-    }
-  };
-
-  const handleChangeRole = async (userId, newRole) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/admin/users/${userId}/role`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUsers(users.map((u) => (u._id === userId ? { ...u, role: newRole } : u)));
-        alert(`✅ Role changed to ${newRole}`);
-      } else {
-        alert("❌ " + (data.message || "Failed to change role"));
-      }
-    } catch (err) {
-      alert("Error: " + err.message);
-    }
-  };
-
-  const handleToggleStatus = async (userId, newStatus) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/admin/users/${userId}/status`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ is_active: newStatus }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setUsers(
-          users.map((u) => (u._id === userId ? { ...u, is_active: newStatus } : u))
-        );
-        alert(`✅ User ${newStatus ? "activated" : "deactivated"}`);
-      } else {
-        alert("❌ " + (data.message || "Failed to update status"));
-      }
-    } catch (err) {
-      alert("Error: " + err.message);
+      setLoadingAdmin(false);
     }
   };
 
@@ -345,153 +328,74 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Statistics Cards */}
-            <div className="mb-8">
-              <DashboardStats />
-            </div>
-
-            {/* Sales Analytics Chart */}
-            <SalesAnalytics />
-
-            {/* Bottom Section - Recent Activities and Quick Stats */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Recent Activities - Left Column */}
-              <div className="lg:col-span-2">
-                <RecentActivity />
+            {adminError && (
+              <div className="mb-6 p-4 bg-error/10 text-error border border-error/20 rounded-lg">
+                {adminError}
               </div>
+            )}
 
-              {/* Quick Stats - Right Column */}
-              <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6">
-                <h3 className="text-h3 font-h3 text-on-background mb-4">
-                  Quick Stats
-                </h3>
-                <div className="space-y-4">
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <p className="text-body-sm text-on-surface-variant">
-                      Total Revenue
-                    </p>
-                    <p className="text-h2 font-h2 text-primary">$128,430</p>
-                  </div>
-                  <div className="p-3 bg-success/10 rounded-lg">
-                    <p className="text-body-sm text-on-surface-variant">
-                      New Customers
-                    </p>
-                    <p className="text-h2 font-h2 text-success">+324</p>
-                  </div>
-                  <div className="p-3 bg-warning/10 rounded-lg">
-                    <p className="text-body-sm text-on-surface-variant">
-                      Pending Orders
-                    </p>
-                    <p className="text-h2 font-h2 text-warning">42</p>
-                  </div>
-                </div>
+            {loadingAdmin ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-body-md text-on-surface-variant animate-pulse">Đang tải dữ liệu tổng quan...</p>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* Statistics Cards */}
+                <div className="mb-8">
+                  <DashboardStats statsData={adminStats} />
+                </div>
 
-            {/* Order History Table */}
-            <div className="mt-8">
-              <OrderHistory />
-            </div>
+                {/* Sales Analytics Chart */}
+                <SalesAnalytics monthlySales={monthlySales} />
 
-            {/* Admin User Management Section */}
-            <div className="mt-10 bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
-              <div className="p-6 border-b border-outline-variant">
-                <h2 className="text-h3 font-h3 text-on-surface flex items-center gap-2">
-                  <MdPeople className="text-primary" />
-                  User Management
-                </h2>
-              </div>
+                {/* Bottom Section - Recent Activities and Quick Stats */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Recent Activities - Left Column */}
+                  <div className="lg:col-span-2">
+                    <RecentActivity activities={recentActivities} />
+                  </div>
 
-              {usersError && (
-                <div className="m-6 p-4 bg-error/10 text-error border border-error/20 rounded-lg flex items-start gap-3">
-                  <MdWarning className="text-[24px] flex-shrink-0" />
-                  <div>
-                    <p className="font-button text-button">Error</p>
-                    <p className="text-body-md">{usersError}</p>
+                  {/* Quick Stats - Right Column */}
+                  <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6">
+                    <h3 className="text-h3 font-h3 text-on-background mb-4">
+                      Số liệu nhanh
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="p-3 bg-primary/10 rounded-lg">
+                        <p className="text-body-sm text-on-surface-variant">
+                          Doanh thu thực tế
+                        </p>
+                        <p className="text-h2 font-h2 text-primary">
+                          ${adminStats?.totalRevenue?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-success/10 rounded-lg">
+                        <p className="text-body-sm text-on-surface-variant">
+                          Thành viên hoạt động
+                        </p>
+                        <p className="text-h2 font-h2 text-success">
+                          {adminStats?.activeUsers || "0"} / {adminStats?.totalUsers || "0"}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-warning/10 rounded-lg">
+                        <p className="text-body-sm text-on-surface-variant">
+                          Đơn hàng thành công
+                        </p>
+                        <p className="text-h2 font-h2 text-warning">
+                          {adminStats?.completedOrders || "0"} / {adminStats?.totalOrders || "0"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              )}
 
-              {loadingUsers ? (
-                <div className="p-8 text-center">
-                  <p className="text-body-md text-on-surface-variant">Loading users...</p>
+                {/* Order History Table */}
+                <div className="mt-8">
+                  <OrderHistory orders={recentOrders} />
                 </div>
-              ) : users.length === 0 ? (
-                <div className="p-8 text-center">
-                  <p className="text-body-md text-on-surface-variant">No users found</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-outline-variant bg-surface-container/50">
-                        <th className="text-left p-4 font-label-caps text-label-caps text-on-surface-variant">
-                          Email
-                        </th>
-                        <th className="text-left p-4 font-label-caps text-label-caps text-on-surface-variant">
-                          Name
-                        </th>
-                        <th className="text-left p-4 font-label-caps text-label-caps text-on-surface-variant">
-                          Role
-                        </th>
-                        <th className="text-left p-4 font-label-caps text-label-caps text-on-surface-variant">
-                          Status
-                        </th>
-                        <th className="text-left p-4 font-label-caps text-label-caps text-on-surface-variant">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((userItem) => (
-                        <tr
-                          key={userItem._id}
-                          className="border-b border-outline-variant hover:bg-surface-container/50 transition-colors"
-                        >
-                          <td className="p-4 text-body-md text-on-surface">{userItem.email}</td>
-                          <td className="p-4 text-body-md text-on-surface">
-                            {userItem.first_name} {userItem.last_name}
-                          </td>
-                          <td className="p-4">
-                            <select
-                              value={userItem.role}
-                              onChange={(e) => handleChangeRole(userItem._id, e.target.value)}
-                              className="px-3 py-1 rounded border border-outline-variant bg-surface-container text-body-sm text-on-surface cursor-pointer hover:border-primary transition"
-                            >
-                              <option value="customer">Customer</option>
-                              <option value="admin">Admin</option>
-                            </select>
-                          </td>
-                          <td className="p-4">
-                            <span
-                              className={`px-3 py-1 rounded text-body-sm ${
-                                userItem.is_active
-                                  ? "bg-success/10 text-success"
-                                  : "bg-error/10 text-error"
-                              }`}
-                            >
-                              {userItem.is_active ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <button
-                              onClick={() => handleToggleStatus(userItem._id, !userItem.is_active)}
-                              className={`px-3 py-1 rounded text-body-sm transition-all ${
-                                userItem.is_active
-                                  ? "bg-error/10 text-error hover:bg-error/20"
-                                  : "bg-success/10 text-success hover:bg-success/20"
-                              }`}
-                            >
-                              {userItem.is_active ? "Deactivate" : "Activate"}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </>
         ) : (
           <>

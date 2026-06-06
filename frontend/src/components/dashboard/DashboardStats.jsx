@@ -5,40 +5,46 @@ import {
   MdTrendingDown,
 } from "react-icons/md";
 
-export default function DashboardStats() {
+export default function DashboardStats({ statsData }) {
+  const formatRevenue = (val) => {
+    return typeof val === "number"
+      ? `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : "$0.00";
+  };
+
   const stats = [
     {
       icon: MdTrendingUp,
-      label: "Total Revenue",
-      value: "$128,430.00",
-      change: "+24.5%",
+      label: "Tổng doanh thu",
+      value: formatRevenue(statsData?.totalRevenue),
+      change: "Thời gian thực",
       changeType: "positive",
       bgColor: "bg-primary/10",
       iconColor: "text-primary",
     },
     {
       icon: MdShoppingCart,
-      label: "Total Orders",
-      value: "1,240",
-      change: "+18.1%",
+      label: "Tổng đơn hàng",
+      value: statsData?.totalOrders?.toLocaleString("en-US") || "0",
+      change: "Đã hoàn thành: " + (statsData?.completedOrders || 0),
       changeType: "positive",
       bgColor: "bg-success/10",
       iconColor: "text-success",
     },
     {
       icon: MdPerson,
-      label: "New Users",
-      value: "324",
-      change: "-2.4%",
-      changeType: "negative",
+      label: "Khách hàng",
+      value: statsData?.totalUsers?.toLocaleString("en-US") || "0",
+      change: "Hoạt động: " + (statsData?.activeUsers || 0),
+      changeType: "positive",
       bgColor: "bg-warning/10",
       iconColor: "text-warning",
     },
     {
       icon: MdTrendingUp,
-      label: "Conversion Rate",
-      value: "3.42%",
-      change: "+6.3%",
+      label: "Tỷ lệ chuyển đổi",
+      value: statsData?.conversionRate !== undefined ? `${statsData.conversionRate}%` : "0.00%",
+      change: "Đơn hàng / Thành viên",
       changeType: "positive",
       bgColor: "bg-tertiary/10",
       iconColor: "text-tertiary",
