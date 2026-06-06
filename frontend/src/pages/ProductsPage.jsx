@@ -396,7 +396,9 @@ export default function ProductsPage() {
                           </td>
                           <td className="px-6 py-4 font-semibold text-body-md text-on-surface">{p.name}</td>
                           <td className="px-6 py-4 text-body-md text-on-surface-variant">{p.category_id?.name || "N/A"}</td>
-                          <td className="px-6 py-4 font-semibold text-body-md text-primary">${p.price?.toFixed(2)}</td>
+                          <td className="px-6 py-4 font-semibold text-body-md text-primary">
+                            ${Number(p.price?.$numberDecimal || p.price || 0).toFixed(2)}
+                          </td>
                           <td className="px-6 py-4 text-body-md text-on-surface">
                             <span className={`px-2.5 py-0.5 rounded font-semibold ${p.stock > 10 ? "bg-success/15 text-success" : p.stock > 0 ? "bg-warning/15 text-warning" : "bg-error/15 text-error"}`}>
                               {p.stock} sản phẩm
@@ -413,7 +415,7 @@ export default function ProductsPage() {
                                       _id: p._id,
                                       name: p.name,
                                       category_id: p.category_id?._id || p.category_id || "",
-                                      price: p.price,
+                                      price: p.price?.$numberDecimal || p.price || "",
                                       stock: p.stock,
                                       description: p.description || "",
                                       image: p.image || "",
