@@ -3,28 +3,37 @@ import { useState } from "react";
 export default function SalesAnalytics({ monthlySales }) {
   const [hoveredBar, setHoveredBar] = useState(null);
 
-  const data = monthlySales && monthlySales.length > 0
-    ? monthlySales.map((item) => ({
-        month: item.month.replace(/^T(\d+)/, "Tháng $1"),
-        value: item.sales,
-        orders: item.orders || 0,
-      }))
-    : [
-        { month: "Tháng 1", value: 0, orders: 0 },
-        { month: "Tháng 2", value: 0, orders: 0 },
-        { month: "Tháng 3", value: 0, orders: 0 },
-        { month: "Tháng 4", value: 0, orders: 0 },
-        { month: "Tháng 5", value: 0, orders: 0 },
-        { month: "Tháng 6", value: 0, orders: 0 },
-        { month: "Tháng 7", value: 0, orders: 0 },
-        { month: "Tháng 8", value: 0, orders: 0 },
-        { month: "Tháng 9", value: 0, orders: 0 },
-        { month: "Tháng 10", value: 0, orders: 0 },
-        { month: "Tháng 11", value: 0, orders: 0 },
-        { month: "Tháng 12", value: 0, orders: 0 },
-      ];
+  // Determine year from data or current year
+  let dataYear = new Date().getFullYear();
+  if (monthlySales && monthlySales.length > 0) {
+    const match = monthlySales[0].month.match(/\/ (\d{4})/);
+    if (match) {
+      dataYear = parseInt(match[1]);
+    }
+  }
 
-  const maxValue = Math.max(...data.map((d) => d.value), 1000);
+  // Pre-fill 12 months for the determined year
+  const paddedData = Array.from({ length: 12 }, (_, i) => ({
+    month: `Tháng ${i + 1}`,
+    value: 0,
+    orders: 0,
+  }));
+
+  // Populate data from monthlySales if match
+  if (monthlySales && monthlySales.length > 0) {
+    monthlySales.forEach((item) => {
+      const match = item.month.match(/^T(\d+)/);
+      if (match) {
+        const monthNum = parseInt(match[1]);
+        if (monthNum >= 1 && monthNum <= 12) {
+          paddedData[monthNum - 1].value = item.sales;
+          paddedData[monthNum - 1].orders = item.orders || 0;
+        }
+      }
+    });
+  }
+
+  const maxValue = Math.max(...paddedData.map((d) => d.value), 1000);
 
   const formatCurrency = (val) => {
     return new Intl.NumberFormat("en-US", {
@@ -38,7 +47,14 @@ export default function SalesAnalytics({ monthlySales }) {
   return (
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 mb-6 shadow-sm">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-h3 font-h3 text-on-background font-bold">Phân tích doanh thu</h3>
+        <div>
+          <h3 className="text-h3 font-h3 text-on-background font-bold">
+            Phân tích doanh thu năm {dataYear}
+          </h3>
+          <p className="text-body-sm text-on-surface-variant mt-1">
+            Biểu đồ doanh số bán hàng theo từng tháng của năm {dataYear}
+          </p>
+        </div>
         <div className="flex space-x-3">
           <button className="px-3 py-1 text-body-sm font-semibold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition">
             Doanh thu
@@ -63,8 +79,8 @@ export default function SalesAnalytics({ monthlySales }) {
         </div>
 
         {/* Bars Container */}
-        <div className="absolute inset-0 flex items-end justify-around gap-4 z-10 pt-6 px-4">
-          {data.map((item, index) => {
+        <div className="absolute inset-0 flex items-end justify-around gap-2 z-10 pt-6 px-2">
+          {paddedData.map((item, index) => {
             const heightPct = (item.value / maxValue) * 100;
             const isHovered = hoveredBar === index;
             return (
@@ -100,9 +116,9 @@ export default function SalesAnalytics({ monthlySales }) {
 
       {/* Month Labels */}
       <div className="flex justify-around mt-4 pt-3 text-body-sm text-on-surface-variant font-bold ml-16 mr-4">
-        {data.map((item, index) => (
-          <span key={index} className="text-center flex-1 text-[11px] truncate px-0.5" title={item.month}>
-            {item.month}
+        {paddedData.map((item, index) => (
+          <span key={index} className="text-center flex-1 text-[10px] sm:text-[11px] truncate px-0.5" title={item.month}>
+            Tháng {index + 1}
           </span>
         ))}
       </div>
