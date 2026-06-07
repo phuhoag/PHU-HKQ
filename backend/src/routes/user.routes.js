@@ -6,6 +6,8 @@ import {
   testSmtpConnectionController,
   getUserProfileController,
   updateUserProfileController,
+  changePasswordController,
+  deleteOwnAccountController,
 } from "../controllers/user.controller.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 
@@ -17,6 +19,8 @@ router.use(authenticateToken);
 // User profile routes
 router.get("/profile", getUserProfileController);
 router.put("/profile", updateUserProfileController);
+router.put("/change-password", changePasswordController);
+router.delete("/delete-account", deleteOwnAccountController);
 
 // SMTP settings routes
 router.get("/settings/smtp", getSmtpSettingsController);

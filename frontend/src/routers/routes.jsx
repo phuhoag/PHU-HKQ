@@ -25,10 +25,17 @@ const ProductDetailPage = React.lazy(
   () => import("../pages/ProductDetailPage"),
 );
 const DashboardPage = React.lazy(() => import("../pages/DashboardPage"));
+const ProductsPage = React.lazy(() => import("../pages/ProductsPage"));
 const CartPage = React.lazy(() => import("../pages/CartPage"));
 const WishlistPage = React.lazy(() => import("../pages/WishlistPage"));
+const CheckoutPage = React.lazy(() => import("../pages/CheckoutPage"));
+const OrdersPage = React.lazy(() => import("../pages/OrdersPage"));
+const OrderDetailPage = React.lazy(() => import("../pages/OrderDetailPage"));
 const ProfilePage = React.lazy(() => import("../pages/ProfilePage"));
 const SettingsPage = React.lazy(() => import("../pages/SettingsPage"));
+const AnalyticsPage = React.lazy(() => import("../pages/AnalyticsPage"));
+const CustomersPage = React.lazy(() => import("../pages/CustomersPage"));
+
 
 const router = createBrowserRouter([
   {
@@ -152,6 +159,36 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/products",
+        element: (
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<ProductsPage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/analytics",
+        element: (
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<AnalyticsPage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/customers",
+        element: (
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<CustomersPage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/cart",
         element: (
           <ErrorBoundary>
@@ -180,6 +217,30 @@ const router = createBrowserRouter([
         element: (
           <ErrorBoundary>
             <LazyLoading children={<SettingsPage />} />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/checkout",
+        element: (
+          <ErrorBoundary>
+            <LazyLoading children={<CheckoutPage />} />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/orders",
+        element: (
+          <ErrorBoundary>
+            <LazyLoading children={<OrdersPage />} />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        path: "/orders/:orderId",
+        element: (
+          <ErrorBoundary>
+            <LazyLoading children={<OrderDetailPage />} />
           </ErrorBoundary>
         ),
       },

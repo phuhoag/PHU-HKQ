@@ -23,7 +23,12 @@ const orderItemSchema = mongoose.Schema(
       get: (value) => (value ? value.toString() : null),
     },
   },
-  { timestamps: true, versionKey: false },
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: { getters: true },
+    toObject: { getters: true },
+  },
 );
 
 const OrderItem = mongoose.model("OrderItem", orderItemSchema);

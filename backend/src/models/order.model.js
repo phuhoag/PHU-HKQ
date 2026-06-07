@@ -41,7 +41,12 @@ const orderSchema = mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true, versionKey: false },
+  {
+    timestamps: true,
+    versionKey: false,
+    toJSON: { getters: true },
+    toObject: { getters: true },
+  },
 );
 
 const Order = mongoose.model("Order", orderSchema);

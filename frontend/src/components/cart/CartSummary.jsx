@@ -1,23 +1,24 @@
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext.jsx";
-import { MdShoppingCart } from "react-icons/md";
+import { MdShoppingCart, MdLocalShipping } from "react-icons/md";
 
 export default function CartSummary() {
+  const navigate = useNavigate();
   const { cart, getTotalPrice, getTotalItems, clearCart } = useCart();
 
   const subtotal = getTotalPrice();
-  const tax = subtotal * 0.1; // 10% tax
-  const shipping = subtotal > 100 ? 0 : 9.99;
-  const total = subtotal + tax + shipping;
+  const shipping = subtotal > 50 ? 0 : 9.99;
+  const total = subtotal + shipping;
 
   return (
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 h-fit sticky top-8">
-      <h3 className="text-h3 font-h3 text-on-background mb-6">Order Summary</h3>
+      <h3 className="text-h3 font-h3 text-on-background mb-6">Tóm tắt đơn hàng</h3>
 
       <div className="space-y-3 mb-6">
         {/* Subtotal */}
         <div className="flex items-center justify-between">
           <span className="text-body-md text-on-surface-variant">
-            Subtotal ({getTotalItems()} items)
+            Tạm tính ({getTotalItems()} sản phẩm)
           </span>
           <span className="text-body-md font-body-md text-on-background">
             ${subtotal.toFixed(2)}
@@ -27,7 +28,7 @@ export default function CartSummary() {
         {/* Shipping */}
         <div className="flex items-center justify-between">
           <span className="text-body-md text-on-surface-variant">
-            {shipping === 0 ? "Shipping (FREE)" : "Shipping"}
+            {shipping === 0 ? "Vận chuyển (MIỄN PHÍ)" : "Vận chuyển"}
           </span>
           <span
             className={`text-body-md font-body-md ${
@@ -38,52 +39,30 @@ export default function CartSummary() {
           </span>
         </div>
 
-        {/* Tax */}
-        <div className="flex items-center justify-between">
-          <span className="text-body-md text-on-surface-variant">
-            Tax (10%)
-          </span>
-          <span className="text-body-md font-body-md text-on-background">
-            ${tax.toFixed(2)}
-          </span>
-        </div>
-
-        {/* Promo Code */}
-        <div className="flex gap-2 mt-4">
-          <input
-            type="text"
-            placeholder="Promo code"
-            className="flex-grow px-3 py-2 rounded-lg border border-outline-variant bg-surface text-on-background placeholder-on-surface-variant text-body-sm focus:outline-none focus:border-primary"
-          />
-          <button className="px-4 py-2 text-body-sm font-body-sm text-on-surface hover:bg-surface-container rounded-lg transition">
-            Apply
-          </button>
-        </div>
+        {shipping > 0 && (
+          <p className="text-body-sm text-success flex items-center gap-1">
+            <MdLocalShipping size={14} />
+            Miễn phí vận chuyển cho đơn hàng trên $50
+          </p>
+        )}
       </div>
 
       {/* Total */}
       <div className="bg-primary/10 rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between">
-          <span className="text-body-lg font-body-lg text-on-background">
-            Total
-          </span>
-          <span className="text-h2 font-h2 text-primary">
-            ${total.toFixed(2)}
-          </span>
+          <span className="text-body-lg font-body-lg text-on-background">Tổng cộng</span>
+          <span className="text-h2 font-h2 text-primary">${total.toFixed(2)}</span>
         </div>
       </div>
 
-      {/* Free Shipping Info */}
-      {shipping > 0 && (
-        <p className="text-body-sm text-success mb-4">
-          ✓ Free shipping on orders over $100
-        </p>
-      )}
-
       {/* Checkout Button */}
-      <button className="w-full px-4 py-3 bg-primary text-surface rounded-lg font-body-md hover:bg-primary/90 transition flex items-center justify-center gap-2 mb-3">
+      <button
+        onClick={() => navigate("/checkout")}
+        disabled={cart.length === 0}
+        className="w-full px-4 py-3 bg-primary text-surface rounded-lg font-body-md hover:bg-primary/90 transition flex items-center justify-center gap-2 mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
         <MdShoppingCart size={20} />
-        Proceed to Checkout
+        Tiến hành thanh toán
       </button>
 
       {/* Continue Shopping */}
@@ -91,7 +70,7 @@ export default function CartSummary() {
         href="/shop"
         className="w-full px-4 py-3 border border-outline rounded-lg font-body-md text-on-background hover:bg-surface-container transition text-center block"
       >
-        Continue Shopping
+        Tiếp tục mua sắm
       </a>
 
       {/* Clear Cart */}
@@ -100,7 +79,7 @@ export default function CartSummary() {
           onClick={clearCart}
           className="w-full mt-3 px-4 py-2 text-error text-body-sm hover:bg-error/10 rounded-lg transition"
         >
-          Clear Cart
+          Xóa giỏ hàng
         </button>
       )}
     </div>
