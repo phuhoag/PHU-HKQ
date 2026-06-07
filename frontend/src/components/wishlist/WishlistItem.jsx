@@ -1,13 +1,29 @@
 import { MdClose, MdAddShoppingCart, MdStarRate } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { useWishlist } from "../../context/WishlistContext.jsx";
+import { useCart } from "../../context/CartContext.jsx";
 
 export default function WishlistItem({ product }) {
   const { removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
 
-  const handleAddToCart = () => {
-    // TODO: Integrate with CartContext
-    console.log("Add to cart:", product);
+  const handleAddToCart = async () => {
+    try {
+      await addToCart(
+        {
+          _id: product.id,
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          stock: product.stock,
+        },
+        1
+      );
+      removeFromWishlist(product.id);
+    } catch (err) {
+      console.error("Failed to move wishlist item to cart:", err);
+    }
   };
 
   return (
