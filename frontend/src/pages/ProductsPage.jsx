@@ -59,6 +59,95 @@ export default function ProductsPage() {
     },
   });
 
+  const [uploadingProductImage, setUploadingProductImage] = useState(false);
+  const [uploadingCategoryImage, setUploadingCategoryImage] = useState(false);
+
+  const handleProductImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("❌ Dung lượng ảnh không được vượt quá 5MB!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    setUploadingProductImage(true);
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const res = await response.json();
+      if (response.ok && res.success) {
+        setProductModal((prev) => ({
+          ...prev,
+          data: {
+            ...prev.data,
+            image: res.url,
+          },
+        }));
+      } else {
+        alert("❌ Upload thất bại: " + (res.message || "Lỗi không xác định"));
+      }
+    } catch (err) {
+      alert("❌ Lỗi upload: " + err.message);
+    } finally {
+      setUploadingProductImage(false);
+    }
+  };
+
+  const handleCategoryImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("❌ Dung lượng ảnh không được vượt quá 5MB!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    setUploadingCategoryImage(true);
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const res = await response.json();
+      if (response.ok && res.success) {
+        setCategoryModal((prev) => ({
+          ...prev,
+          data: {
+            ...prev.data,
+            image: res.url,
+          },
+        }));
+      } else {
+        alert("❌ Upload thất bại: " + (res.message || "Lỗi không xác định"));
+      }
+    } catch (err) {
+      alert("❌ Lỗi upload: " + err.message);
+    } finally {
+      setUploadingCategoryImage(false);
+    }
+  };
+
   // Verify Admin role on mount
   useEffect(() => {
     const userString = localStorage.getItem("user");
@@ -620,14 +709,58 @@ export default function ProductsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Ảnh sản phẩm (URL)</label>
-                  <input
-                    type="text"
-                    value={productModal.data.image}
-                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, image: e.target.value } })}
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none focus:border-primary transition"
-                  />
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Ảnh sản phẩm</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-20 h-20 rounded-lg border border-outline-variant bg-surface flex items-center justify-center overflow-hidden flex-shrink-0 group">
+                      {productModal.data.image ? (
+                        <>
+                          <img
+                            src={productModal.data.image}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setProductModal({ ...productModal, data: { ...productModal.data, image: "" } })}
+                            className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                            title="Xóa ảnh"
+                          >
+                            <MdDelete size={20} />
+                          </button>
+                        </>
+                      ) : (
+                        <div className="text-on-surface-variant text-body-sm text-center px-1">Chưa có ảnh</div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className={`flex flex-col items-center justify-center px-4 py-3 border border-dashed border-outline-variant rounded-lg cursor-pointer hover:border-primary hover:bg-surface-container/30 transition text-center ${uploadingProductImage ? 'pointer-events-none opacity-60' : ''}`}>
+                        <span className="text-body-sm text-primary font-semibold flex items-center gap-1.5">
+                          {uploadingProductImage ? (
+                            <>
+                              <svg className="animate-spin h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Đang upload...
+                            </>
+                          ) : (
+                            <>
+                              <MdAdd size={18} />
+                              Chọn ảnh
+                            </>
+                          )}
+                        </span>
+                        <span className="text-label-sm text-on-surface-variant mt-0.5">Tối đa 5MB</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProductImageUpload}
+                          className="hidden"
+                          disabled={uploadingProductImage}
+                        />
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -689,14 +822,58 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Ảnh danh mục (URL)</label>
-                <input
-                  type="text"
-                  value={categoryModal.data.image}
-                  onChange={(e) => setCategoryModal({ ...categoryModal, data: { ...categoryModal.data, image: e.target.value } })}
-                  placeholder="https://example.com/category.jpg"
-                  className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none focus:border-primary transition"
-                />
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Ảnh danh mục</label>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-20 h-20 rounded-lg border border-outline-variant bg-surface flex items-center justify-center overflow-hidden flex-shrink-0 group">
+                    {categoryModal.data.image ? (
+                      <>
+                        <img
+                          src={categoryModal.data.image}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCategoryModal({ ...categoryModal, data: { ...categoryModal.data, image: "" } })}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                          title="Xóa ảnh"
+                        >
+                          <MdDelete size={20} />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="text-on-surface-variant text-body-sm text-center px-1">Chưa có ảnh</div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <label className={`flex flex-col items-center justify-center px-4 py-3 border border-dashed border-outline-variant rounded-lg cursor-pointer hover:border-primary hover:bg-surface-container/30 transition text-center ${uploadingCategoryImage ? 'pointer-events-none opacity-60' : ''}`}>
+                      <span className="text-body-sm text-primary font-semibold flex items-center gap-1.5">
+                        {uploadingCategoryImage ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Đang upload...
+                          </>
+                        ) : (
+                          <>
+                            <MdAdd size={18} />
+                            Chọn ảnh
+                          </>
+                        )}
+                      </span>
+                      <span className="text-label-sm text-on-surface-variant mt-0.5">Tối đa 5MB</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCategoryImageUpload}
+                        className="hidden"
+                        disabled={uploadingCategoryImage}
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <div>

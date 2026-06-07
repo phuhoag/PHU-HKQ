@@ -1,4 +1,7 @@
 import express from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import {
   authenticateToken,
   authorizeAdmin,
@@ -10,6 +13,90 @@ import Product from "../models/product.model.js";
 import Category from "../models/category.model.js";
 
 const router = express.Router();
+
+// Ensure upload directory exists in frontend public/images
+const uploadDir = path.resolve("../frontend/public/images");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Multer Storage Configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + "-" + uniqueSuffix + ext);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|webp|gif/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error("Chỉ chấp nhận file ảnh (.jpeg, .jpg, .png, .webp, .gif)!"));
+  },
+});
+
+/**
+ * @route   POST /api/admin/upload
+ * @access  Admin only
+ * @desc    Upload an image file
+ */
+router.post(
+  "/upload",
+  authenticateToken,
+  authorizeAdmin,
+  (req, res, next) => {
+    upload.single("image")(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({
+          success: false,
+          message: `Lỗi upload: ${err.message}`,
+        });
+      } else if (err) {
+        return res.status(400).json({
+          success: false,
+          message: err.message,
+        });
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "Vui lòng chọn một file ảnh để upload",
+        });
+      }
+
+      // Return the file path relative to frontend public directory
+      const fileUrl = `/images/${req.file.filename}`;
+
+      res.status(200).json({
+        success: true,
+        message: "Upload ảnh thành công",
+        url: fileUrl,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Lỗi hệ thống khi upload ảnh",
+        error: error.message,
+      });
+    }
+  }
+);
 
 /**
  * @route   GET /api/admin/users
