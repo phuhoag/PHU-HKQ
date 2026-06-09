@@ -18,14 +18,17 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
 
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: false,
-    orderUpdates: true,
-    promotions: false,
-    darkMode: false,
-    twoFactor: true,
-    dataCollection: true,
+  const [settings, setSettings] = useState(() => {
+    const storedDark = localStorage.getItem("darkMode") === "true";
+    return {
+      emailNotifications: true,
+      pushNotifications: false,
+      orderUpdates: true,
+      promotions: false,
+      darkMode: storedDark,
+      twoFactor: true,
+      dataCollection: true,
+    };
   });
 
   const [smtpSettings, setSmtpSettings] = useState({
@@ -83,7 +86,18 @@ export default function SettingsPage() {
   };
 
   const toggleSetting = (key) => {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+    setSettings((prev) => {
+      const updated = { ...prev, [key]: !prev[key] };
+      if (key === "darkMode") {
+        localStorage.setItem("darkMode", updated.darkMode.toString());
+        if (updated.darkMode) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      }
+      return updated;
+    });
   };
 
   const handleSmtpChange = (e) => {
@@ -186,8 +200,8 @@ export default function SettingsPage() {
   const isAdmin = currentUser?.role === "admin";
 
   const renderSmtpSection = () => (
-    <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
-      <h2 className="text-h2 font-h2 text-on-surface mb-6 flex items-center gap-3">
+    <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant dark:border-outline rounded-xl p-6 shadow-sm">
+      <h2 className="text-h2 font-h2 text-on-surface dark:text-inverse-on-surface mb-6 flex items-center gap-3">
         <MdEmail size={24} className="text-primary" />
         Email SMTP Configuration
       </h2>
@@ -205,13 +219,13 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <p className="text-label-sm text-on-surface-variant mb-4">
+        <p className="text-label-sm text-on-surface-variant dark:text-surface-variant mb-4">
           Configure your SMTP credentials to send transactional messages (like password resets and confirmations) from the system.
         </p>
 
         <form onSubmit={handleSmtpSave} className="space-y-4">
           <div>
-            <label className="block text-label-sm font-semibold text-on-surface mb-1">
+            <label className="block text-label-sm font-semibold text-on-surface dark:text-inverse-on-surface mb-1">
               Email SMTP *
             </label>
             <input
@@ -221,12 +235,12 @@ export default function SettingsPage() {
               value={smtpSettings.smtpEmail}
               onChange={handleSmtpChange}
               placeholder="your-email@gmail.com"
-              className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-sm text-on-surface outline-none focus:border-primary transition"
+              className="w-full px-4 py-2 border border-outline-variant dark:border-outline rounded-lg bg-surface dark:bg-inverse-surface text-body-sm text-on-surface dark:text-inverse-on-surface outline-none focus:border-primary transition"
             />
           </div>
 
           <div>
-            <label className="block text-label-sm font-semibold text-on-surface mb-1">
+            <label className="block text-label-sm font-semibold text-on-surface dark:text-inverse-on-surface mb-1">
               SMTP Password / App Password *
             </label>
             <div className="relative">
@@ -237,12 +251,12 @@ export default function SettingsPage() {
                 value={smtpSettings.smtpPassword}
                 onChange={handleSmtpChange}
                 placeholder={smtpSettings.smtpEmail ? "••••••••" : "Gmail App Password"}
-                className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-sm text-on-surface outline-none focus:border-primary transition pr-10"
+                className="w-full px-4 py-2 border border-outline-variant dark:border-outline rounded-lg bg-surface dark:bg-inverse-surface text-body-sm text-on-surface dark:text-inverse-on-surface outline-none focus:border-primary transition pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-2 text-on-surface-variant hover:text-on-surface"
+                className="absolute right-3 top-2 text-on-surface-variant dark:text-surface-variant hover:text-on-surface"
               >
                 {showPassword ? "🙈" : "👁️"}
               </button>
@@ -251,7 +265,7 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-label-sm font-semibold text-on-surface mb-1">
+              <label className="block text-label-sm font-semibold text-on-surface dark:text-inverse-on-surface mb-1">
                 SMTP Host *
               </label>
               <input
@@ -261,12 +275,12 @@ export default function SettingsPage() {
                 value={smtpSettings.smtpHost}
                 onChange={handleSmtpChange}
                 placeholder="smtp.gmail.com"
-                className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-sm text-on-surface outline-none focus:border-primary transition"
+                className="w-full px-4 py-2 border border-outline-variant dark:border-outline rounded-lg bg-surface dark:bg-inverse-surface text-body-sm text-on-surface dark:text-inverse-on-surface outline-none focus:border-primary transition"
               />
             </div>
 
             <div>
-              <label className="block text-label-sm font-semibold text-on-surface mb-1">
+              <label className="block text-label-sm font-semibold text-on-surface dark:text-inverse-on-surface mb-1">
                 SMTP Port *
               </label>
               <input
@@ -276,7 +290,7 @@ export default function SettingsPage() {
                 value={smtpSettings.smtpPort}
                 onChange={handleSmtpChange}
                 placeholder="587"
-                className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-sm text-on-surface outline-none focus:border-primary transition"
+                className="w-full px-4 py-2 border border-outline-variant dark:border-outline rounded-lg bg-surface dark:bg-inverse-surface text-body-sm text-on-surface dark:text-inverse-on-surface outline-none focus:border-primary transition"
               />
             </div>
           </div>
@@ -311,11 +325,11 @@ export default function SettingsPage() {
           </div>
         </form>
 
-        <div className="mt-4 p-4 bg-primary/10 rounded-xl text-on-primary-container">
+        <div className="mt-4 p-4 bg-primary/10 dark:bg-primary/20 rounded-xl text-on-primary-container dark:text-inverse-primary">
           <p className="font-semibold text-body-sm mb-2 flex items-center gap-1.5">📧 How to setup for Gmail:</p>
-          <ol className="list-decimal list-inside space-y-1 text-label-sm text-on-surface-variant font-medium">
+          <ol className="list-decimal list-inside space-y-1 text-label-sm text-on-surface-variant dark:text-surface-variant font-medium">
             <li>Login to your Google Account</li>
-            <li>Visit <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="text-primary hover:underline font-bold">myaccount.google.com/apppasswords</a></li>
+            <li>Visit <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="text-primary dark:text-primary-fixed hover:underline font-bold">myaccount.google.com/apppasswords</a></li>
             <li>Select Mail and Windows Computer (or Generate custom)</li>
             <li>Copy the 16-character app password</li>
             <li>Paste into "SMTP Password" field above</li>
@@ -332,17 +346,17 @@ export default function SettingsPage() {
   // Render Admin Layout
   if (isAdmin) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background dark:bg-inverse-surface transition-colors duration-200">
         <Sidebar />
 
         <main className="ml-64 p-8 min-h-screen">
           {/* Page Header */}
-          <div className="mb-8 pb-6 border-b border-outline-variant">
-            <h1 className="text-h1 font-h1 text-on-background flex items-center gap-3">
+          <div className="mb-8 pb-6 border-b border-outline-variant dark:border-outline">
+            <h1 className="text-h1 font-h1 text-on-background dark:text-inverse-on-surface flex items-center gap-3">
               <MdSettings size={32} className="text-primary" />
               Settings
             </h1>
-            <p className="text-body-md text-on-surface-variant mt-1">
+            <p className="text-body-md text-on-surface-variant dark:text-surface-variant mt-1">
               Manage your store configurations and administrative preferences
             </p>
           </div>
@@ -353,15 +367,15 @@ export default function SettingsPage() {
               {renderSmtpSection()}
 
               {/* Appearance Settings */}
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
-                <h2 className="text-h2 font-h2 text-on-surface mb-6 flex items-center gap-3">
+              <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant dark:border-outline rounded-xl p-6 shadow-sm">
+                <h2 className="text-h2 font-h2 text-on-surface dark:text-inverse-on-surface mb-6 flex items-center gap-3">
                   <MdPalette size={24} className="text-primary" />
                   Appearance
                 </h2>
                 <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="text-body-sm font-semibold text-on-surface">Dark Mode</p>
-                    <p className="text-label-sm text-on-surface-variant">Reduce eye strain with dark theme</p>
+                    <p className="text-body-sm font-semibold text-on-surface dark:text-inverse-on-surface">Dark Mode</p>
+                    <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">Reduce eye strain with dark theme</p>
                   </div>
                   <button onClick={() => toggleSetting("darkMode")} className="text-primary text-3xl">
                     {settings.darkMode ? <MdToggleOn /> : <MdToggleOff />}
@@ -372,15 +386,15 @@ export default function SettingsPage() {
 
             <div className="space-y-6">
               {/* Account Info */}
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
-                <h3 className="text-h3 font-h3 text-on-surface mb-4">Account Info</h3>
+              <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant dark:border-outline rounded-xl p-6 shadow-sm">
+                <h3 className="text-h3 font-h3 text-on-surface dark:text-inverse-on-surface mb-4">Account Info</h3>
                 <div className="space-y-3 text-body-sm">
                   <div>
-                    <p className="text-on-surface-variant font-medium">Email</p>
-                    <p className="text-on-surface font-semibold">{currentUser.email}</p>
+                    <p className="text-on-surface-variant dark:text-surface-variant font-medium">Email</p>
+                    <p className="text-on-surface dark:text-inverse-on-surface font-semibold">{currentUser.email}</p>
                   </div>
                   <div>
-                    <p className="text-on-surface-variant font-medium">Role</p>
+                    <p className="text-on-surface-variant dark:text-surface-variant font-medium">Role</p>
                     <span className="px-2.5 py-0.5 bg-primary/10 text-primary font-bold rounded text-xs">
                       Super Admin
                     </span>
@@ -391,7 +405,7 @@ export default function SettingsPage() {
               {/* Help & Support */}
               <div className="bg-primary/10 rounded-xl p-6">
                 <h3 className="text-h3 font-h3 text-primary mb-2">Need Help?</h3>
-                <p className="text-body-sm text-on-surface-variant mb-4">
+                <p className="text-body-sm text-on-surface-variant dark:text-surface-variant mb-4">
                   For assistance with advanced settings or configurations, check our developers support log.
                 </p>
                 <Link

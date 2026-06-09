@@ -215,9 +215,11 @@ const router = createBrowserRouter([
       {
         path: "/settings",
         element: (
-          <ErrorBoundary>
-            <LazyLoading children={<SettingsPage />} />
-          </ErrorBoundary>
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<SettingsPage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
         ),
       },
       {

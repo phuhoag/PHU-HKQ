@@ -10,7 +10,7 @@
 }
 
 body {
-  @apply bg-background text-on-background;
+  @apply bg-background text-on-background dark:bg-inverse-surface dark:text-inverse-on-surface;
 }
 
 /* Mobile filter drawer animation */

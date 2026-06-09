@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   MdDashboard,
   MdShoppingCart,
@@ -72,15 +72,15 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-surface-container-lowest border-r border-outline-variant transition-all duration-300 z-40 ${
+      className={`fixed left-0 top-0 h-screen bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/10 border-r border-outline-variant dark:border-outline transition-all duration-300 z-40 ${
         isCollapsed ? "w-20" : "w-64"
       }`}
     >
       {/* Logo Section */}
-      <div className="p-6 border-b border-outline-variant">
+      <div className="p-6 border-b border-outline-variant dark:border-outline">
         <div className="flex items-center justify-between">
           <h1
-            className={`font-h2 text-h2 font-bold text-primary ${
+            className={`font-h2 text-h2 font-bold text-primary dark:text-primary-fixed ${
               isCollapsed && "hidden"
             }`}
           >
@@ -88,13 +88,13 @@ export default function Sidebar() {
           </h1>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 hover:bg-surface-container rounded-lg transition"
+            className="p-2 hover:bg-surface-container dark:hover:bg-on-secondary-fixed-variant/30 rounded-lg text-on-surface dark:text-inverse-on-surface transition"
           >
             {isCollapsed ? "→" : "←"}
           </button>
         </div>
         <p
-          className={`text-body-sm text-on-surface-variant mt-2 ${
+          className={`text-body-sm text-on-surface-variant dark:text-surface-variant mt-2 ${
             isCollapsed && "hidden"
           }`}
         >
@@ -108,33 +108,33 @@ export default function Sidebar() {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
           return (
-            <a
+            <Link
               key={item.label}
-              href={item.href}
+              to={item.href}
               className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${
                 isActive
                   ? "bg-primary text-surface text-body-md font-body-md"
-                  : "text-on-surface hover:bg-surface-container"
+                  : "text-on-surface dark:text-inverse-on-surface hover:bg-surface-container dark:hover:bg-on-secondary-fixed-variant/30"
               }`}
             >
               <Icon size={24} />
               <span className={isCollapsed ? "hidden" : ""}>{item.label}</span>
-            </a>
+            </Link>
           );
         })}
       </nav>
 
       {/* User Profile Section */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-outline-variant">
-        <div className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-surface-container transition">
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-outline-variant dark:border-outline">
+        <div className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-surface-container dark:hover:bg-on-secondary-fixed-variant/30 transition">
           <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-surface text-h4 font-h4 flex-shrink-0">
             {getInitials()}
           </div>
           <div className={isCollapsed ? "hidden" : ""}>
-            <p className="text-body-md font-body-md text-on-background truncate max-w-[130px]">
+            <p className="text-body-md font-body-md text-on-background dark:text-inverse-on-surface truncate max-w-[130px]">
               {getDisplayName()}
             </p>
-            <p className="text-body-sm text-on-surface-variant">{getRoleLabel()}</p>
+            <p className="text-body-sm text-on-surface-variant dark:text-surface-variant">{getRoleLabel()}</p>
           </div>
         </div>
 
