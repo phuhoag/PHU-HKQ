@@ -9,6 +9,40 @@
   font-family: "Inter", sans-serif;
 }
 
+@layer base {
+  :root {
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container: #ecedf9;
+    --color-surface-container-low: #f2f3ff;
+    --color-surface-container-high: #e6e7f3;
+    --color-surface-container-highest: #e0e2ed;
+    --color-outline-variant: #c1c6d7;
+    --color-outline: #727786;
+    --color-on-surface: #181b23;
+    --color-on-surface-variant: #414755;
+    --color-on-background: #181b23;
+    --color-success: #16a34a;
+    --color-warning: #d97706;
+    --color-info: #2563eb;
+  }
+
+  .dark {
+    --color-surface-container-lowest: #1e222b;
+    --color-surface-container: #181b23;
+    --color-surface-container-low: #1c1f26;
+    --color-surface-container-high: #242936;
+    --color-surface-container-highest: #2b3140;
+    --color-outline-variant: #38485d;
+    --color-outline: #727786;
+    --color-on-surface: #eff0fc;
+    --color-on-surface-variant: #b7c8e1;
+    --color-on-background: #eff0fc;
+    --color-success: #4ade80;
+    --color-warning: #fbbf24;
+    --color-info: #60a5fa;
+  }
+}
+
 body {
   @apply bg-background text-on-background dark:bg-inverse-surface dark:text-inverse-on-surface;
 }
