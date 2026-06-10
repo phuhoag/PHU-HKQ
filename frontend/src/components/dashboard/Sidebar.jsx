@@ -72,7 +72,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/10 border-r border-outline-variant dark:border-outline transition-all duration-300 z-40 ${
+      className={`fixed left-0 top-0 h-screen bg-surface-container-lowest dark:bg-[#181b23] border-r border-outline-variant dark:border-outline transition-all duration-300 z-40 ${
         isCollapsed ? "w-20" : "w-64"
       }`}
     >

@@ -174,20 +174,20 @@ export default function CustomersPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark:bg-inverse-surface text-on-background dark:text-inverse-on-surface transition-colors duration-200">
       {/* Sidebar */}
       <Sidebar />
 
       {/* Main Content Area */}
       <main className="ml-64 p-8 min-h-screen">
         {/* Top Header */}
-        <div className="flex items-center justify-between mb-8 pb-6 border-b border-outline-variant">
+        <div className="flex items-center justify-between mb-8 pb-6 border-b border-outline-variant dark:border-outline">
           <div>
-            <h1 className="text-h1 font-h1 text-on-background flex items-center gap-3">
+            <h1 className="text-h1 font-h1 text-on-background dark:text-inverse-on-surface flex items-center gap-3">
               <MdPeople className="text-primary" size={32} />
               Quản lý khách hàng
             </h1>
-            <p className="text-body-md text-on-surface-variant mt-1">
+            <p className="text-body-md text-on-surface-variant dark:text-surface-variant mt-1">
               Quản lý phân quyền tài khoản, trạng thái khóa tài khoản thành viên trong hệ thống.
             </p>
           </div>

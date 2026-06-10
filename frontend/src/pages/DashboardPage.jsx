@@ -293,7 +293,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark:bg-inverse-surface text-on-background dark:text-inverse-on-surface transition-colors duration-200">
       {/* Sidebar */}
       <Sidebar />
 
@@ -304,10 +304,10 @@ export default function DashboardPage() {
             {/* Top Bar with Title and Buttons */}
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-h1 font-h1 text-on-background">
+                <h1 className="text-h1 font-h1 text-on-background dark:text-inverse-on-surface">
                   Dashboard Overview
                 </h1>
-                <p className="text-body-md text-on-surface-variant mt-1">
+                <p className="text-body-md text-on-surface-variant dark:text-surface-variant mt-1">
                   Welcome back{currentUser?.first_name ? `, ${currentUser.first_name}` : ""}! Your store is performing well.
                 </p>
               </div>
@@ -357,13 +357,13 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Quick Stats - Right Column */}
-                  <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6">
-                    <h3 className="text-h3 font-h3 text-on-background mb-4">
+                  <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 rounded-xl border border-outline-variant dark:border-outline p-6">
+                    <h3 className="text-h3 font-h3 text-on-background dark:text-inverse-on-surface mb-4">
                       Số liệu nhanh
                     </h3>
                     <div className="space-y-4">
                       <div className="p-3 bg-primary/10 rounded-lg">
-                        <p className="text-body-sm text-on-surface-variant">
+                        <p className="text-body-sm text-on-surface-variant dark:text-surface-variant">
                           Doanh thu thực tế
                         </p>
                         <p className="text-h2 font-h2 text-primary">
@@ -371,7 +371,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="p-3 bg-success/10 rounded-lg">
-                        <p className="text-body-sm text-on-surface-variant">
+                        <p className="text-body-sm text-on-surface-variant dark:text-surface-variant">
                           Thành viên hoạt động
                         </p>
                         <p className="text-h2 font-h2 text-success">
@@ -379,7 +379,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="p-3 bg-warning/10 rounded-lg">
-                        <p className="text-body-sm text-on-surface-variant">
+                        <p className="text-body-sm text-on-surface-variant dark:text-surface-variant">
                           Đơn hàng thành công
                         </p>
                         <p className="text-h2 font-h2 text-warning">
