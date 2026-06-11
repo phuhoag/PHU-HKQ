@@ -16,10 +16,7 @@ const ForgotPasswordPage = React.lazy(
 const ResetPasswordPage = React.lazy(
   () => import("../pages/ResetPasswordPage"),
 );
-const AdminLoginPage = React.lazy(() => import("../pages/AdminLoginPage"));
-const AdminForgotPasswordPage = React.lazy(
-  () => import("../pages/AdminForgotPasswordPage"),
-);
+
 const ProductCatalog = React.lazy(() => import("../pages/ProductCatalog"));
 const ProductDetailPage = React.lazy(
   () => import("../pages/ProductDetailPage"),
@@ -128,22 +125,7 @@ const router = createBrowserRouter([
           </ErrorBoundary>
         ),
       },
-      {
-        path: "/admin/login",
-        element: (
-          <ErrorBoundary>
-            <LazyLoading children={<AdminLoginPage />} />
-          </ErrorBoundary>
-        ),
-      },
-      {
-        path: "/admin/forgot-password",
-        element: (
-          <ErrorBoundary>
-            <LazyLoading children={<AdminForgotPasswordPage />} />
-          </ErrorBoundary>
-        ),
-      },
+
       {
         path: "/admin/dashboard",
         element: <Navigate to="/dashboard" replace />,

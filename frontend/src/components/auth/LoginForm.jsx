@@ -59,7 +59,11 @@ export default function LoginForm() {
 
       if (result.success) {
         await onLogin();
-        navigate("/");
+        if (result.data?.user?.role === "admin") {
+          navigate("/dashboard");
+        } else {
+          navigate("/");
+        }
       }
     } catch (error) {
       setApiError(error.message || "Login failed. Please try again.");
@@ -76,7 +80,11 @@ export default function LoginForm() {
       const result = await authService.googleLogin(credentialResponse.credential);
       if (result.success) {
         await onLogin();
-        navigate("/");
+        if (result.data?.user?.role === "admin") {
+          navigate("/dashboard");
+        } else {
+          navigate("/");
+        }
       }
     } catch (error) {
       setApiError(error.message || "Đăng nhập Google thất bại. Vui lòng thử lại.");
@@ -265,21 +273,12 @@ export default function LoginForm() {
       </div>
 
       {/* Sign Up Link */}
-      <div className="mt-stack-lg text-center space-y-2">
+      <div className="mt-stack-lg text-center">
         <p className="font-body-sm text-body-sm text-on-surface-variant">
           Don't have an account yet?{" "}
           <a href="/signup" className="text-primary font-bold hover:underline">
             Create an Account
           </a>
-        </p>
-        <p className="font-body-sm text-body-sm text-on-surface-variant">
-          Admin?{" "}
-          <Link
-            to="/admin/login"
-            className="text-primary font-bold hover:underline"
-          >
-            Admin Login
-          </Link>
         </p>
       </div>
     </div>
