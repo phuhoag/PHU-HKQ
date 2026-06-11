@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext.jsx";
 import { MdShoppingCart, MdLocalShipping } from "react-icons/md";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function CartSummary() {
   const navigate = useNavigate();
   const { cart, getTotalPrice, getTotalItems, clearCart } = useCart();
+  const { t, language } = useLanguage();
 
   const subtotal = getTotalPrice();
   const shipping = subtotal > 50 ? 0 : 9.99;
@@ -12,13 +14,13 @@ export default function CartSummary() {
 
   return (
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 h-fit sticky top-8">
-      <h3 className="text-h3 font-h3 text-on-background mb-6">Tóm tắt đơn hàng</h3>
+      <h3 className="text-h3 font-h3 text-on-background mb-6">{t("cart.summary.title")}</h3>
 
       <div className="space-y-3 mb-6">
         {/* Subtotal */}
         <div className="flex items-center justify-between">
           <span className="text-body-md text-on-surface-variant">
-            Tạm tính ({getTotalItems()} sản phẩm)
+            {t("cart.summary.subtotal")} ({getTotalItems()} {language === "vi" ? "sản phẩm" : "items"})
           </span>
           <span className="text-body-md font-body-md text-on-background">
             ${subtotal.toFixed(2)}
@@ -28,21 +30,21 @@ export default function CartSummary() {
         {/* Shipping */}
         <div className="flex items-center justify-between">
           <span className="text-body-md text-on-surface-variant">
-            {shipping === 0 ? "Vận chuyển (MIỄN PHÍ)" : "Vận chuyển"}
+            {shipping === 0 ? t("cart.summary.freeShipping") : t("cart.summary.shipping")}
           </span>
           <span
             className={`text-body-md font-body-md ${
               shipping === 0 ? "text-success" : "text-on-background"
             }`}
           >
-            {shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}
+            {shipping === 0 ? t("cart.summary.free") : `$${shipping.toFixed(2)}`}
           </span>
         </div>
 
         {shipping > 0 && (
           <p className="text-body-sm text-success flex items-center gap-1">
             <MdLocalShipping size={14} />
-            Miễn phí vận chuyển cho đơn hàng trên $50
+            {t("cart.summary.freeShippingPromo")}
           </p>
         )}
       </div>
@@ -50,7 +52,7 @@ export default function CartSummary() {
       {/* Total */}
       <div className="bg-primary/10 rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between">
-          <span className="text-body-lg font-body-lg text-on-background">Tổng cộng</span>
+          <span className="text-body-lg font-body-lg text-on-background">{t("cart.summary.total")}</span>
           <span className="text-h2 font-h2 text-primary">${total.toFixed(2)}</span>
         </div>
       </div>
@@ -62,7 +64,7 @@ export default function CartSummary() {
         className="w-full px-4 py-3 bg-primary text-surface rounded-lg font-body-md hover:bg-primary/90 transition flex items-center justify-center gap-2 mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <MdShoppingCart size={20} />
-        Tiến hành thanh toán
+        {t("cart.summary.checkout")}
       </button>
 
       {/* Continue Shopping */}
@@ -70,7 +72,7 @@ export default function CartSummary() {
         href="/shop"
         className="w-full px-4 py-3 border border-outline rounded-lg font-body-md text-on-background hover:bg-surface-container transition text-center block"
       >
-        Tiếp tục mua sắm
+        {t("cart.summary.continueShopping")}
       </a>
 
       {/* Clear Cart */}
@@ -79,7 +81,7 @@ export default function CartSummary() {
           onClick={clearCart}
           className="w-full mt-3 px-4 py-2 text-error text-body-sm hover:bg-error/10 rounded-lg transition"
         >
-          Xóa giỏ hàng
+          {t("cart.summary.clearCart")}
         </button>
       )}
     </div>

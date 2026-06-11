@@ -4,9 +4,11 @@ import Footer from "../components/layouts/Footer.jsx";
 import CartItem from "../components/cart/CartItem.jsx";
 import CartSummary from "../components/cart/CartSummary.jsx";
 import { useCart } from "../context/CartContext.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function CartPage() {
   const { cart, getTotalItems } = useCart();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -22,12 +24,12 @@ export default function CartPage() {
             >
               <MdArrowBack size={20} />
               <span className="text-body-md font-body-md">
-                Back to Shopping
+                {t("cart.backToShopping")}
               </span>
             </a>
             <h1 className="text-h1 font-h1 text-on-background flex items-center gap-3">
               <MdShoppingCart size={32} className="text-primary" />
-              Shopping Cart
+              {t("cart.title")}
             </h1>
           </div>
 
@@ -40,16 +42,16 @@ export default function CartPage() {
                 className="text-on-surface-variant/50 mb-4"
               />
               <h2 className="text-h2 font-h2 text-on-background mb-2">
-                Your cart is empty
+                {t("cart.emptyCart")}
               </h2>
               <p className="text-body-md text-on-surface-variant mb-6">
-                Add some products to get started
+                {t("cart.emptyCartDesc")}
               </p>
               <a
                 href="/shop"
                 className="px-6 py-3 bg-primary text-surface rounded-lg font-body-md hover:bg-primary/90 transition"
               >
-                Start Shopping
+                {t("cart.startShopping")}
               </a>
             </div>
           ) : (
@@ -59,8 +61,7 @@ export default function CartPage() {
               <div className="lg:col-span-2 space-y-4">
                 <div className="mb-4">
                   <p className="text-body-md text-on-surface-variant">
-                    You have {getTotalItems()} item
-                    {getTotalItems() !== 1 ? "s" : ""} in your cart
+                    {t("cart.youHave")} {getTotalItems()} {t("cart.itemsInCart")}
                   </p>
                 </div>
 
@@ -80,12 +81,12 @@ export default function CartPage() {
           {cart.length > 0 && (
             <div className="mt-16">
               <h2 className="text-h2 font-h2 text-on-background mb-6">
-                You might also like
+                {t("cart.mightLike")}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-surface-container-lowest rounded-xl p-6 border border-outline-variant">
                 <div className="text-center py-8">
                   <p className="text-body-md text-on-surface-variant">
-                    Recommended products will appear here
+                    {t("cart.recommendedDesc")}
                   </p>
                 </div>
               </div>
