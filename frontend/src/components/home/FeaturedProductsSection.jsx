@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import ProductCard from "../products/ProductCard";
 import { MdArrowForward } from "react-icons/md";
 import { productService } from "../../services/productService";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function FeaturedProductsSection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -36,17 +38,17 @@ export default function FeaturedProductsSection() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-stack-lg">
           <div>
             <h2 className="font-h2 text-h2 text-on-surface mb-2">
-              Featured Products
+              {t("home.featured.title")}
             </h2>
             <p className="font-body-md text-body-md text-on-surface-variant">
-              Check out our best-selling items
+              {t("home.featured.subtitle")}
             </p>
           </div>
           <Link
             to="/shop"
             className="inline-flex items-center gap-2 text-primary hover:text-primary-container transition-colors font-button text-button"
           >
-            View All
+            {t("home.featured.viewAll")}
             <MdArrowForward size={20} />
           </Link>
         </div>
@@ -64,8 +66,8 @@ export default function FeaturedProductsSection() {
                   <div className="h-4 bg-surface-container rounded w-3/4" />
                   <div className="h-3 bg-surface-container rounded w-1/2" />
                   <div className="flex justify-between items-center pt-2">
-                    <div className="h-6 bg-surface-container rounded w-1/4" />
-                    <div className="h-9 w-9 bg-surface-container rounded-lg" />
+                     <div className="h-6 bg-surface-container rounded w-1/4" />
+                     <div className="h-9 w-9 bg-surface-container rounded-lg" />
                   </div>
                 </div>
               </div>
@@ -73,7 +75,7 @@ export default function FeaturedProductsSection() {
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-16 text-on-surface-variant">
-            Chưa có sản phẩm nào.
+            {t("home.featured.noProducts")}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
