@@ -80,6 +80,8 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [customerOrderHistory, setCustomerOrderHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   // Verify role on mount
   useEffect(() => {
@@ -136,8 +138,55 @@ export default function OrdersPage() {
     if (roleChecked) {
       setCurrentPage(1);
       fetchOrders(1);
+
+      // Check query parameter for openOrder
+      const params = new URLSearchParams(window.location.search);
+      const openOrderId = params.get("openOrder");
+      if (openOrderId) {
+        const fetchAndOpenOrder = async () => {
+          try {
+            const res = await orderService.getOrderById(openOrderId);
+            if (res.success) {
+              setSelectedOrder(res.data);
+              setDetailModalOpen(true);
+            }
+          } catch (err) {
+            console.error("Error fetching openOrder:", err);
+          }
+        };
+        fetchAndOpenOrder();
+      }
     }
   }, [roleChecked, statusFilter]);
+
+  // Fetch customer purchase history when modal is opened for an order
+  useEffect(() => {
+    if (selectedOrder && selectedOrder.user_id?._id && isAdmin) {
+      const fetchCustomerHistory = async () => {
+        setLoadingHistory(true);
+        try {
+          const res = await orderService.adminGetAllOrders({
+            userId: selectedOrder.user_id._id,
+            limit: 100,
+          });
+          if (res.success) {
+            // Exclude current order to show only *other* orders
+            const otherOrders = (res.data.orders || []).filter(
+              (o) => o._id !== selectedOrder._id
+            );
+            setCustomerOrderHistory(otherOrders);
+          }
+        } catch (err) {
+          console.error("Error fetching customer order history:", err);
+        } finally {
+          setLoadingHistory(false);
+        }
+      };
+      fetchCustomerHistory();
+    } else {
+      setCustomerOrderHistory([]);
+    }
+  }, [selectedOrder, isAdmin]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -296,8 +345,16 @@ export default function OrdersPage() {
 
                       return (
                         <tr key={o._id} className="border-b border-outline-variant hover:bg-surface-container/30 transition">
-                          <td className="px-6 py-4 font-semibold text-body-md text-primary">
-                            #{o._id?.slice(-8).toUpperCase()}
+                          <td className="px-6 py-4 font-semibold text-body-md">
+                            <button
+                              onClick={() => {
+                                setSelectedOrder(o);
+                                setDetailModalOpen(true);
+                              }}
+                              className="text-primary hover:text-primary/80 hover:underline outline-none font-semibold text-left"
+                            >
+                              #{o._id?.slice(-8).toUpperCase()}
+                            </button>
                           </td>
                           <td className="px-6 py-4 text-body-md text-on-surface-variant">
                             {formatDate(o.createdAt)}
@@ -482,6 +539,61 @@ export default function OrdersPage() {
                     </table>
                   </div>
                 </div>
+
+                {/* Lịch sử đơn hàng của khách hàng */}
+                {isAdmin && (
+                  <div className="mt-6 border-t border-outline-variant pt-6">
+                    <h3 className="font-semibold text-body-md text-on-surface mb-3">
+                      Lịch sử đơn hàng của khách hàng ({customerOrderHistory.length} đơn khác)
+                    </h3>
+                    {loadingHistory ? (
+                      <p className="text-body-sm text-on-surface-variant animate-pulse">Đang tải lịch sử đơn hàng...</p>
+                    ) : customerOrderHistory.length === 0 ? (
+                      <p className="text-body-sm text-on-surface-variant italic">Không có đơn hàng nào khác từ khách hàng này.</p>
+                    ) : (
+                      <div className="border border-outline-variant rounded-xl overflow-hidden bg-surface-container/10 max-h-48 overflow-y-auto">
+                        <table className="w-full text-left text-body-sm border-collapse">
+                          <thead className="bg-surface-container border-b border-outline-variant sticky top-0">
+                            <tr>
+                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">Mã đơn</th>
+                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">Ngày đặt</th>
+                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">Tổng tiền</th>
+                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">Trạng thái</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {customerOrderHistory.map((histOrder) => {
+                              const statusInfo = STATUS_CONFIG[histOrder.status] || STATUS_CONFIG.pending;
+                              return (
+                                <tr key={histOrder._id} className="border-b border-outline-variant last:border-none hover:bg-surface-container/20 transition">
+                                  <td className="px-4 py-2.5 font-semibold">
+                                    <button
+                                      onClick={() => setSelectedOrder(histOrder)}
+                                      className="text-primary hover:underline text-left outline-none font-semibold"
+                                    >
+                                      #{histOrder._id?.slice(-8).toUpperCase()}
+                                    </button>
+                                  </td>
+                                  <td className="px-4 py-2.5 text-on-surface-variant">
+                                    {formatDate(histOrder.createdAt)}
+                                  </td>
+                                  <td className="px-4 py-2.5 font-semibold">
+                                    ${parseFloat(histOrder.total_amount?.toString() || "0").toFixed(2)}
+                                  </td>
+                                  <td className="px-4 py-2.5">
+                                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
+                                      {statusInfo.label}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Modal Footer */}
