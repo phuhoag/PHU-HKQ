@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  MdOutlineSearch,
   MdOutlineShoppingCart,
   MdOutlineAccountCircle,
   MdDashboard,
@@ -15,7 +14,6 @@ import { useCart } from "../../context/CartContext.jsx";
 import { useWishlist } from "../../context/WishlistContext.jsx";
 
 export default function Header() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
@@ -95,22 +93,8 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* Search & Actions */}
+        {/* Actions */}
         <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant">
-            <MdOutlineSearch
-              className="text-on-surface-variant mr-2"
-              size={20}
-            />
-            <input
-              type="text"
-              placeholder="Search tech..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none focus:ring-0 text-body-sm w-48 outline-none"
-            />
-          </div>
-
           <div className="flex items-center gap-2">
             <Link
               to="/cart"
