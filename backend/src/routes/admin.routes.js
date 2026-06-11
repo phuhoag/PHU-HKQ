@@ -249,9 +249,130 @@ router.put(
 );
 
 /**
+ * @route   POST /api/admin/users
+ * @access  Admin only
+ * @desc    Create a new user account
+ */
+router.post(
+  "/users",
+  authenticateToken,
+  authorizeAdmin,
+  async (req, res) => {
+    try {
+      const { email, password, first_name, last_name, phone, address, role } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: "Email và mật khẩu là bắt buộc",
+        });
+      }
+
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Email này đã được sử dụng bởi một tài khoản khác",
+        });
+      }
+
+      const user = new User({
+        email,
+        password,
+        first_name,
+        last_name,
+        phone,
+        address,
+        role: role || "customer",
+        is_active: true,
+        full_name: `${first_name || ""} ${last_name || ""}`.trim() || undefined,
+      });
+
+      await user.save();
+      const userObject = user.toObject();
+      delete userObject.password;
+
+      res.status(201).json({
+        success: true,
+        message: "Tạo tài khoản thành công",
+        data: userObject,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Lỗi tạo tài khoản",
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * @route   PUT /api/admin/users/:id
+ * @access  Admin only
+ * @desc    Update user details
+ */
+router.put(
+  "/users/:id",
+  authenticateToken,
+  authorizeAdmin,
+  async (req, res) => {
+    try {
+      const { email, password, first_name, last_name, phone, address, role, is_active } = req.body;
+
+      const user = await User.findById(req.params.id);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "Người dùng không tồn tại",
+        });
+      }
+
+      // Email update check
+      if (email && email !== user.email) {
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
+          return res.status(400).json({
+            success: false,
+            message: "Email này đã được sử dụng bởi một tài khoản khác",
+          });
+        }
+        user.email = email;
+      }
+
+      if (password) user.password = password;
+      if (first_name !== undefined) user.first_name = first_name;
+      if (last_name !== undefined) user.last_name = last_name;
+      if (phone !== undefined) user.phone = phone;
+      if (address !== undefined) user.address = address;
+      if (role !== undefined) user.role = role;
+      if (is_active !== undefined) user.is_active = is_active;
+      user.full_name = `${user.first_name || ""} ${user.last_name || ""}`.trim() || undefined;
+
+      await user.save();
+      const userObject = user.toObject();
+      delete userObject.password;
+
+      res.status(200).json({
+        success: true,
+        message: "Cập nhật thông tin tài khoản thành công",
+        data: userObject,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Lỗi cập nhật thông tin tài khoản",
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
  * @route   DELETE /api/admin/users/:id
  * @access  Admin only
- * @desc    Delete user (soft delete - set is_active to false)
+ * @desc    Delete user permanently (hard delete)
  */
 router.delete(
   "/users/:id",
@@ -259,11 +380,7 @@ router.delete(
   authorizeAdmin,
   async (req, res) => {
     try {
-      const user = await User.findByIdAndUpdate(
-        req.params.id,
-        { is_active: false },
-        { new: true },
-      ).select("-password");
+      const user = await User.findByIdAndDelete(req.params.id);
 
       if (!user) {
         return res.status(404).json({
@@ -274,7 +391,7 @@ router.delete(
 
       res.status(200).json({
         success: true,
-        message: "Người dùng đã được xóa",
+        message: "Người dùng đã được xóa vĩnh viễn khỏi hệ thống",
         data: user,
       });
     } catch (error) {
