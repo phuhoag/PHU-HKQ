@@ -33,7 +33,7 @@ export default function Sidebar() {
         { icon: MdShoppingCart, label: "Products", href: "/products" },
         { icon: MdReceipt, label: "Orders", href: "/orders" },
         { icon: MdAnalytics, label: "Analytics", href: "/analytics" },
-        { icon: MdPeople, label: "Customers", href: "/customers" },
+        { icon: MdPeople, label: "Users", href: "/users" },
         { icon: MdSettings, label: "Settings", href: "/settings" },
       ]
     : [
