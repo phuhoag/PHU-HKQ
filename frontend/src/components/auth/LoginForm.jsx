@@ -59,11 +59,7 @@ export default function LoginForm() {
 
       if (result.success) {
         await onLogin();
-        if (result.data?.user?.role === "admin") {
-          navigate("/dashboard");
-        } else {
-          navigate("/");
-        }
+        navigate("/");
       }
     } catch (error) {
       setApiError(error.message || "Login failed. Please try again.");
@@ -80,11 +76,7 @@ export default function LoginForm() {
       const result = await authService.googleLogin(credentialResponse.credential);
       if (result.success) {
         await onLogin();
-        if (result.data?.user?.role === "admin") {
-          navigate("/dashboard");
-        } else {
-          navigate("/");
-        }
+        navigate("/");
       }
     } catch (error) {
       setApiError(error.message || "Đăng nhập Google thất bại. Vui lòng thử lại.");
