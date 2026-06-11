@@ -290,9 +290,10 @@ export const updateOrderStatus = async (req, res) => {
 // =============================================
 export const getAllOrders = async (req, res) => {
   try {
-    const { page = 1, limit = 20, status } = req.query;
+    const { page = 1, limit = 20, status, userId } = req.query;
     const filter = {};
     if (status) filter.status = status;
+    if (userId) filter.user_id = userId;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [orders, total] = await Promise.all([

@@ -93,6 +93,7 @@ export const orderService = {
       if (params.page) query.set("page", params.page);
       if (params.limit) query.set("limit", params.limit);
       if (params.status) query.set("status", params.status);
+      if (params.userId) query.set("userId", params.userId);
 
       const res = await fetch(
         `${API_BASE_URL}/orders/admin/all?${query.toString()}`,

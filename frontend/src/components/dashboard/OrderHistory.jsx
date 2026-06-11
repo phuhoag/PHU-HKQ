@@ -69,7 +69,12 @@ export default function OrderHistory({ orders }) {
                     className="border-b border-outline-variant hover:bg-surface-container/30 transition"
                   >
                     <td className="px-6 py-4 text-body-md font-body-md text-primary">
-                      #{order._id?.slice(-8).toUpperCase()}
+                      <Link
+                        to={`/orders?openOrder=${order._id}`}
+                        className="hover:underline font-semibold"
+                      >
+                        #{order._id?.slice(-8).toUpperCase()}
+                      </Link>
                     </td>
                     <td className="px-6 py-4 text-body-md font-body-md text-on-background">
                       {new Date(order.createdAt).toLocaleDateString("vi-VN")}
