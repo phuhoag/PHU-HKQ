@@ -12,6 +12,7 @@ import {
 } from "react-icons/md";
 import { useCart } from "../../context/CartContext.jsx";
 import { useWishlist } from "../../context/WishlistContext.jsx";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -19,6 +20,7 @@ export default function Header() {
   const navigate = useNavigate();
   const { getTotalItems, onLogout } = useCart();
   const { getWishlistCount } = useWishlist();
+  const { language, changeLanguage, t } = useLanguage();
   const cartItemCount = getTotalItems();
   const wishlistCount = getWishlistCount();
 
@@ -70,25 +72,25 @@ export default function Header() {
               to="/shop"
               className="font-body-md text-body-md text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1"
             >
-              Shop
+              {t("nav.shop")}
             </Link>
             <Link
               to="/categories"
               className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors"
             >
-              Categories
+              {t("nav.categories")}
             </Link>
             <Link
               to="/wishlist"
               className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors"
             >
-              Wishlist
+              {t("nav.wishlist")}
             </Link>
             <Link
               to="/about"
               className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors"
             >
-              About
+              {t("nav.about")}
             </Link>
           </nav>
         </div>
@@ -96,6 +98,28 @@ export default function Header() {
         {/* Actions */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
+            {/* Language Switcher */}
+            <div className="relative group mr-1">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container transition text-body-sm font-semibold border border-outline-variant">
+                <span>{language === "vi" ? "🇻🇳 VI" : "🇬🇧 EN"}</span>
+                <MdExpandMore size={14} className="text-on-surface-variant group-hover:rotate-180 transition-transform duration-200" />
+              </button>
+              <div className="absolute right-0 mt-1.5 w-32 bg-surface border border-outline-variant rounded-lg shadow-lg py-1 z-50 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-y-1 group-hover:translate-y-0">
+                <button
+                  onClick={() => changeLanguage("vi")}
+                  className={`w-full text-left px-4 py-2 hover:bg-surface-container-low text-body-sm flex items-center gap-2 ${language === "vi" ? "text-primary font-bold" : "text-on-surface"}`}
+                >
+                  <span>🇻🇳</span> Tiếng Việt
+                </button>
+                <button
+                  onClick={() => changeLanguage("en")}
+                  className={`w-full text-left px-4 py-2 hover:bg-surface-container-low text-body-sm flex items-center gap-2 ${language === "en" ? "text-primary font-bold" : "text-on-surface"}`}
+                >
+                  <span>🇬🇧</span> English
+                </button>
+              </div>
+            </div>
+
             <Link
               to="/cart"
               className="relative p-2 hover:bg-surface-container-low dark:hover:bg-on-secondary-fixed-variant transition-all rounded-full active:scale-90 transition-transform"
@@ -179,7 +203,7 @@ export default function Header() {
                       className="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors text-on-surface"
                     >
                       <MdDashboard size={20} className="text-primary" />
-                      <span className="text-body-sm font-body-sm">Dashboard</span>
+                      <span className="text-body-sm font-body-sm">{t("nav.dashboard")}</span>
                     </Link>
                   )}
 
@@ -190,7 +214,7 @@ export default function Header() {
                   >
                     <MdPerson size={20} className="text-primary" />
                     <span className="text-body-sm font-body-sm">
-                      My Profile
+                      {t("nav.profile")}
                     </span>
                   </Link>
 
@@ -200,7 +224,7 @@ export default function Header() {
                     className="flex items-center gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors text-on-surface"
                   >
                     <MdSettings size={20} className="text-primary" />
-                    <span className="text-body-sm font-body-sm">Settings</span>
+                    <span className="text-body-sm font-body-sm">{t("nav.settings")}</span>
                   </Link>
 
                   <div className="border-t border-outline-variant mt-1 pt-1">
@@ -209,7 +233,7 @@ export default function Header() {
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-error/10 transition-colors text-error"
                     >
                       <MdLogout size={20} />
-                      <span className="text-body-sm font-body-sm">Logout</span>
+                      <span className="text-body-sm font-body-sm">{t("nav.logout")}</span>
                     </button>
                   </div>
                 </div>

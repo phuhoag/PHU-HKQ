@@ -12,10 +12,12 @@ import { Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import authService from "../../services/authService";
 import { useCart } from "../../context/CartContext.jsx";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function RegisterForm() {
   const navigate = useNavigate();
   const { onLogin } = useCart();
+  const { language, t } = useLanguage();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -44,7 +46,7 @@ export default function RegisterForm() {
         navigate("/");
       }
     } catch (error) {
-      setApiError(error.message || "Đăng ký bằng Google thất bại. Vui lòng thử lại.");
+      setApiError(error.message || t("auth.googleRegisterFailed"));
       console.error("Google login error:", error);
     } finally {
       setGoogleLoading(false);
@@ -52,44 +54,44 @@ export default function RegisterForm() {
   };
 
   const handleGoogleError = () => {
-    setApiError("Đăng ký bằng Google thất bại. Vui lòng thử lại.");
+    setApiError(t("auth.googleRegisterFailed"));
   };
 
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
+      newErrors.firstName = t("auth.validateFirstNameRequired");
     }
 
     if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
+      newErrors.lastName = t("auth.validateLastNameRequired");
     }
 
     if (!formData.email) {
-      newErrors.email = "Email is required";
+      newErrors.email = t("auth.validateEmailRequired");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
+      newErrors.email = t("auth.validateEmailInvalid");
     }
 
     if (!formData.phone) {
-      newErrors.phone = "Phone number is required";
+      newErrors.phone = t("auth.validatePhoneRequired");
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = t("auth.validatePasswordRequired");
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = t("auth.validatePasswordMin");
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
+      newErrors.confirmPassword = t("auth.validateConfirmPasswordRequired");
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = t("auth.validatePasswordsNotMatch");
     }
 
     if (!formData.agreeTerms) {
-      newErrors.agreeTerms = "You must agree to the Terms of Service";
+      newErrors.agreeTerms = t("auth.validateAgreeTerms");
     }
 
     return newErrors;
@@ -136,16 +138,11 @@ export default function RegisterForm() {
         }, 2000);
       }
     } catch (error) {
-      setApiError(error.message || "Registration failed. Please try again.");
+      setApiError(error.message || t("auth.googleRegisterFailed"));
       console.error("Registration error:", error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleOAuthClick = (provider) => {
-    console.log(`${provider} OAuth registration`);
-    alert(`${provider} registration coming soon!`);
   };
 
   if (success) {
@@ -154,10 +151,10 @@ export default function RegisterForm() {
         <div className="text-center">
           <MdCheckCircle className="text-6xl text-primary mx-auto mb-4" />
           <h2 className="font-h2 text-h2 text-primary mb-2">
-            Welcome to TechStore!
+            {t("auth.welcomeTitle")}
           </h2>
           <p className="font-body-md text-on-surface-variant mb-4">
-            Account created successfully. Redirecting to login...
+            {t("auth.successRedirect")}
           </p>
           <div className="inline-block">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -170,9 +167,9 @@ export default function RegisterForm() {
   return (
     <div className="p-stack-lg md:p-16 flex flex-col justify-center bg-surface">
       <div className="mb-stack-lg">
-        <h1 className="font-h1 text-h1 text-primary mb-2">Create Account</h1>
+        <h1 className="font-h1 text-h1 text-primary mb-2">{t("auth.createAccountTitle")}</h1>
         <p className="font-body-md text-on-surface-variant">
-          Join TechStore and start shopping today.
+          {t("auth.joinCommunity")}
         </p>
       </div>
 
@@ -193,7 +190,7 @@ export default function RegisterForm() {
               htmlFor="firstName"
               className="block font-label-caps text-label-caps text-on-surface-variant mb-2"
             >
-              FIRST NAME
+              {t("auth.firstName")}
             </label>
             <input
               id="firstName"
@@ -222,7 +219,7 @@ export default function RegisterForm() {
               htmlFor="lastName"
               className="block font-label-caps text-label-caps text-on-surface-variant mb-2"
             >
-              LAST NAME
+              {t("auth.lastName")}
             </label>
             <input
               id="lastName"
@@ -252,7 +249,7 @@ export default function RegisterForm() {
             htmlFor="email"
             className="block font-label-caps text-label-caps text-on-surface-variant mb-2"
           >
-            EMAIL ADDRESS
+            {t("auth.emailLabel")}
           </label>
           <div className="relative">
             <input
@@ -286,7 +283,7 @@ export default function RegisterForm() {
               htmlFor="password"
               className="block font-label-caps text-label-caps text-on-surface-variant mb-2"
             >
-              PASSWORD
+              {t("auth.passwordLabel")}
             </label>
             <div className="relative">
               <input
@@ -328,7 +325,7 @@ export default function RegisterForm() {
               htmlFor="confirmPassword"
               className="block font-label-caps text-label-caps text-on-surface-variant mb-2"
             >
-              CONFIRM PASSWORD
+              {t("auth.confirmPassword")}
             </label>
             <div className="relative">
               <input
@@ -370,7 +367,7 @@ export default function RegisterForm() {
               htmlFor="phone"
               className="block font-label-caps text-label-caps text-on-surface-variant mb-2"
             >
-              PHONE NUMBER
+              {t("auth.phone")}
             </label>
             <input
               id="phone"
@@ -408,19 +405,19 @@ export default function RegisterForm() {
             htmlFor="agreeTerms"
             className="font-body-sm text-body-sm text-on-surface-variant cursor-pointer"
           >
-            I agree to the{" "}
+            {language === "vi" ? "Tôi đồng ý với " : "I agree to the "}
             <Link
               to="/terms"
               className="text-primary font-semibold hover:underline"
             >
-              Terms of Service
+              {t("auth.termsOfService")}
             </Link>{" "}
-            and{" "}
+            {language === "vi" ? "và " : "and "}
             <Link
               to="/privacy"
               className="text-primary font-semibold hover:underline"
             >
-              Privacy Policy
+              {t("auth.privacyPolicy")}
             </Link>
           </label>
         </div>
@@ -437,7 +434,7 @@ export default function RegisterForm() {
           disabled={loading}
           className="w-full bg-primary text-on-primary font-button text-button py-4 rounded-lg shadow-sm hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {loading ? "Creating Account..." : "Create Account"}
+          {loading ? t("auth.signingUp") : t("auth.signUpButton")}
           <MdArrowForward className="text-[18px]" />
         </button>
       </form>
@@ -449,7 +446,7 @@ export default function RegisterForm() {
             <div className="w-full border-t border-outline-variant"></div>
           </div>
           <span className="relative bg-surface px-4 font-label-caps text-label-caps text-on-surface-variant">
-            OR SIGN UP WITH
+            {t("auth.orContinueWith")}
           </span>
         </div>
 
@@ -461,7 +458,7 @@ export default function RegisterForm() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span className="font-button text-button">Đang đăng ký...</span>
+              <span className="font-button text-button">{t("auth.signingUp")}</span>
             </div>
           ) : (
             <div className="w-full flex justify-center [&>div]:w-full [&_iframe]:w-full">
@@ -483,9 +480,9 @@ export default function RegisterForm() {
       {/* Login Link */}
       <div className="mt-stack-lg text-center">
         <p className="font-body-sm text-body-sm text-on-surface-variant">
-          Already have an account?{" "}
+          {t("auth.alreadyHaveAccount")}{" "}
           <Link to="/login" className="text-primary font-bold hover:underline">
-            Sign In
+            {t("auth.signIn")}
           </Link>
         </p>
       </div>

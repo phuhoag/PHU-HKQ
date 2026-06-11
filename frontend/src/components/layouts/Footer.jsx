@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { MdLanguage, MdSupportAgent } from "react-icons/md";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function Footer() {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-surface-container-lowest dark:bg-inverse-surface border-t border-outline-variant dark:border-outline w-full mt-stack-lg">
       <div className="flex flex-col md:flex-row justify-between items-center px-margin-desktop py-stack-lg max-w-container-max mx-auto">
@@ -11,7 +14,7 @@ export default function Footer() {
             TechStore
           </h3>
           <p className="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant">
-            © 2026 TechStore E-commerce. All rights reserved.
+            © 2026 {t("footer.allRightsReserved")}
           </p>
         </div>
 
@@ -21,31 +24,31 @@ export default function Footer() {
             to="/privacy"
             className="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary transition-all hover:underline decoration-primary"
           >
-            Privacy Policy
+            {t("footer.privacyPolicy")}
           </Link>
           <Link
             to="/terms"
             className="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary transition-all hover:underline decoration-primary"
           >
-            Terms of Service
+            {t("footer.termsOfService")}
           </Link>
           <Link
             to="/help"
             className="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary transition-all hover:underline decoration-primary"
           >
-            Help Center
+            {t("footer.helpCenter")}
           </Link>
           <Link
             to="/contact"
             className="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary transition-all hover:underline decoration-primary"
           >
-            Contact Us
+            {t("footer.contactUs")}
           </Link>
           <Link
             to="/track"
             className="font-body-sm text-body-sm text-on-surface-variant dark:text-surface-variant hover:text-primary transition-all hover:underline decoration-primary"
           >
-            Track Order
+            {t("footer.trackOrder")}
           </Link>
         </nav>
 

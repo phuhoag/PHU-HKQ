@@ -9,12 +9,14 @@ import {
   MdSettings,
   MdLogout,
 } from "react-icons/md";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const userString = localStorage.getItem("user");
@@ -29,17 +31,17 @@ export default function Sidebar() {
 
   const menuItems = currentUser?.role === "admin"
     ? [
-        { icon: MdDashboard, label: "Dashboard", href: "/dashboard" },
-        { icon: MdShoppingCart, label: "Products", href: "/products" },
-        { icon: MdReceipt, label: "Orders", href: "/orders" },
-        { icon: MdAnalytics, label: "Analytics", href: "/analytics" },
-        { icon: MdPeople, label: "Users", href: "/users" },
-        { icon: MdSettings, label: "Settings", href: "/settings" },
+        { icon: MdDashboard, label: t("sidebar.overview"), href: "/dashboard" },
+        { icon: MdShoppingCart, label: t("sidebar.products"), href: "/products" },
+        { icon: MdReceipt, label: t("sidebar.orders"), href: "/orders" },
+        { icon: MdAnalytics, label: t("sidebar.analytics"), href: "/analytics" },
+        { icon: MdPeople, label: t("sidebar.users"), href: "/users" },
+        { icon: MdSettings, label: t("sidebar.settings"), href: "/settings" },
       ]
     : [
-        { icon: MdDashboard, label: "Tổng quan", href: "/dashboard" },
-        { icon: MdReceipt, label: "Đơn hàng của tôi", href: "/orders" },
-        { icon: MdShoppingCart, label: "Tiếp tục mua sắm", href: "/shop" },
+        { icon: MdDashboard, label: t("sidebar.overview"), href: "/dashboard" },
+        { icon: MdReceipt, label: t("sidebar.myOrders"), href: "/orders" },
+        { icon: MdShoppingCart, label: t("sidebar.continueShopping"), href: "/shop" },
       ];
 
   const handleLogout = () => {
@@ -84,7 +86,7 @@ export default function Sidebar() {
               isCollapsed && "hidden"
             }`}
           >
-            Admin Panel
+            {t("sidebar.adminPanel")}
           </h1>
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -98,7 +100,7 @@ export default function Sidebar() {
             isCollapsed && "hidden"
           }`}
         >
-          Store Management
+          {t("sidebar.storeManagement")}
         </p>
       </div>
 
@@ -146,7 +148,7 @@ export default function Sidebar() {
           }`}
         >
           <MdLogout size={24} />
-          <span className={isCollapsed ? "hidden" : ""}>Logout</span>
+          <span className={isCollapsed ? "hidden" : ""}>{t("sidebar.logout")}</span>
         </button>
       </div>
     </aside>
