@@ -66,8 +66,20 @@ const STATUS_FILTERS = [
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "pending": return t("dashboard.statusPending");
+      case "processing": return t("dashboard.statusProcessing");
+      case "shipped": return t("dashboard.statusShipped");
+      case "delivered": return t("dashboard.statusDelivered");
+      case "cancelled": return t("dashboard.statusCancelled");
+      default: return status;
+    }
+  };
 
   // Admin state
   const [adminStats, setAdminStats] = useState(null);
@@ -894,7 +906,7 @@ export default function DashboardPage() {
                     {t("dashboard.orderDetailTitle")} #{selectedOrder._id?.toUpperCase()}
                   </h2>
                   <p className="text-body-sm text-on-surface-variant mt-1">
-                    {t("dashboard.orderPlacedOn").replace("{date}", new Date(selectedOrder.createdAt).toLocaleDateString(language === "vi" ? language === "vi" ? "vi-VN" : "en-US" : "en-US")).replace("{time}", new Date(selectedOrder.createdAt).toLocaleTimeString(language === "vi" ? language === "vi" ? "vi-VN" : "en-US" : "en-US", { hour: '2-digit', minute: '2-digit' }))}
+                    {t("dashboard.orderPlacedOn").replace("{date}", new Date(selectedOrder.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US")).replace("{time}", new Date(selectedOrder.createdAt).toLocaleTimeString(language === "vi" ? "vi-VN" : "en-US", { hour: '2-digit', minute: '2-digit' }))}
                   </p>
                 </div>
                 <button
@@ -945,12 +957,12 @@ export default function DashboardPage() {
                         <span className="font-semibold text-on-surface">{t("dashboard.orderStatusLabel")}</span>
                         {(() => {
                           const statusInfo = STATUS_CONFIG[selectedOrder.status] || STATUS_CONFIG.pending;
-                           const statusLabel = getStatusLabel(selectedOrder.status);
+                          const statusLabel = getStatusLabel(selectedOrder.status);
                           const StatusIcon = statusInfo.icon;
                           return (
                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-body-sm font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
                               <StatusIcon size={14} />
-                              {statusInfo.label}
+                              {statusLabel}
                             </span>
                           );
                         })()}
