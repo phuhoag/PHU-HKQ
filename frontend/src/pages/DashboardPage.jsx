@@ -20,6 +20,7 @@ import {
   MdRefresh,
 } from "react-icons/md";
 import { orderService } from "../services/orderService.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 const STATUS_CONFIG = {
   pending: {
@@ -208,7 +209,7 @@ export default function DashboardPage() {
         setProfileMsg({ type: "error", text: "❌ " + (res.message || "Cập nhật thất bại") });
       }
     } catch (err) {
-      setProfileMsg({ type: "error", text: "❌ Lỗi: " + err.message });
+      setProfileMsg({ type: "error", text: "❌ " + t("dashboard.changePasswordFail") + ": " + err.message });
     }
   };
 
@@ -222,7 +223,7 @@ export default function DashboardPage() {
     }
 
     if (passwords.newPassword.length < 6) {
-      setPwdMsg({ type: "error", text: "❌ Mật khẩu mới phải dài ít nhất 6 ký tự" });
+      setPwdMsg({ type: "error", text: t("dashboard.passwordLengthError") });
       return;
     }
 
@@ -241,21 +242,21 @@ export default function DashboardPage() {
       });
       const res = await response.json();
       if (response.ok) {
-        setPwdMsg({ type: "success", text: "✅ Đổi mật khẩu thành công!" });
+        setPwdMsg({ type: "success", text: t("dashboard.changePasswordSuccess") });
         setPasswords({ currentPassword: "", newPassword: "", confirmNewPassword: "" });
       } else {
-        setPwdMsg({ type: "error", text: "❌ " + (res.message || "Đổi mật khẩu thất bại") });
+        setPwdMsg({ type: "error", text: "❌ " + (res.message || t("dashboard.changePasswordFail")) });
       }
     } catch (err) {
-      setPwdMsg({ type: "error", text: "❌ Lỗi: " + err.message });
+      setPwdMsg({ type: "error", text: "❌ " + t("dashboard.changePasswordFail") + ": " + err.message });
     }
   };
 
   const handleDeleteAccount = async () => {
-    const confirmation1 = window.confirm("⚠️ CẢNH BÁO QUAN TRỌNG: Bạn có chắc chắn muốn xóa tài khoản này?");
+    const confirmation1 = window.confirm(t("dashboard.confirmDeactivate1"));
     if (!confirmation1) return;
 
-    const confirmation2 = window.confirm("Tài khoản của bạn sẽ bị vô hiệu hóa và bạn sẽ bị đăng xuất ngay lập tức. Xác nhận xóa?");
+    const confirmation2 = window.confirm(t("dashboard.confirmDeactivate2"));
     if (!confirmation2) return;
 
     try {
@@ -269,16 +270,16 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
-        alert("✅ Tài khoản của bạn đã được vô hiệu hóa thành công. Nhấn OK để đăng xuất.");
+        alert(t("dashboard.deactivateSuccess"));
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         navigate("/login");
       } else {
         const res = await response.json();
-        alert("❌ " + (res.message || "Xóa tài khoản thất bại"));
+        alert("❌ " + (res.message || t("dashboard.deactivateFail")));
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("dashboard.deactivateFail") + ": " + err.message);
     }
   };
 
@@ -289,29 +290,29 @@ export default function DashboardPage() {
         setSelectedOrder(res.data);
         setDetailModalOpen(true);
       } else {
-        alert("Không thể tải chi tiết đơn hàng: " + res.message);
+        alert(t("dashboard.loadOrderDetailFail") + res.message);
       }
     } catch (err) {
-      alert("Lỗi kết nối: " + err.message);
+      alert(t("dashboard.connError") + err.message);
     }
   };
 
   const handleCancelOrder = async (orderId) => {
-    if (!window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này?")) return;
+    if (!window.confirm(t("dashboard.confirmCancelOrder"))) return;
     try {
       const res = await orderService.cancelOrder(orderId);
       if (res.success) {
-        alert("Đã hủy đơn hàng thành công!");
+        alert(t("dashboard.cancelOrderSuccess"));
         const token = localStorage.getItem("token");
         fetchCustomerOrders(token, currentPageOrders, statusFilterOrders);
         if (selectedOrder && selectedOrder._id === orderId) {
           setSelectedOrder((prev) => ({ ...prev, status: "cancelled" }));
         }
       } else {
-        alert("Hủy đơn hàng thất bại: " + res.message);
+        alert(t("dashboard.cancelOrderFail") + res.message);
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("dashboard.deactivateFail") + ": " + err.message);
     }
   };
 
@@ -367,7 +368,7 @@ export default function DashboardPage() {
             id: `order-${o._id}-${index}`,
             title: `Đơn hàng mới #${o._id?.slice(-8).toUpperCase()} từ ${custName}`,
             detail: `Tổng thanh toán: $${parseFloat(o.total_amount || 0).toFixed(2)} (${o.payment_method?.replace(/_/g, " ").toUpperCase()})`,
-            date: new Date(o.createdAt).toLocaleDateString("vi-VN"),
+            date: new Date(o.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US"),
             icon: MdShoppingCart,
             color: "text-primary",
             bgColor: "bg-primary/10",
@@ -376,10 +377,10 @@ export default function DashboardPage() {
 
         setRecentActivities(activities.slice(0, 5));
       } else {
-        setAdminError(analyticsData.message || ordersData.message || "Không thể tải dữ liệu quản trị viên");
+        setAdminError(analyticsData.message || ordersData.message || t("dashboard.loadAdminDataFail"));
       }
     } catch (err) {
-      setAdminError("Lỗi kết nối đến máy chủ: " + err.message);
+      setAdminError(t("dashboard.connServerFail") + err.message);
     } finally {
       setLoadingAdmin(false);
     }
@@ -410,7 +411,7 @@ export default function DashboardPage() {
                   className="flex items-center gap-2 px-4 py-2 text-body-md font-body-md border border-outline rounded-lg text-on-background hover:bg-surface-container transition"
                 >
                   <MdArrowBack size={18} />
-                  Quay lại trang web
+                  {t("dashboard.backToWebsite")}
                 </Link>
                 <button className="px-4 py-2 text-body-md font-body-md border border-outline rounded-lg text-on-background hover:bg-surface-container transition">
                   Last 30 Days
@@ -430,7 +431,7 @@ export default function DashboardPage() {
             {loadingAdmin ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-body-md text-on-surface-variant animate-pulse">Đang tải dữ liệu tổng quan...</p>
+                <p className="text-body-md text-on-surface-variant animate-pulse">{t("dashboard.loadingOverview")}</p>
               </div>
             ) : (
               <>
@@ -452,12 +453,12 @@ export default function DashboardPage() {
                   {/* Quick Stats - Right Column */}
                   <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 rounded-xl border border-outline-variant dark:border-outline p-6">
                     <h3 className="text-h3 font-h3 text-on-background dark:text-inverse-on-surface mb-4">
-                      Số liệu nhanh
+                      {t("dashboard.quickStats")}
                     </h3>
                     <div className="space-y-4">
                       <div className="p-3 bg-primary/10 rounded-lg">
                         <p className="text-body-sm text-on-surface-variant dark:text-surface-variant">
-                          Doanh thu thực tế
+                          {t("dashboard.revenue")}
                         </p>
                         <p className="text-h2 font-h2 text-primary">
                           ${adminStats?.totalRevenue?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}
@@ -465,7 +466,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="p-3 bg-success/10 rounded-lg">
                         <p className="text-body-sm text-on-surface-variant dark:text-surface-variant">
-                          Thành viên hoạt động
+                          {t("dashboard.activeMembers")}
                         </p>
                         <p className="text-h2 font-h2 text-success">
                           {adminStats?.activeUsers || "0"} / {adminStats?.totalUsers || "0"}
@@ -473,7 +474,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="p-3 bg-warning/10 rounded-lg">
                         <p className="text-body-sm text-on-surface-variant dark:text-surface-variant">
-                          Đơn hàng thành công
+                          {t("dashboard.successfulOrders")}
                         </p>
                         <p className="text-h2 font-h2 text-warning">
                           {adminStats?.completedOrders || "0"} / {adminStats?.totalOrders || "0"}
@@ -496,10 +497,10 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-8 border-b border-outline-variant pb-6">
               <div>
                 <h1 className="text-h1 font-h1 text-on-background">
-                  Tài khoản của tôi
+                  {t("dashboard.myAccount")}
                 </h1>
                 <p className="text-body-md text-on-surface-variant mt-1">
-                  Quản lý thông tin cá nhân, mật khẩu và xem lịch sử đơn hàng.
+                  {t("dashboard.accountDesc")}
                 </p>
               </div>
               <div>
@@ -508,7 +509,7 @@ export default function DashboardPage() {
                   className="flex items-center gap-2 px-4 py-2 text-body-md font-body-md border border-outline rounded-lg text-on-background hover:bg-surface-container transition"
                 >
                   <MdArrowBack size={18} />
-                  Quay lại trang web
+                  {t("dashboard.backToWebsite")}
                 </Link>
               </div>
             </div>
@@ -516,15 +517,15 @@ export default function DashboardPage() {
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-surface-container border border-outline-variant rounded-xl p-5 shadow-sm">
-                <p className="text-body-sm text-on-surface-variant mb-1">Mã khách hàng</p>
+                <p className="text-body-sm text-on-surface-variant mb-1">{t("dashboard.customerId")}</p>
                 <p className="text-h3 font-h3 text-on-surface">#{currentUser?.id?.slice(-8).toUpperCase()}</p>
               </div>
               <div className="bg-surface-container border border-outline-variant rounded-xl p-5 shadow-sm">
-                <p className="text-body-sm text-on-surface-variant mb-1">Tổng số đơn hàng</p>
-                <p className="text-h3 font-h3 text-primary">{orders.length} đơn hàng</p>
+                <p className="text-body-sm text-on-surface-variant mb-1">{t("dashboard.totalOrders")}</p>
+                <p className="text-h3 font-h3 text-primary">{orders.length} {t("dashboard.orderCount")}</p>
               </div>
               <div className="bg-surface-container border border-outline-variant rounded-xl p-5 shadow-sm">
-                <p className="text-body-sm text-on-surface-variant mb-1">Trạng thái tài khoản</p>
+                <p className="text-body-sm text-on-surface-variant mb-1">{t("dashboard.accountStatus")}</p>
                 <span className="inline-block mt-1 px-3 py-1 rounded bg-success/10 text-success text-body-sm font-semibold">Active</span>
               </div>
             </div>
@@ -539,7 +540,7 @@ export default function DashboardPage() {
                     : "border-transparent text-on-surface-variant hover:text-on-surface"
                 }`}
               >
-                Thông tin cá nhân
+                {t("dashboard.profileTitle")}
               </button>
               <button
                 onClick={() => setActiveTab("orders")}
@@ -549,7 +550,7 @@ export default function DashboardPage() {
                     : "border-transparent text-on-surface-variant hover:text-on-surface"
                 }`}
               >
-                Đơn hàng gần đây
+                {t("dashboard.orderHistoryTitle")}
               </button>
               <button
                 onClick={() => setActiveTab("password")}
@@ -559,7 +560,7 @@ export default function DashboardPage() {
                     : "border-transparent text-on-surface-variant hover:text-on-surface"
                 }`}
               >
-                Đổi mật khẩu
+                {t("dashboard.changePasswordTitle")}
               </button>
               <button
                 onClick={() => setActiveTab("danger")}
@@ -569,7 +570,7 @@ export default function DashboardPage() {
                     : "border-transparent text-on-surface-variant hover:text-on-surface"
                 }`}
               >
-                Xóa tài khoản
+                {t("dashboard.dangerZoneTitle")}
               </button>
             </div>
 
@@ -577,7 +578,7 @@ export default function DashboardPage() {
             <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
               {activeTab === "profile" && (
                 <div>
-                  <h2 className="text-h2 font-h2 text-on-surface mb-6 font-bold">Thông tin cá nhân</h2>
+                  <h2 className="text-h2 font-h2 text-on-surface mb-6 font-bold">{t("dashboard.profileTitle")}</h2>
                   {profileMsg.text && (
                     <div className={`p-4 mb-6 rounded-lg text-body-md border ${
                       profileMsg.type === "success" 
@@ -588,12 +589,12 @@ export default function DashboardPage() {
                     </div>
                   )}
                   {loadingProfile ? (
-                    <p className="text-body-md text-on-surface-variant">Đang tải...</p>
+                    <p className="text-body-md text-on-surface-variant">{t("dashboard.loading")}</p>
                   ) : (
                     <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-xl">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Họ</label>
+                          <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("dashboard.lastName")}</label>
                           <input
                             type="text"
                             value={profile.last_name || ""}
@@ -602,7 +603,7 @@ export default function DashboardPage() {
                           />
                         </div>
                         <div>
-                          <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Tên</label>
+                          <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("dashboard.firstName")}</label>
                           <input
                             type="text"
                             value={profile.first_name || ""}
@@ -621,7 +622,7 @@ export default function DashboardPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Số điện thoại</label>
+                        <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("dashboard.phone")}</label>
                         <input
                           type="text"
                           value={profile.phone || ""}
@@ -630,7 +631,7 @@ export default function DashboardPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Địa chỉ</label>
+                        <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("dashboard.address")}</label>
                         <textarea
                           value={profile.address || ""}
                           onChange={(e) => setProfile({ ...profile, address: e.target.value })}
@@ -642,7 +643,7 @@ export default function DashboardPage() {
                         type="submit"
                         className="px-6 py-2.5 bg-primary text-surface font-semibold rounded-lg hover:bg-primary/90 transition shadow-sm"
                       >
-                        Lưu thay đổi
+                        {t("dashboard.saveChanges")}
                       </button>
                     </form>
                   )}
@@ -652,7 +653,7 @@ export default function DashboardPage() {
               {activeTab === "orders" && (
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-h2 font-h2 text-on-surface font-bold">Lịch sử đơn hàng</h2>
+                    <h2 className="text-h2 font-h2 text-on-surface font-bold">{t("dashboard.orderHistoryTitle")}</h2>
                     <button
                       onClick={() => {
                         const token = localStorage.getItem("token");
@@ -661,7 +662,7 @@ export default function DashboardPage() {
                       className="flex items-center gap-2 px-3 py-1.5 border border-outline rounded-lg text-on-surface-variant hover:border-primary hover:text-primary transition font-semibold"
                     >
                       <MdRefresh size={18} />
-                      <span className="text-body-sm">Làm mới</span>
+                      <span className="text-body-sm">{t("dashboard.refresh")}</span>
                     </button>
                   </div>
 
@@ -688,12 +689,12 @@ export default function DashboardPage() {
                   {loadingOrders ? (
                     <div className="flex flex-col items-center justify-center py-20">
                       <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                      <p className="text-body-md text-on-surface-variant animate-pulse">Đang tải lịch sử đơn hàng...</p>
+                      <p className="text-body-md text-on-surface-variant animate-pulse">{t("dashboard.loadingOrders")}</p>
                     </div>
                   ) : orders.length === 0 ? (
                     <div className="text-center py-10 bg-surface-container border border-outline-variant rounded-xl">
                       <p className="text-body-md text-on-surface-variant">
-                        {statusFilterOrders ? "Không tìm thấy đơn hàng nào với trạng thái này." : "Bạn chưa thực hiện đơn hàng nào."}
+                        {statusFilterOrders ? t("dashboard.noOrdersFiltered") : t("dashboard.noOrdersYet")}
                       </p>
                     </div>
                   ) : (
@@ -702,22 +703,23 @@ export default function DashboardPage() {
                         <table className="w-full">
                           <thead className="bg-surface-container border-b border-outline-variant">
                             <tr>
-                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Mã đơn</th>
-                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Ngày đặt</th>
-                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Sản phẩm</th>
-                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Tổng tiền</th>
-                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Trạng thái</th>
-                              <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">Thao tác</th>
+                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableOrderCode")}</th>
+                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableOrderDate")}</th>
+                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableProducts")}</th>
+                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableTotal")}</th>
+                              <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableStatus")}</th>
+                              <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableActions")}</th>
                             </tr>
                           </thead>
                           <tbody>
                             {orders.map((order) => {
                               const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+                              const statusLabel = getStatusLabel(order.status);
                               const StatusIcon = statusInfo.icon;
                               
                               const productsListStr = order.items && order.items.length > 0
-                                ? order.items.map((i) => `${i.product_id?.name || "Sản phẩm"} (x${i.quantity})`).join(", ")
-                                : "Không có chi tiết";
+                                ? order.items.map((i) => `${i.product_id?.name || t("dashboard.tableProducts")} (x${i.quantity})`).join(", ")
+                                : t("dashboard.noDetails");
 
                               return (
                                 <tr key={order._id} className="border-b border-outline-variant hover:bg-surface-container/30 transition">
@@ -725,7 +727,7 @@ export default function DashboardPage() {
                                     #{order._id?.slice(-8).toUpperCase()}
                                   </td>
                                   <td className="px-6 py-4 text-body-md text-on-background">
-                                    {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                                    {new Date(order.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US")}
                                   </td>
                                   <td className="px-6 py-4 text-body-md text-on-surface-variant max-w-xs truncate" title={productsListStr}>
                                     {productsListStr}
@@ -736,7 +738,7 @@ export default function DashboardPage() {
                                   <td className="px-6 py-4">
                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-body-sm font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
                                       <StatusIcon size={14} />
-                                      {statusInfo.label}
+                                      {statusLabel}
                                     </span>
                                   </td>
                                   <td className="px-6 py-4 text-center">
@@ -772,7 +774,7 @@ export default function DashboardPage() {
                             disabled={currentPageOrders === 1}
                             className="px-4 py-2 border border-outline-variant rounded-lg text-body-sm font-semibold hover:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed transition"
                           >
-                            Trước
+                            {t("dashboard.paginationPrev")}
                           </button>
                           <div className="flex items-center gap-1">
                             {Array.from({ length: totalPagesOrders }, (_, idx) => idx + 1).map((page) => (
@@ -794,7 +796,7 @@ export default function DashboardPage() {
                             disabled={currentPageOrders === totalPagesOrders}
                             className="px-4 py-2 border border-outline-variant rounded-lg text-body-sm font-semibold hover:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed transition"
                           >
-                            Sau
+                            {t("dashboard.paginationNext")}
                           </button>
                         </div>
                       )}
@@ -805,7 +807,7 @@ export default function DashboardPage() {
 
               {activeTab === "password" && (
                 <div>
-                  <h2 className="text-h2 font-h2 text-on-surface mb-6 font-bold">Đổi mật khẩu</h2>
+                  <h2 className="text-h2 font-h2 text-on-surface mb-6 font-bold">{t("dashboard.changePasswordTitle")}</h2>
                   {pwdMsg.text && (
                     <div className={`p-4 mb-6 rounded-lg text-body-md border ${
                       pwdMsg.type === "success" 
@@ -817,7 +819,7 @@ export default function DashboardPage() {
                   )}
                   <form onSubmit={handleChangePassword} className="space-y-4 max-w-xl">
                     <div>
-                      <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Mật khẩu hiện tại</label>
+                      <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("dashboard.currentPassword")}</label>
                       <input
                         type="password"
                         required
@@ -827,7 +829,7 @@ export default function DashboardPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Mật khẩu mới</label>
+                      <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("dashboard.newPassword")}</label>
                       <input
                         type="password"
                         required
@@ -837,7 +839,7 @@ export default function DashboardPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Xác nhận mật khẩu mới</label>
+                      <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("dashboard.confirmNewPassword")}</label>
                       <input
                         type="password"
                         required
@@ -850,7 +852,7 @@ export default function DashboardPage() {
                       type="submit"
                       className="px-6 py-2.5 bg-primary text-surface font-semibold rounded-lg hover:bg-primary/90 transition shadow-sm"
                     >
-                      Cập nhật mật khẩu
+                      {t("dashboard.updatePassword")}
                     </button>
                   </form>
                 </div>
@@ -858,21 +860,21 @@ export default function DashboardPage() {
 
               {activeTab === "danger" && (
                 <div>
-                  <h2 className="text-h2 font-h2 text-error mb-4 font-bold">Vùng nguy hiểm</h2>
+                  <h2 className="text-h2 font-h2 text-error mb-4 font-bold">{t("dashboard.dangerZoneTitle")}</h2>
                   <p className="text-body-md text-on-surface-variant mb-6">
-                    Hành động này sẽ vô hiệu hóa hoàn toàn tài khoản của bạn trên hệ thống. 
-                    Tất cả thông tin tài khoản và lịch sử giao dịch sẽ được khóa và bạn sẽ bị đăng xuất ngay lập tức.
+                    {t("dashboard.deactivateDesc1")} 
+                    {t("dashboard.deactivateDesc2")}
                   </p>
                   <div className="p-4 bg-error/5 border border-error/20 rounded-xl max-w-xl">
-                    <h4 className="text-body-md font-semibold text-error mb-2">Bạn chắc chắn chứ?</h4>
+                    <h4 className="text-body-md font-semibold text-error mb-2">{t("dashboard.areYouSure")}</h4>
                     <p className="text-body-sm text-on-surface-variant mb-4">
-                      Bạn không thể tự khôi phục lại tài khoản này sau khi đã thực hiện yêu cầu xóa.
+                      {t("dashboard.deactivateWarning")}
                     </p>
                     <button
                       onClick={handleDeleteAccount}
                       className="px-6 py-2.5 bg-error text-surface font-semibold rounded-lg hover:bg-error-container hover:text-on-error-container transition shadow-sm animate-pulse"
                     >
-                      Vô hiệu hóa tài khoản của tôi
+                      {t("dashboard.deactivateButton")}
                     </button>
                   </div>
                 </div>
@@ -889,10 +891,10 @@ export default function DashboardPage() {
               <div className="flex justify-between items-center p-6 border-b border-outline-variant dark:border-outline bg-surface-container/30">
                 <div>
                   <h2 className="text-h2 font-h2 text-on-surface font-bold">
-                    Chi tiết đơn hàng #{selectedOrder._id?.toUpperCase()}
+                    {t("dashboard.orderDetailTitle")} #{selectedOrder._id?.toUpperCase()}
                   </h2>
                   <p className="text-body-sm text-on-surface-variant mt-1">
-                    Đặt ngày {new Date(selectedOrder.createdAt).toLocaleDateString("vi-VN")} lúc {new Date(selectedOrder.createdAt).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}
+                    {t("dashboard.orderPlacedOn").replace("{date}", new Date(selectedOrder.createdAt).toLocaleDateString(language === "vi" ? language === "vi" ? "vi-VN" : "en-US" : "en-US")).replace("{time}", new Date(selectedOrder.createdAt).toLocaleTimeString(language === "vi" ? language === "vi" ? "vi-VN" : "en-US" : "en-US", { hour: '2-digit', minute: '2-digit' }))}
                   </p>
                 </div>
                 <button
@@ -913,7 +915,7 @@ export default function DashboardPage() {
                   {/* Shipping Details */}
                   <div className="bg-surface-container/20 border border-outline-variant rounded-xl p-5">
                     <h3 className="font-semibold text-body-md text-on-surface mb-3 border-b border-outline-variant pb-2">
-                      Thông tin giao hàng
+                      {t("dashboard.shippingInfo")}
                     </h3>
                     {(() => {
                       const addressParts = selectedOrder.shipping_address?.split(" | ") || [];
@@ -922,9 +924,9 @@ export default function DashboardPage() {
                       const recipientAddr = addressParts[2] || selectedOrder.shipping_address;
                       return (
                         <div className="space-y-2 text-body-sm text-on-surface-variant">
-                          <p><span className="font-semibold text-on-surface">Người nhận:</span> {recipientName}</p>
-                          <p><span className="font-semibold text-on-surface">Số điện thoại:</span> {recipientPhone || selectedOrder.phone}</p>
-                          <p className="leading-relaxed"><span className="font-semibold text-on-surface">Địa chỉ:</span> {recipientAddr}</p>
+                          <p><span className="font-semibold text-on-surface">{t("dashboard.recipientName")}</span> {recipientName}</p>
+                          <p><span className="font-semibold text-on-surface">{t("dashboard.recipientPhone")}</span> {recipientPhone || selectedOrder.phone}</p>
+                          <p className="leading-relaxed"><span className="font-semibold text-on-surface">{t("dashboard.recipientAddress")}</span> {recipientAddr}</p>
                         </div>
                       );
                     })()}
@@ -933,16 +935,17 @@ export default function DashboardPage() {
                   {/* Transaction details */}
                   <div className="bg-surface-container/20 border border-outline-variant rounded-xl p-5">
                     <h3 className="font-semibold text-body-md text-on-surface mb-3 border-b border-outline-variant pb-2">
-                      Thông tin thanh toán
+                      {t("dashboard.paymentInfo")}
                     </h3>
                     <div className="space-y-2 text-body-sm text-on-surface-variant">
-                      <p><span className="font-semibold text-on-surface">Phương thức:</span> <span className="capitalize">{selectedOrder.payment_method?.replace(/_/g, " ")}</span></p>
-                      <p><span className="font-semibold text-on-surface">Trạng thái thanh toán:</span> <span className="capitalize font-semibold">{selectedOrder.payment_status || "pending"}</span></p>
-                      <p><span className="font-semibold text-on-surface">Tổng tiền:</span> <span className="text-primary font-bold text-body-md">${parseFloat(selectedOrder.total_amount?.toString() || "0").toFixed(2)}</span></p>
+                      <p><span className="font-semibold text-on-surface">{t("dashboard.paymentMethod")}</span> <span className="capitalize">{selectedOrder.payment_method?.replace(/_/g, " ")}</span></p>
+                      <p><span className="font-semibold text-on-surface">{t("dashboard.paymentStatus")}</span> <span className="capitalize font-semibold">{selectedOrder.payment_status || "pending"}</span></p>
+                      <p><span className="font-semibold text-on-surface">{t("dashboard.paymentTotal")}</span> <span className="text-primary font-bold text-body-md">${parseFloat(selectedOrder.total_amount?.toString() || "0").toFixed(2)}</span></p>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="font-semibold text-on-surface">Trạng thái đơn hàng:</span>
+                        <span className="font-semibold text-on-surface">{t("dashboard.orderStatusLabel")}</span>
                         {(() => {
                           const statusInfo = STATUS_CONFIG[selectedOrder.status] || STATUS_CONFIG.pending;
+                           const statusLabel = getStatusLabel(selectedOrder.status);
                           const StatusIcon = statusInfo.icon;
                           return (
                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-body-sm font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
@@ -958,16 +961,16 @@ export default function DashboardPage() {
 
                 {/* Items List Table */}
                 <div>
-                  <h3 className="font-semibold text-body-md text-on-surface mb-3">Sản phẩm đã đặt</h3>
+                  <h3 className="font-semibold text-body-md text-on-surface mb-3">{t("dashboard.orderedProducts")}</h3>
                   <div className="border border-outline-variant rounded-xl overflow-hidden bg-surface-container/10">
                     <table className="w-full border-collapse">
                       <thead className="bg-surface-container">
                         <tr>
-                          <th className="px-4 py-3 text-left text-label-md font-label-md text-on-surface-variant">Hình ảnh</th>
-                          <th className="px-4 py-3 text-left text-label-md font-label-md text-on-surface-variant">Tên sản phẩm</th>
-                          <th className="px-4 py-3 text-right text-label-md font-label-md text-on-surface-variant">Đơn giá</th>
-                          <th className="px-4 py-3 text-center text-label-md font-label-md text-on-surface-variant">Số lượng</th>
-                          <th className="px-4 py-3 text-right text-label-md font-label-md text-on-surface-variant">Thành tiền</th>
+                          <th className="px-4 py-3 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableImage")}</th>
+                          <th className="px-4 py-3 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableProducts")}</th>
+                          <th className="px-4 py-3 text-right text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableUnitPrice")}</th>
+                          <th className="px-4 py-3 text-center text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableQuantity")}</th>
+                          <th className="px-4 py-3 text-right text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableSubtotal")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -984,7 +987,7 @@ export default function DashboardPage() {
                                 />
                               </td>
                               <td className="px-4 py-3 text-body-sm font-semibold text-on-surface">
-                                {item.product_id?.name || "Sản phẩm không khả dụng"}
+                                {item.product_id?.name || t("dashboard.productUnavailable")}
                               </td>
                               <td className="px-4 py-3 text-right text-body-sm text-on-surface-variant">
                                 ${price.toFixed(2)}
@@ -1012,7 +1015,7 @@ export default function DashboardPage() {
                       onClick={() => handleCancelOrder(selectedOrder._id)}
                       className="px-5 py-2.5 bg-error text-surface rounded-xl hover:bg-error/90 transition font-semibold shadow-sm"
                     >
-                      Hủy đơn hàng này
+                      {t("dashboard.cancelThisOrder")}
                     </button>
                   )}
                 </div>
@@ -1023,7 +1026,7 @@ export default function DashboardPage() {
                   }}
                   className="px-5 py-2.5 bg-primary text-surface rounded-xl hover:bg-primary/90 transition font-semibold shadow-sm"
                 >
-                  Đóng
+                  {t("dashboard.close")}
                 </button>
               </div>
             </div>

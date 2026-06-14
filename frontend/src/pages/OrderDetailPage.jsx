@@ -17,17 +17,19 @@ import Header from "../components/layouts/Header.jsx";
 import Footer from "../components/layouts/Footer.jsx";
 import { orderService } from "../services/orderService.js";
 import SepayPaymentCard from "../components/checkout/SepayPaymentCard.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 const STATUS_STEPS = [
-  { key: "pending", label: "Chờ xác nhận", icon: MdHourglassEmpty, desc: "Đơn hàng đã được đặt thành công" },
-  { key: "processing", label: "Đang xử lý", icon: MdInventory, desc: "Đơn hàng đang được chuẩn bị" },
-  { key: "shipped", label: "Đang giao hàng", icon: MdLocalShipping, desc: "Đơn hàng đã được giao cho đơn vị vận chuyển" },
-  { key: "delivered", label: "Đã giao hàng", icon: MdCheckCircle, desc: "Đơn hàng đã được giao thành công" },
+  { key: "pending", icon: MdHourglassEmpty },
+  { key: "processing", icon: MdInventory },
+  { key: "shipped", icon: MdLocalShipping },
+  { key: "delivered", icon: MdCheckCircle },
 ];
 
 const STATUS_ORDER = ["pending", "processing", "shipped", "delivered"];
 
 export default function OrderDetailPage() {
+  const { t, language } = useLanguage();
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -47,19 +49,41 @@ export default function OrderDetailPage() {
   }, [orderId]);
 
   const handleCancel = async () => {
-    if (!window.confirm("Bạn có chắc muốn hủy đơn hàng này?")) return;
+    if (!window.confirm(t("dashboard.confirmCancelOrder"))) return;
     setCancelling(true);
     const res = await orderService.cancelOrder(orderId);
     if (res.success) {
       setOrder((prev) => ({ ...prev, status: "cancelled" }));
+      alert(t("orders.alertCancelSuccess"));
     } else {
-      alert(res.message || "Hủy đơn thất bại");
+      alert(res.message || t("orders.alertCancelFail"));
     }
     setCancelling(false);
   };
 
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "pending": return t("dashboard.statusPending");
+      case "processing": return t("dashboard.statusProcessing");
+      case "shipped": return t("dashboard.statusShipped");
+      case "delivered": return t("dashboard.statusDelivered");
+      case "cancelled": return t("dashboard.statusCancelled");
+      default: return status;
+    }
+  };
+
+  const getStatusDesc = (status) => {
+    switch (status) {
+      case "pending": return language === "vi" ? "Đơn hàng đã được đặt thành công" : "Order placed successfully";
+      case "processing": return language === "vi" ? "Đơn hàng đang được chuẩn bị" : "Order is being prepared";
+      case "shipped": return language === "vi" ? "Đơn hàng đã được giao cho đơn vị vận chuyển" : "Order handed over to shipping carrier";
+      case "delivered": return language === "vi" ? "Đơn hàng đã được giao thành công" : "Order delivered successfully";
+      default: return "";
+    }
+  };
+
   const formatDate = (d) =>
-    new Date(d).toLocaleDateString("vi-VN", {
+    new Date(d).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US", {
       day: "2-digit", month: "2-digit", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });
@@ -71,7 +95,7 @@ export default function OrderDetailPage() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-on-surface-variant">Đang tải đơn hàng...</p>
+            <p className="text-on-surface-variant">{t("dashboard.loadingOrders")}</p>
           </div>
         </main>
         <Footer />
@@ -86,9 +110,9 @@ export default function OrderDetailPage() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <MdShoppingBag size={64} className="text-on-surface-variant/30 mx-auto mb-4" />
-            <h2 className="text-h2 font-h2 text-on-surface mb-2">Không tìm thấy đơn hàng</h2>
+            <h2 className="text-h2 font-h2 text-on-surface mb-2">{t("dashboard.notFoundOrder")}</h2>
             <button onClick={() => navigate("/orders")} className="px-6 py-3 bg-primary text-surface rounded-xl font-button">
-              Xem lịch sử đơn hàng
+              {t("dashboard.viewOrderHistory")}
             </button>
           </div>
         </main>
@@ -118,17 +142,17 @@ export default function OrderDetailPage() {
           className="flex items-center gap-2 text-primary hover:gap-3 transition mb-6"
         >
           <MdArrowBack size={20} />
-          <span className="text-body-md">Lịch sử đơn hàng</span>
+          <span className="text-body-md">{t("dashboard.orderHistoryTitle")}</span>
         </button>
 
         {/* Title + status */}
         <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
           <div>
             <h1 className="text-h1 font-h1 text-on-surface">
-              Đơn hàng #{order._id?.slice(-8).toUpperCase()}
+              {t("dashboard.orderDetailTitle")} #{order._id?.slice(-8).toUpperCase()}
             </h1>
-            <p className="text-body-md text-on-surface-variant">
-              Đặt lúc: {formatDate(order.createdAt)}
+            <p className="text-body-md text-on-surface-variant mt-1">
+              {t("dashboard.placedAtLabel")} {formatDate(order.createdAt)}
             </p>
           </div>
 
@@ -138,7 +162,7 @@ export default function OrderDetailPage() {
               disabled={cancelling}
               className="px-5 py-2.5 border-2 border-error text-error rounded-xl font-button hover:bg-error/10 transition disabled:opacity-50"
             >
-              {cancelling ? "Đang hủy..." : "Hủy đơn hàng"}
+              {cancelling ? t("orders.cancelling") : t("dashboard.actionCancel")}
             </button>
           )}
         </div>
@@ -150,7 +174,7 @@ export default function OrderDetailPage() {
             {/* ─── Tracking Status ─── */}
             {!isCancelled ? (
               <div className="bg-surface-container rounded-2xl p-6 border border-outline-variant">
-                <h2 className="text-h3 font-h3 text-on-surface mb-6">📦 Theo dõi đơn hàng</h2>
+                <h2 className="text-h3 font-h3 text-on-surface mb-6">📦 {t("dashboard.trackOrder")}</h2>
 
                 <div className="relative">
                   {/* Progress line */}
@@ -181,12 +205,12 @@ export default function OrderDetailPage() {
                           </div>
                           <div className="pt-2">
                             <p className={`font-semibold text-body-md ${done ? "text-on-surface" : "text-on-surface-variant"}`}>
-                              {s.label}
+                              {getStatusLabel(s.key)}
                               {active && (
-                                <span className="ml-2 text-primary text-body-sm font-normal">• Hiện tại</span>
+                                <span className="ml-2 text-primary text-body-sm font-normal">• {t("dashboard.currentStatus")}</span>
                               )}
                             </p>
-                            <p className="text-body-sm text-on-surface-variant">{s.desc}</p>
+                            <p className="text-body-sm text-on-surface-variant mt-0.5">{getStatusDesc(s.key)}</p>
                           </div>
                         </div>
                       );
@@ -198,9 +222,9 @@ export default function OrderDetailPage() {
               <div className="bg-error/5 rounded-2xl p-6 border border-error/20 flex items-center gap-4">
                 <MdCancel size={40} className="text-error flex-shrink-0" />
                 <div>
-                  <h3 className="font-bold text-error text-body-md">Đơn hàng đã bị hủy</h3>
-                  <p className="text-body-sm text-on-surface-variant">
-                    Đơn hàng này đã được hủy. Nếu bạn đã thanh toán, tiền sẽ được hoàn lại trong 3-5 ngày.
+                  <h3 className="font-bold text-error text-body-md">{t("dashboard.orderCancelled")}</h3>
+                  <p className="text-body-sm text-on-surface-variant mt-1">
+                    {t("dashboard.cancelMessage")}
                   </p>
                 </div>
               </div>
@@ -220,7 +244,7 @@ export default function OrderDetailPage() {
             <div className="bg-surface-container rounded-2xl border border-outline-variant overflow-hidden">
               <div className="p-5 border-b border-outline-variant">
                 <h2 className="text-h3 font-h3 text-on-surface">
-                  Sản phẩm ({order.items?.length || 0})
+                  {t("dashboard.tableProducts")} ({order.items?.length || 0})
                 </h2>
               </div>
 
@@ -243,8 +267,8 @@ export default function OrderDetailPage() {
                         <p className="font-semibold text-on-surface truncate">
                           {product?.name || "Sản phẩm"}
                         </p>
-                        <p className="text-body-sm text-on-surface-variant">
-                          Đơn giá: ${price.toFixed(2)} × {item.quantity}
+                        <p className="text-body-sm text-on-surface-variant mt-0.5">
+                          {t("dashboard.tableUnitPrice")}: ${price.toFixed(2)} × {item.quantity}
                         </p>
                       </div>
                       <p className="font-bold text-primary text-lg">
@@ -261,34 +285,34 @@ export default function OrderDetailPage() {
           <div className="space-y-4">
             {/* Order Info */}
             <div className="bg-surface-container rounded-2xl p-5 border border-outline-variant">
-              <h3 className="font-bold text-on-surface text-body-md mb-4">📋 Thông tin đơn hàng</h3>
+              <h3 className="font-bold text-on-surface text-body-md mb-4">📋 {t("dashboard.orderInfo")}</h3>
               <div className="space-y-3 text-body-sm">
                 <div className="flex items-start gap-2">
                   <MdPerson className="text-primary mt-0.5 flex-shrink-0" size={16} />
                   <div>
-                    <p className="text-on-surface-variant">Người nhận</p>
-                    <p className="font-semibold text-on-surface">{recipientName || "—"}</p>
+                    <p className="text-on-surface-variant">{t("dashboard.recipientLabel")}</p>
+                    <p className="font-semibold text-on-surface mt-0.5">{recipientName || "—"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <MdPhone className="text-primary mt-0.5 flex-shrink-0" size={16} />
                   <div>
-                    <p className="text-on-surface-variant">Số điện thoại</p>
-                    <p className="font-semibold text-on-surface">{recipientPhone || "—"}</p>
+                    <p className="text-on-surface-variant">{t("dashboard.phoneLabel")}</p>
+                    <p className="font-semibold text-on-surface mt-0.5">{recipientPhone || "—"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <MdHome className="text-primary mt-0.5 flex-shrink-0" size={16} />
                   <div>
-                    <p className="text-on-surface-variant">Địa chỉ giao hàng</p>
-                    <p className="font-semibold text-on-surface">{recipientAddress || "—"}</p>
+                    <p className="text-on-surface-variant">{t("dashboard.addressLabel")}</p>
+                    <p className="font-semibold text-on-surface mt-0.5">{recipientAddress || "—"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <MdPayment className="text-primary mt-0.5 flex-shrink-0" size={16} />
                   <div>
-                    <p className="text-on-surface-variant">Thanh toán</p>
-                    <p className="font-semibold text-on-surface capitalize">
+                    <p className="text-on-surface-variant">{t("dashboard.paymentLabel")}</p>
+                    <p className="font-semibold text-on-surface capitalize mt-0.5">
                       {order.payment_method?.replace(/_/g, " ")}
                     </p>
                   </div>
@@ -298,18 +322,18 @@ export default function OrderDetailPage() {
 
             {/* Price Summary */}
             <div className="bg-surface-container rounded-2xl p-5 border border-outline-variant">
-              <h3 className="font-bold text-on-surface text-body-md mb-4">💰 Tóm tắt thanh toán</h3>
+              <h3 className="font-bold text-on-surface text-body-md mb-4">💰 {t("dashboard.paymentSummaryTitle")}</h3>
               <div className="space-y-2 text-body-sm">
                 <div className="flex justify-between text-on-surface-variant">
-                  <span>Tạm tính ({order.items?.length || 0} sản phẩm)</span>
+                  <span>{t("dashboard.subtotalLabel")} ({order.items?.length || 0} {language === "vi" ? "sản phẩm" : "items"})</span>
                   <span>${totalAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-on-surface-variant">
-                  <span>Phí vận chuyển</span>
-                  <span className="text-success font-semibold">Miễn phí</span>
+                  <span>{t("dashboard.shippingLabel")}</span>
+                  <span className="text-success font-semibold">{t("dashboard.freeLabel")}</span>
                 </div>
                 <div className="flex justify-between font-bold text-on-surface text-lg pt-3 border-t border-outline-variant">
-                  <span>Tổng cộng</span>
+                  <span>{t("dashboard.totalLabel")}</span>
                   <span className="text-primary">${totalAmount.toFixed(2)}</span>
                 </div>
               </div>

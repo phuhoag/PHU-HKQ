@@ -18,34 +18,30 @@ import Footer from "../components/layouts/Footer.jsx";
 import Sidebar from "../components/dashboard/Sidebar.jsx";
 import { orderService } from "../services/orderService.js";
 import Pagination from "../components/common/Pagination.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 const STATUS_CONFIG = {
   pending: {
-    label: "Chờ xác nhận",
     color: "text-warning",
     bg: "bg-warning/10",
     icon: MdHourglassEmpty,
   },
   processing: {
-    label: "Đang xử lý",
     color: "text-primary",
     bg: "bg-primary/10",
     icon: MdInventory,
   },
   shipped: {
-    label: "Đang giao hàng",
     color: "text-blue-500",
     bg: "bg-blue-500/10",
     icon: MdLocalShipping,
   },
   delivered: {
-    label: "Đã giao hàng",
     color: "text-success",
     bg: "bg-success/10",
     icon: MdCheckCircle,
   },
   cancelled: {
-    label: "Đã hủy",
     color: "text-error",
     bg: "bg-error/10",
     icon: MdCancel,
@@ -53,15 +49,16 @@ const STATUS_CONFIG = {
 };
 
 const STATUS_FILTERS = [
-  { value: "", label: "Tất cả" },
-  { value: "pending", label: "Chờ xác nhận" },
-  { value: "processing", label: "Đang xử lý" },
-  { value: "shipped", label: "Đang giao" },
-  { value: "delivered", label: "Đã giao" },
-  { value: "cancelled", label: "Đã hủy" },
+  { value: "" },
+  { value: "pending" },
+  { value: "processing" },
+  { value: "shipped" },
+  { value: "delivered" },
+  { value: "cancelled" },
 ];
 
 export default function OrdersPage() {
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,6 +79,22 @@ export default function OrdersPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [customerOrderHistory, setCustomerOrderHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "pending": return t("dashboard.statusPending");
+      case "processing": return t("dashboard.statusProcessing");
+      case "shipped": return t("dashboard.statusShipped");
+      case "delivered": return t("dashboard.statusDelivered");
+      case "cancelled": return t("dashboard.statusCancelled");
+      default: return status;
+    }
+  };
+
+  const getFilterLabel = (val) => {
+    if (val === "") return t("dashboard.statusAll");
+    return getStatusLabel(val);
+  };
 
   // Verify role on mount
   useEffect(() => {
@@ -194,15 +207,16 @@ export default function OrdersPage() {
   };
 
   const handleCancelOrder = async (orderId) => {
-    if (!window.confirm("Bạn có chắc muốn hủy đơn hàng này?")) return;
+    if (!window.confirm(t("dashboard.confirmCancelOrder"))) return;
     setCancellingId(orderId);
     const res = await orderService.cancelOrder(orderId);
     if (res.success) {
       setOrders((prev) =>
         prev.map((o) => (o._id === orderId ? { ...o, status: "cancelled" } : o))
       );
+      alert(t("orders.alertCancelSuccess"));
     } else {
-      alert(res.message || "Hủy đơn thất bại");
+      alert(res.message || t("orders.alertCancelFail"));
     }
     setCancellingId(null);
   };
@@ -211,7 +225,7 @@ export default function OrdersPage() {
     try {
       const res = await orderService.adminUpdateOrderStatus(orderId, newStatus);
       if (res.success) {
-        alert("✅ Cập nhật trạng thái đơn hàng thành công!");
+        alert("✅ " + t("orders.alertUpdateStatusSuccess"));
         setOrders((prev) =>
           prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
         );
@@ -219,16 +233,16 @@ export default function OrdersPage() {
           setSelectedOrder((prev) => ({ ...prev, status: newStatus }));
         }
       } else {
-        alert("❌ " + (res.message || "Cập nhật trạng thái thất bại"));
+        alert("❌ " + (res.message || t("orders.alertUpdateStatusFail")));
       }
     } catch (err) {
-      alert("❌ Lỗi: " + err.message);
+      alert("❌ " + t("orders.alertError") + err.message);
     }
   };
 
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString("vi-VN", {
+    return d.toLocaleDateString(language === "vi" ? "vi-VN" : "en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -250,7 +264,7 @@ export default function OrdersPage() {
   if (!roleChecked) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-body-md text-on-surface-variant animate-pulse">Đang xác thực thông tin...</p>
+        <p className="text-body-md text-on-surface-variant animate-pulse">{t("dashboard.loading")}</p>
       </div>
     );
   }
@@ -269,10 +283,10 @@ export default function OrdersPage() {
             <div>
               <h1 className="text-h1 font-h1 text-on-background dark:text-inverse-on-surface flex items-center gap-3">
                 <MdShoppingBag className="text-primary" size={32} />
-                Quản lý đơn hàng
+                {t("orders.adminTitle")}
               </h1>
               <p className="text-body-md text-on-surface-variant dark:text-surface-variant mt-1">
-                Xem danh sách, kiểm tra chi tiết và cập nhật trạng thái đơn hàng của hệ thống.
+                {t("orders.adminSubtitle")}
               </p>
             </div>
             <div>
@@ -281,7 +295,7 @@ export default function OrdersPage() {
                 className="flex items-center gap-2 px-4 py-2 border border-outline rounded-lg text-on-background hover:bg-surface-container transition font-semibold"
               >
                 <MdRefresh size={18} />
-                Làm mới
+                {t("orders.refresh")}
               </button>
             </div>
           </div>
@@ -294,7 +308,7 @@ export default function OrdersPage() {
                 <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
                 <input
                   type="text"
-                  placeholder="Tìm theo Mã đơn, Email hoặc Tên khách..."
+                  placeholder={t("orders.searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none focus:border-primary transition"
@@ -308,7 +322,7 @@ export default function OrdersPage() {
               >
                 {STATUS_FILTERS.map((f) => (
                   <option key={f.value} value={f.value}>
-                    {f.label}
+                    {getFilterLabel(f.value)}
                   </option>
                 ))}
               </select>
@@ -317,10 +331,10 @@ export default function OrdersPage() {
 
           {/* Orders Table */}
           {loading ? (
-            <p className="text-center py-10 text-body-md text-on-surface-variant animate-pulse">Đang tải danh sách đơn hàng...</p>
+            <p className="text-center py-10 text-body-md text-on-surface-variant animate-pulse">{t("orders.loadingOrders")}</p>
           ) : filteredOrders.length === 0 ? (
             <div className="text-center py-10 bg-surface-container-lowest border border-outline-variant rounded-xl">
-              <p className="text-body-md text-on-surface-variant">Không tìm thấy đơn hàng nào.</p>
+              <p className="text-body-md text-on-surface-variant">{t("orders.emptyOrders")}</p>
             </div>
           ) : (
             <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
@@ -328,20 +342,20 @@ export default function OrdersPage() {
                 <table className="w-full">
                   <thead className="bg-surface-container border-b border-outline-variant">
                     <tr>
-                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Mã đơn</th>
-                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Ngày đặt</th>
-                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Khách hàng</th>
-                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Thanh toán</th>
-                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Tổng tiền</th>
-                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Trạng thái</th>
-                      <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">Thao tác</th>
+                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableOrderCode")}</th>
+                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableOrderDate")}</th>
+                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("orders.customerLabel")}</th>
+                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("orders.paymentMethodLabel")}</th>
+                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableTotal")}</th>
+                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableStatus")}</th>
+                      <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableActions")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredOrders.map((o) => {
                       const statusInfo = STATUS_CONFIG[o.status] || STATUS_CONFIG.pending;
                       const totalAmount = parseFloat(o.total_amount?.toString() || "0");
-                      const custName = o.user_id ? `${o.user_id.first_name || ""} ${o.user_id.last_name || ""}`.trim() || o.user_id.email : "Khách vãng lai";
+                      const custName = o.user_id ? `${o.user_id.first_name || ""} ${o.user_id.last_name || ""}`.trim() || o.user_id.email : t("orders.guestCustomer");
 
                       return (
                         <tr key={o._id} className="border-b border-outline-variant hover:bg-surface-container/30 transition">
@@ -376,11 +390,11 @@ export default function OrdersPage() {
                               onChange={(e) => handleUpdateStatus(o._id, e.target.value)}
                               className={`px-3 py-1.5 rounded-full text-body-sm font-semibold border-none cursor-pointer outline-none ${statusInfo.bg} ${statusInfo.color}`}
                             >
-                              <option value="pending">Chờ xác nhận</option>
-                              <option value="processing">Đang xử lý</option>
-                              <option value="shipped">Đang giao</option>
-                              <option value="delivered">Đã giao</option>
-                              <option value="cancelled">Đã hủy</option>
+                              <option value="pending">{t("dashboard.statusPending")}</option>
+                              <option value="processing">{t("dashboard.statusProcessing")}</option>
+                              <option value="shipped">{t("dashboard.statusShipped")}</option>
+                              <option value="delivered">{t("dashboard.statusDelivered")}</option>
+                              <option value="cancelled">{t("dashboard.statusCancelled")}</option>
                             </select>
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -391,7 +405,7 @@ export default function OrdersPage() {
                               }}
                               className="px-4 py-1.5 bg-primary/10 text-primary font-semibold text-body-sm rounded-lg hover:bg-primary/20 transition"
                             >
-                              Chi tiết
+                              {t("dashboard.actionDetail")}
                             </button>
                           </td>
                         </tr>
@@ -409,15 +423,17 @@ export default function OrdersPage() {
                     disabled={currentPage === 1}
                     className="px-4 py-2 border border-outline-variant rounded-lg text-body-sm font-semibold hover:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    Trước
+                    {t("dashboard.paginationPrev")}
                   </button>
-                  <span className="text-body-sm text-on-surface-variant font-semibold">Trang {currentPage} / {totalPages}</span>
+                  <span className="text-body-sm text-on-surface-variant font-semibold">
+                    {language === "vi" ? `Trang ${currentPage} / ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+                  </span>
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className="px-4 py-2 border border-outline-variant rounded-lg text-body-sm font-semibold hover:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    Sau
+                    {t("dashboard.paginationNext")}
                   </button>
                 </div>
               )}
@@ -433,10 +449,10 @@ export default function OrdersPage() {
               <div className="flex justify-between items-center p-6 border-b border-outline-variant">
                 <div>
                   <h2 className="text-h2 font-h2 text-on-surface font-bold">
-                    Chi tiết đơn hàng #{selectedOrder._id?.toUpperCase()}
+                    {t("orders.detailModalTitle")}{selectedOrder._id?.toUpperCase()}
                   </h2>
                   <p className="text-body-sm text-on-surface-variant mt-1">
-                    Đặt ngày {formatDate(selectedOrder.createdAt)}
+                    {t("dashboard.placedAtLabel")} {formatDate(selectedOrder.createdAt)}
                   </p>
                 </div>
                 <button
@@ -456,37 +472,37 @@ export default function OrdersPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-surface-container/30 border border-outline-variant rounded-xl p-4">
                     <h3 className="font-semibold text-body-md text-on-surface mb-3 border-b border-outline-variant pb-2">
-                      Thông tin khách hàng
+                      {t("orders.customerInfoTitle")}
                     </h3>
                     <div className="space-y-1 text-body-sm text-on-surface-variant">
-                      <p><span className="font-semibold text-on-surface">Họ tên:</span> {selectedOrder.user_id ? `${selectedOrder.user_id.first_name || ""} ${selectedOrder.user_id.last_name || ""}` : "N/A"}</p>
-                      <p><span className="font-semibold text-on-surface">Email:</span> {selectedOrder.user_id?.email || "N/A"}</p>
-                      <p><span className="font-semibold text-on-surface">Điện thoại đặt:</span> {selectedOrder.phone || "N/A"}</p>
-                      <p><span className="font-semibold text-on-surface">Điện thoại tài khoản:</span> {selectedOrder.user_id?.phone || "N/A"}</p>
-                      <p className="line-clamp-2"><span className="font-semibold text-on-surface">Địa chỉ giao hàng:</span> {selectedOrder.shipping_address || "N/A"}</p>
+                      <p><span className="font-semibold text-on-surface">{t("orders.recipientName")}</span> {selectedOrder.user_id ? `${selectedOrder.user_id.first_name || ""} ${selectedOrder.user_id.last_name || ""}` : "N/A"}</p>
+                      <p><span className="font-semibold text-on-surface">{t("orders.email")}</span> {selectedOrder.user_id?.email || "N/A"}</p>
+                      <p><span className="font-semibold text-on-surface">{t("orders.phoneOrder")}</span> {selectedOrder.phone || "N/A"}</p>
+                      <p><span className="font-semibold text-on-surface">{t("orders.phoneAccount")}</span> {selectedOrder.user_id?.phone || "N/A"}</p>
+                      <p className="line-clamp-2"><span className="font-semibold text-on-surface">{t("orders.shippingAddress")}</span> {selectedOrder.shipping_address || "N/A"}</p>
                     </div>
                   </div>
 
                   <div className="bg-surface-container/30 border border-outline-variant rounded-xl p-4">
                     <h3 className="font-semibold text-body-md text-on-surface mb-3 border-b border-outline-variant pb-2">
-                      Thông tin giao dịch
+                      {t("orders.transactionInfoTitle")}
                     </h3>
                     <div className="space-y-1 text-body-sm text-on-surface-variant">
-                      <p><span className="font-semibold text-on-surface">Phương thức:</span> <span className="capitalize">{selectedOrder.payment_method?.replace(/_/g, " ")}</span></p>
-                      <p><span className="font-semibold text-on-surface">Thanh toán:</span> <span className="capitalize">{selectedOrder.payment_status || "pending"}</span></p>
-                      <p><span className="font-semibold text-on-surface">Tổng tiền:</span> <span className="text-primary font-semibold">${parseFloat(selectedOrder.total_amount?.toString() || "0").toFixed(2)}</span></p>
+                      <p><span className="font-semibold text-on-surface">{t("orders.paymentMethod")}</span> <span className="capitalize">{selectedOrder.payment_method?.replace(/_/g, " ")}</span></p>
+                      <p><span className="font-semibold text-on-surface">{t("orders.paymentStatus")}</span> <span className="capitalize">{selectedOrder.payment_status || "pending"}</span></p>
+                      <p><span className="font-semibold text-on-surface">{t("orders.totalAmount")}</span> <span className="text-primary font-semibold">${parseFloat(selectedOrder.total_amount?.toString() || "0").toFixed(2)}</span></p>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="font-semibold text-on-surface">Trạng thái đơn:</span>
+                        <span className="font-semibold text-on-surface">{t("orders.statusLabel")}</span>
                         <select
                           value={selectedOrder.status}
                           onChange={(e) => handleUpdateStatus(selectedOrder._id, e.target.value)}
                           className={`px-3 py-1 rounded-full text-body-sm font-semibold border-none cursor-pointer outline-none ${STATUS_CONFIG[selectedOrder.status]?.bg} ${STATUS_CONFIG[selectedOrder.status]?.color}`}
                         >
-                          <option value="pending">Chờ xác nhận</option>
-                          <option value="processing">Đang xử lý</option>
-                          <option value="shipped">Đang giao</option>
-                          <option value="delivered">Đã giao</option>
-                          <option value="cancelled">Đã hủy</option>
+                          <option value="pending">{t("dashboard.statusPending")}</option>
+                          <option value="processing">{t("dashboard.statusProcessing")}</option>
+                          <option value="shipped">{t("dashboard.statusShipped")}</option>
+                          <option value="delivered">{t("dashboard.statusDelivered")}</option>
+                          <option value="cancelled">{t("dashboard.statusCancelled")}</option>
                         </select>
                       </div>
                     </div>
@@ -495,16 +511,16 @@ export default function OrdersPage() {
 
                 {/* Items Table */}
                 <div>
-                  <h3 className="font-semibold text-body-md text-on-surface mb-3">Sản phẩm đặt mua</h3>
+                  <h3 className="font-semibold text-body-md text-on-surface mb-3">{t("orders.orderedProductsTitle")}</h3>
                   <div className="border border-outline-variant rounded-xl overflow-hidden">
                     <table className="w-full">
                       <thead className="bg-surface-container">
                         <tr>
-                          <th className="px-4 py-2.5 text-left text-label-md font-label-md text-on-surface-variant">Hình ảnh</th>
-                          <th className="px-4 py-2.5 text-left text-label-md font-label-md text-on-surface-variant">Tên sản phẩm</th>
-                          <th className="px-4 py-2.5 text-right text-label-md font-label-md text-on-surface-variant">Đơn giá</th>
-                          <th className="px-4 py-2.5 text-center text-label-md font-label-md text-on-surface-variant">Số lượng</th>
-                          <th className="px-4 py-2.5 text-right text-label-md font-label-md text-on-surface-variant">Thành tiền</th>
+                          <th className="px-4 py-2.5 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableImage")}</th>
+                          <th className="px-4 py-2.5 text-left text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableProducts")}</th>
+                          <th className="px-4 py-2.5 text-right text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableUnitPrice")}</th>
+                          <th className="px-4 py-2.5 text-center text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableQuantity")}</th>
+                          <th className="px-4 py-2.5 text-right text-label-md font-label-md text-on-surface-variant">{t("dashboard.tableSubtotal")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -521,7 +537,7 @@ export default function OrdersPage() {
                                 />
                               </td>
                               <td className="px-4 py-2.5 text-body-sm font-semibold text-on-surface">
-                                {item.product_id?.name || "Sản phẩm đã bị xóa"}
+                                {item.product_id?.name || t("dashboard.productUnavailable")}
                               </td>
                               <td className="px-4 py-2.5 text-right text-body-sm text-on-surface-variant">
                                 ${price.toFixed(2)}
@@ -540,25 +556,33 @@ export default function OrdersPage() {
                   </div>
                 </div>
 
-                {/* Lịch sử đơn hàng của khách hàng */}
+                {/* Other purchase history */}
                 {isAdmin && (
                   <div className="mt-6 border-t border-outline-variant pt-6">
-                    <h3 className="font-semibold text-body-md text-on-surface mb-3">
-                      Lịch sử đơn hàng của khách hàng ({customerOrderHistory.length} đơn khác)
+                    <h3 className="font-semibold text-body-md text-on-surface mb-3 font-semibold">
+                      {language === "vi" 
+                        ? `Lịch sử đơn hàng của khách hàng (${customerOrderHistory.length} đơn khác)`
+                        : `Customer Order History (${customerOrderHistory.length} other orders)`
+                      }
                     </h3>
                     {loadingHistory ? (
-                      <p className="text-body-sm text-on-surface-variant animate-pulse">Đang tải lịch sử đơn hàng...</p>
+                      <p className="text-body-sm text-on-surface-variant animate-pulse">{t("dashboard.loadingOrders")}</p>
                     ) : customerOrderHistory.length === 0 ? (
-                      <p className="text-body-sm text-on-surface-variant italic">Không có đơn hàng nào khác từ khách hàng này.</p>
+                      <p className="text-body-sm text-on-surface-variant italic">
+                        {language === "vi" 
+                          ? "Không có đơn hàng nào khác từ khách hàng này."
+                          : "No other orders found for this customer."
+                        }
+                      </p>
                     ) : (
                       <div className="border border-outline-variant rounded-xl overflow-hidden bg-surface-container/10 max-h-48 overflow-y-auto">
                         <table className="w-full text-left text-body-sm border-collapse">
                           <thead className="bg-surface-container border-b border-outline-variant sticky top-0">
                             <tr>
-                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">Mã đơn</th>
-                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">Ngày đặt</th>
-                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">Tổng tiền</th>
-                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">Trạng thái</th>
+                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">{t("dashboard.tableOrderCode")}</th>
+                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">{t("dashboard.tableOrderDate")}</th>
+                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">{t("dashboard.tableTotal")}</th>
+                              <th className="px-4 py-2.5 text-label-sm font-label-sm text-on-surface-variant">{t("dashboard.tableStatus")}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -582,7 +606,7 @@ export default function OrdersPage() {
                                   </td>
                                   <td className="px-4 py-2.5">
                                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
-                                      {statusInfo.label}
+                                      {getStatusLabel(histOrder.status)}
                                     </span>
                                   </td>
                                 </tr>
@@ -605,7 +629,7 @@ export default function OrdersPage() {
                   }}
                   className="px-5 py-2 bg-primary text-surface rounded-lg hover:bg-primary/90 transition font-semibold shadow-sm"
                 >
-                  Đóng
+                  {t("dashboard.close")}
                 </button>
               </div>
             </div>
@@ -628,20 +652,20 @@ export default function OrdersPage() {
             className="flex items-center gap-2 text-primary hover:gap-3 transition mb-4"
           >
             <MdArrowBack size={20} />
-            <span className="text-body-md">Về trang chủ</span>
+            <span className="text-body-md">{t("orders.backToHome")}</span>
           </button>
 
           <div className="flex items-center justify-between">
             <h1 className="text-h1 font-h1 text-on-surface flex items-center gap-3">
               <MdShoppingBag size={32} className="text-primary" />
-              Lịch sử đơn hàng
+              {t("orders.customerTitle")}
             </h1>
             <button
               onClick={() => fetchOrders(currentPage)}
               className="flex items-center gap-2 px-4 py-2 border-2 border-outline-variant rounded-xl text-on-surface-variant hover:border-primary hover:text-primary transition"
             >
               <MdRefresh size={18} />
-              <span className="text-body-sm">Làm mới</span>
+              <span className="text-body-sm">{t("orders.refresh")}</span>
             </button>
           </div>
         </div>
@@ -658,7 +682,7 @@ export default function OrdersPage() {
                   : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"
               }`}
             >
-              {f.label}
+              {getFilterLabel(f.value)}
             </button>
           ))}
         </div>
@@ -677,15 +701,15 @@ export default function OrdersPage() {
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 bg-surface-container rounded-2xl border border-outline-variant">
             <MdShoppingBag size={64} className="text-on-surface-variant/30 mb-4" />
-            <h2 className="text-h2 font-h2 text-on-surface mb-2">Chưa có đơn hàng</h2>
+            <h2 className="text-h2 font-h2 text-on-surface mb-2">{t("orders.emptyHistory")}</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
-              {statusFilter ? "Không có đơn hàng nào với trạng thái này" : "Bạn chưa đặt đơn hàng nào"}
+              {statusFilter ? t("orders.noOrdersFiltered") : t("orders.noOrdersYet")}
             </p>
             <button
               onClick={() => navigate("/shop")}
               className="px-6 py-3 bg-primary text-surface rounded-xl font-button hover:bg-primary/90 transition"
             >
-              Bắt đầu mua sắm
+              {t("orders.startShopping")}
             </button>
           </div>
         ) : (
@@ -704,10 +728,10 @@ export default function OrdersPage() {
                   <div className="flex items-center justify-between p-5 border-b border-outline-variant">
                     <div className="flex items-center gap-4">
                       <div>
-                        <p className="text-body-sm text-on-surface-variant">
-                          Đơn hàng #{order._id?.slice(-8).toUpperCase()}
+                        <p className="text-body-sm text-on-surface-variant font-semibold">
+                          {t("orders.detailModalTitle")}{order._id?.slice(-8).toUpperCase()}
                         </p>
-                        <p className="text-body-sm text-on-surface-variant">
+                        <p className="text-body-sm text-on-surface-variant mt-0.5">
                           {formatDate(order.createdAt)}
                         </p>
                       </div>
@@ -718,7 +742,7 @@ export default function OrdersPage() {
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-body-sm font-semibold ${statusInfo.bg} ${statusInfo.color}`}
                       >
                         <StatusIcon size={14} />
-                        {statusInfo.label}
+                        {getStatusLabel(order.status)}
                       </span>
                     </div>
                   </div>
@@ -726,13 +750,13 @@ export default function OrdersPage() {
                   {/* Order items preview */}
                   <div className="p-5">
                     {order.items && order.items.length > 0 ? (
-                      <div className="flex gap-3 mb-4 overflow-x-auto">
+                      <div className="flex gap-3 mb-4 overflow-x-auto pb-1">
                         {order.items.slice(0, 4).map((item, idx) => (
                           <div
                             key={item._id || idx}
                             className="flex-shrink-0 flex items-center gap-2"
                           >
-                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-surface border border-outline-variant">
+                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-surface border border-outline-variant flex-shrink-0">
                               {item.product_id?.image ? (
                                 <img
                                   src={item.product_id.image}
@@ -746,8 +770,8 @@ export default function OrdersPage() {
                               )}
                             </div>
                             {idx === 3 && order.items.length > 4 && (
-                              <span className="text-body-sm text-on-surface-variant">
-                                +{order.items.length - 4} sản phẩm
+                              <span className="text-body-sm text-on-surface-variant font-semibold">
+                                +{order.items.length - 4} {t("dashboard.itemsCount") || "sản phẩm"}
                               </span>
                             )}
                           </div>
@@ -756,15 +780,15 @@ export default function OrdersPage() {
                     ) : null}
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between border-t border-outline-variant/60 pt-4">
                       <div>
                         <p className="text-body-sm text-on-surface-variant">
-                          {order.items?.length || 0} sản phẩm •{" "}
+                          {order.items?.length || 0} {t("dashboard.itemsCount")} •{" "}
                           <span className="capitalize">
                             {order.payment_method?.replace(/_/g, " ")}
                           </span>
                         </p>
-                        <p className="text-xl font-bold text-primary">
+                        <p className="text-xl font-bold text-primary mt-1">
                           ${totalAmount.toFixed(2)}
                         </p>
                       </div>
@@ -776,14 +800,14 @@ export default function OrdersPage() {
                             disabled={cancellingId === order._id}
                             className="px-4 py-2 border-2 border-error text-error rounded-xl text-body-sm font-semibold hover:bg-error/10 transition disabled:opacity-50"
                           >
-                            {cancellingId === order._id ? "Đang hủy..." : "Hủy đơn"}
+                            {cancellingId === order._id ? t("orders.cancelling") : t("orders.actionCancel")}
                           </button>
                         )}
                         <button
                           onClick={() => navigate(`/orders/${order._id}`)}
-                          className="flex items-center gap-1 px-4 py-2 bg-primary text-surface rounded-xl text-body-sm font-semibold hover:bg-primary/90 transition"
+                          className="flex items-center gap-1 px-4 py-2 bg-primary text-surface rounded-xl text-body-sm font-semibold hover:bg-primary/90 transition shadow-sm"
                         >
-                          Chi tiết
+                          {t("dashboard.actionDetail")}
                           <MdChevronRight size={18} />
                         </button>
                       </div>
@@ -808,4 +832,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-

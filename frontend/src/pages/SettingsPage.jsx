@@ -13,8 +13,10 @@ import {
 import Header from "../components/layouts/Header.jsx";
 import Footer from "../components/layouts/Footer.jsx";
 import Sidebar from "../components/dashboard/Sidebar.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function SettingsPage() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -127,13 +129,13 @@ export default function SettingsPage() {
       const result = await response.json();
 
       if (result.success) {
-        setMessageSmtp("✅ Cấu hình SMTP đã được lưu thành công!");
+        setMessageSmtp(t("settings.smtpSaveSuccess"));
         setTimeout(() => setMessageSmtp(""), 4000);
       } else {
-        setErrorSmtp(result.message || "Lỗi khi lưu cấu hình");
+        setErrorSmtp(result.message || t("settings.smtpSaveFail"));
       }
     } catch (err) {
-      setErrorSmtp("Lỗi: " + err.message);
+      setErrorSmtp("Error: " + err.message);
     } finally {
       setLoadingSmtp(false);
     }
@@ -157,20 +159,20 @@ export default function SettingsPage() {
       const result = await response.json();
 
       if (result.success) {
-        setMessageSmtp("✅ " + result.message);
+        setMessageSmtp(t("settings.smtpTestSuccess"));
         setTimeout(() => setMessageSmtp(""), 4000);
       } else {
-        setErrorSmtp(result.message || "Lỗi khi kiểm tra kết nối");
+        setErrorSmtp(result.message || t("settings.smtpTestFail"));
       }
     } catch (err) {
-      setErrorSmtp("Lỗi: " + err.message);
+      setErrorSmtp("Error: " + err.message);
     } finally {
       setTestingSmtp(false);
     }
   };
 
   const handleClearSmtp = async () => {
-    if (confirm("Bạn có chắc chắn muốn xóa cấu hình SMTP?")) {
+    if (confirm(t("settings.smtpClearConfirm"))) {
       try {
         const response = await fetch("/api/user/settings/smtp", {
           method: "DELETE",
@@ -188,11 +190,11 @@ export default function SettingsPage() {
             smtpHost: "smtp.gmail.com",
             smtpPort: 587,
           });
-          setMessageSmtp("✅ Cấu hình SMTP đã được xóa");
+          setMessageSmtp(t("settings.smtpClearSuccess"));
           setTimeout(() => setMessageSmtp(""), 4000);
         }
       } catch (err) {
-        setErrorSmtp("Lỗi: " + err.message);
+        setErrorSmtp("Error: " + err.message);
       }
     }
   };
@@ -203,7 +205,7 @@ export default function SettingsPage() {
     <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant dark:border-outline rounded-xl p-6 shadow-sm">
       <h2 className="text-h2 font-h2 text-on-surface dark:text-inverse-on-surface mb-6 flex items-center gap-3">
         <MdEmail size={24} className="text-primary" />
-        Email SMTP Configuration
+        {t("settings.smtpTitle")}
       </h2>
 
       <div className="space-y-4">
@@ -220,13 +222,13 @@ export default function SettingsPage() {
         )}
 
         <p className="text-label-sm text-on-surface-variant dark:text-surface-variant mb-4">
-          Configure your SMTP credentials to send transactional messages (like password resets and confirmations) from the system.
+          {t("settings.smtpDesc")}
         </p>
 
         <form onSubmit={handleSmtpSave} className="space-y-4">
           <div>
             <label className="block text-label-sm font-semibold text-on-surface dark:text-inverse-on-surface mb-1">
-              Email SMTP *
+              {t("settings.smtpEmailLabel")}
             </label>
             <input
               type="email"
@@ -241,7 +243,7 @@ export default function SettingsPage() {
 
           <div>
             <label className="block text-label-sm font-semibold text-on-surface dark:text-inverse-on-surface mb-1">
-              SMTP Password / App Password *
+              {t("settings.smtpPasswordLabel")}
             </label>
             <div className="relative">
               <input
@@ -250,7 +252,7 @@ export default function SettingsPage() {
                 required={!smtpSettings.smtpEmail}
                 value={smtpSettings.smtpPassword}
                 onChange={handleSmtpChange}
-                placeholder={smtpSettings.smtpEmail ? "••••••••" : "Gmail App Password"}
+                placeholder={smtpSettings.smtpEmail ? t("settings.smtpPasswordPlaceholderFilled") : t("settings.smtpPasswordPlaceholder")}
                 className="w-full px-4 py-2 border border-outline-variant dark:border-outline rounded-lg bg-surface dark:bg-inverse-surface text-body-sm text-on-surface dark:text-inverse-on-surface outline-none focus:border-primary transition pr-10"
               />
               <button
@@ -266,7 +268,7 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-label-sm font-semibold text-on-surface dark:text-inverse-on-surface mb-1">
-                SMTP Host *
+                {t("settings.smtpHostLabel")}
               </label>
               <input
                 type="text"
@@ -281,7 +283,7 @@ export default function SettingsPage() {
 
             <div>
               <label className="block text-label-sm font-semibold text-on-surface dark:text-inverse-on-surface mb-1">
-                SMTP Port *
+                {t("settings.smtpPortLabel")}
               </label>
               <input
                 type="number"
@@ -301,7 +303,7 @@ export default function SettingsPage() {
               disabled={loadingSmtp}
               className="px-5 py-2.5 bg-primary text-surface rounded-lg text-body-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition shadow-sm"
             >
-              {loadingSmtp ? "Saving..." : "💾 Save Config"}
+              {loadingSmtp ? t("settings.saving") : t("settings.saveConfig")}
             </button>
 
             <button
@@ -310,7 +312,7 @@ export default function SettingsPage() {
               disabled={testingSmtp || !smtpSettings.smtpEmail}
               className="px-5 py-2.5 bg-green-600 text-white rounded-lg text-body-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition shadow-sm"
             >
-              {testingSmtp ? "Testing..." : "✔️ Test Connection"}
+              {testingSmtp ? t("settings.testing") : t("settings.testConnection")}
             </button>
 
             {smtpSettings.smtpEmail && (
@@ -319,22 +321,22 @@ export default function SettingsPage() {
                 onClick={handleClearSmtp}
                 className="px-5 py-2.5 bg-red-600 text-white rounded-lg text-body-sm font-semibold hover:bg-red-700 transition shadow-sm"
               >
-                🗑️ Clear
+                {t("settings.clear")}
               </button>
             )}
           </div>
         </form>
 
         <div className="mt-4 p-4 bg-primary/10 dark:bg-primary/20 rounded-xl text-on-primary-container dark:text-inverse-primary">
-          <p className="font-semibold text-body-sm mb-2 flex items-center gap-1.5">📧 How to setup for Gmail:</p>
+          <p className="font-semibold text-body-sm mb-2 flex items-center gap-1.5">{t("settings.howToSetupGmail")}</p>
           <ol className="list-decimal list-inside space-y-1 text-label-sm text-on-surface-variant dark:text-surface-variant font-medium">
-            <li>Login to your Google Account</li>
-            <li>Visit <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="text-primary dark:text-primary-fixed hover:underline font-bold">myaccount.google.com/apppasswords</a></li>
-            <li>Select Mail and Windows Computer (or Generate custom)</li>
-            <li>Copy the 16-character app password</li>
-            <li>Paste into "SMTP Password" field above</li>
-            <li>Click "Test Connection" to verify</li>
-            <li>Click "Save Config"</li>
+            <li>{t("settings.setupStep1")}</li>
+            <li>{t("settings.setupStep2")}</li>
+            <li>{t("settings.setupStep3")}</li>
+            <li>{t("settings.setupStep4")}</li>
+            <li>{t("settings.setupStep5")}</li>
+            <li>{t("settings.setupStep6")}</li>
+            <li>{t("settings.setupStep7")}</li>
           </ol>
         </div>
       </div>
@@ -354,10 +356,10 @@ export default function SettingsPage() {
           <div className="mb-8 pb-6 border-b border-outline-variant dark:border-outline">
             <h1 className="text-h1 font-h1 text-on-background dark:text-inverse-on-surface flex items-center gap-3">
               <MdSettings size={32} className="text-primary" />
-              Settings
+              {t("settings.title")}
             </h1>
             <p className="text-body-md text-on-surface-variant dark:text-surface-variant mt-1">
-              Manage your store configurations and administrative preferences
+              {t("settings.adminSubtitle")}
             </p>
           </div>
 
@@ -370,12 +372,12 @@ export default function SettingsPage() {
               <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant dark:border-outline rounded-xl p-6 shadow-sm">
                 <h2 className="text-h2 font-h2 text-on-surface dark:text-inverse-on-surface mb-6 flex items-center gap-3">
                   <MdPalette size={24} className="text-primary" />
-                  Appearance
+                  {t("settings.appearanceTitle")}
                 </h2>
                 <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="text-body-sm font-semibold text-on-surface dark:text-inverse-on-surface">Dark Mode</p>
-                    <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">Reduce eye strain with dark theme</p>
+                    <p className="text-body-sm font-semibold text-on-surface dark:text-inverse-on-surface">{t("settings.darkModeLabel")}</p>
+                    <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">{t("settings.darkModeDesc")}</p>
                   </div>
                   <button onClick={() => toggleSetting("darkMode")} className="text-primary text-3xl">
                     {settings.darkMode ? <MdToggleOn /> : <MdToggleOff />}
@@ -387,16 +389,16 @@ export default function SettingsPage() {
             <div className="space-y-6">
               {/* Account Info */}
               <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant dark:border-outline rounded-xl p-6 shadow-sm">
-                <h3 className="text-h3 font-h3 text-on-surface dark:text-inverse-on-surface mb-4">Account Info</h3>
+                <h3 className="text-h3 font-h3 text-on-surface dark:text-inverse-on-surface mb-4">{t("settings.accountInfoTitle")}</h3>
                 <div className="space-y-3 text-body-sm">
                   <div>
-                    <p className="text-on-surface-variant dark:text-surface-variant font-medium">Email</p>
+                    <p className="text-on-surface-variant dark:text-surface-variant font-medium">{t("settings.emailLabel")}</p>
                     <p className="text-on-surface dark:text-inverse-on-surface font-semibold">{currentUser.email}</p>
                   </div>
                   <div>
-                    <p className="text-on-surface-variant dark:text-surface-variant font-medium">Role</p>
+                    <p className="text-on-surface-variant dark:text-surface-variant font-medium">{t("settings.roleLabel")}</p>
                     <span className="px-2.5 py-0.5 bg-primary/10 text-primary font-bold rounded text-xs">
-                      Super Admin
+                      {t("settings.roleSuperAdmin")}
                     </span>
                   </div>
                 </div>
@@ -404,15 +406,15 @@ export default function SettingsPage() {
 
               {/* Help & Support */}
               <div className="bg-primary/10 rounded-xl p-6">
-                <h3 className="text-h3 font-h3 text-primary mb-2">Need Help?</h3>
+                <h3 className="text-h3 font-h3 text-primary mb-2">{t("settings.needHelpTitle")}</h3>
                 <p className="text-body-sm text-on-surface-variant dark:text-surface-variant mb-4">
-                  For assistance with advanced settings or configurations, check our developers support log.
+                  {t("settings.needHelpAdminDesc")}
                 </p>
                 <Link
                   to="/dashboard"
                   className="block w-full py-2.5 px-4 bg-primary text-surface rounded-lg text-body-sm font-semibold text-center hover:bg-primary/90 transition shadow-sm"
                 >
-                  Go to Dashboard
+                  {t("settings.goToDashboard")}
                 </Link>
               </div>
             </div>
@@ -433,10 +435,10 @@ export default function SettingsPage() {
           <div className="mb-8">
             <h1 className="text-h1 font-h1 text-on-background flex items-center gap-3">
               <MdSettings size={32} className="text-primary" />
-              Settings
+              {t("settings.title")}
             </h1>
             <p className="text-body-md text-on-surface-variant mt-2">
-              Manage your account preferences and security settings
+              {t("settings.customerSubtitle")}
             </p>
           </div>
 
@@ -448,30 +450,30 @@ export default function SettingsPage() {
               <div className="bg-surface border border-outline-variant rounded-xl p-6">
                 <h2 className="text-h2 font-h2 text-on-surface mb-6 flex items-center gap-3">
                   <MdNotifications size={24} className="text-primary" />
-                  Notifications
+                  {t("settings.notificationsTitle")}
                 </h2>
 
                 <div className="space-y-4">
                   {[
                     {
                       key: "emailNotifications",
-                      label: "Email Notifications",
-                      description: "Receive notifications via email",
+                      label: t("settings.notifEmailLabel"),
+                      description: t("settings.notifEmailDesc"),
                     },
                     {
                       key: "pushNotifications",
-                      label: "Push Notifications",
-                      description: "Receive browser push notifications",
+                      label: t("settings.notifPushLabel"),
+                      description: t("settings.notifPushDesc"),
                     },
                     {
                       key: "orderUpdates",
-                      label: "Order Updates",
-                      description: "Get notified about your order status",
+                      label: t("settings.notifOrderLabel"),
+                      description: t("settings.notifOrderDesc"),
                     },
                     {
                       key: "promotions",
-                      label: "Promotional Emails",
-                      description: "Receive deals and special offers",
+                      label: t("settings.notifPromoLabel"),
+                      description: t("settings.notifPromoDesc"),
                     },
                   ].map((setting) => (
                     <div
@@ -505,17 +507,17 @@ export default function SettingsPage() {
               <div className="bg-surface border border-outline-variant rounded-xl p-6">
                 <h2 className="text-h2 font-h2 text-on-surface mb-6 flex items-center gap-3">
                   <MdLock size={24} className="text-primary" />
-                  Security
+                  {t("settings.securityTitle")}
                 </h2>
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-3 border-b border-outline-variant">
                     <div>
                       <p className="text-body-sm font-semibold text-on-surface">
-                        Two-Factor Authentication
+                        {t("settings.twoFactorLabel")}
                       </p>
                       <p className="text-label-sm text-on-surface-variant">
-                        Add extra security to your account
+                        {t("settings.twoFactorDesc")}
                       </p>
                     </div>
                     <button
@@ -531,7 +533,7 @@ export default function SettingsPage() {
                       to="/dashboard"
                       className="inline-block px-4 py-2 bg-primary text-surface rounded-lg text-body-sm font-semibold hover:bg-primary/90 transition shadow-sm"
                     >
-                      Change Password
+                      {t("settings.changePasswordLabel")}
                     </Link>
                   </div>
                 </div>
@@ -541,18 +543,17 @@ export default function SettingsPage() {
               <div className="bg-surface border border-outline-variant rounded-xl p-6">
                 <h2 className="text-h2 font-h2 text-on-surface mb-6 flex items-center gap-3">
                   <MdPrivacyTip size={24} className="text-primary" />
-                  Privacy
+                  {t("settings.privacyTitle")}
                 </h2>
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-3 border-b border-outline-variant">
                     <div>
                       <p className="text-body-sm font-semibold text-on-surface">
-                        Data Collection
+                        {t("settings.dataCollectionLabel")}
                       </p>
                       <p className="text-label-sm text-on-surface-variant">
-                        Allow us to collect usage data to improve your
-                        experience
+                        {t("settings.dataCollectionDesc")}
                       </p>
                     </div>
                     <button
@@ -569,10 +570,10 @@ export default function SettingsPage() {
 
                   <div className="pt-3 space-y-2">
                     <button className="block w-full text-left py-2 px-4 hover:bg-surface-container-low rounded transition text-body-sm font-semibold text-on-surface">
-                      View Privacy Policy
+                      {t("settings.viewPrivacyPolicy")}
                     </button>
                     <button className="block w-full text-left py-2 px-4 hover:bg-surface-container-low rounded transition text-body-sm font-semibold text-on-surface">
-                      Manage Cookies
+                      {t("settings.manageCookies")}
                     </button>
                   </div>
                 </div>
@@ -582,17 +583,17 @@ export default function SettingsPage() {
               <div className="bg-surface border border-outline-variant rounded-xl p-6">
                 <h2 className="text-h2 font-h2 text-on-surface mb-6 flex items-center gap-3">
                   <MdPalette size={24} className="text-primary" />
-                  Appearance
+                  {t("settings.appearanceTitle")}
                 </h2>
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-3">
                     <div>
                       <p className="text-body-sm font-semibold text-on-surface">
-                        Dark Mode
+                        {t("settings.darkModeLabel")}
                       </p>
                       <p className="text-label-sm text-on-surface-variant">
-                        Reduce eye strain with dark theme
+                        {t("settings.darkModeDesc")}
                       </p>
                     </div>
                     <button
@@ -611,17 +612,17 @@ export default function SettingsPage() {
               {/* Account Info */}
               <div className="bg-surface border border-outline-variant rounded-xl p-6">
                 <h3 className="text-h3 font-h3 text-on-surface mb-4">
-                  Account Info
+                  {t("settings.accountInfoTitle")}
                 </h3>
 
                 <div className="space-y-3 text-body-sm">
                   <div>
-                    <p className="text-on-surface-variant font-medium">Email</p>
+                    <p className="text-on-surface-variant font-medium">{t("settings.emailLabel")}</p>
                     <p className="text-on-surface font-semibold">{currentUser.email}</p>
                   </div>
                   <div>
-                    <p className="text-on-surface-variant font-medium">Account Type</p>
-                    <p className="text-on-surface font-semibold">Premium Member</p>
+                    <p className="text-on-surface-variant font-medium">{t("settings.roleLabel")}</p>
+                    <p className="text-on-surface font-semibold">{t("settings.rolePremiumMember")}</p>
                   </div>
                 </div>
               </div>
@@ -629,28 +630,27 @@ export default function SettingsPage() {
               {/* Help & Support */}
               <div className="bg-primary/10 rounded-xl p-6">
                 <h3 className="text-h3 font-h3 text-primary mb-4">
-                  Need Help?
+                  {t("settings.needHelpTitle")}
                 </h3>
                 <p className="text-body-sm text-on-surface-variant mb-4">
-                  Contact our support team for assistance with your account
-                  settings.
+                  {t("settings.needHelpCustomerDesc")}
                 </p>
                 <button className="w-full py-2.5 px-4 bg-primary text-surface rounded-lg text-body-sm font-semibold hover:bg-primary/90 transition shadow-sm">
-                  Contact Support
+                  {t("settings.contactSupport")}
                 </button>
               </div>
 
               {/* Danger Zone */}
               <div className="bg-error/10 border border-error/30 rounded-xl p-6">
-                <h3 className="text-h3 font-h3 text-error mb-4">Danger Zone</h3>
+                <h3 className="text-h3 font-h3 text-error mb-4">{t("settings.dangerZoneTitle")}</h3>
                 <p className="text-body-sm text-on-surface mb-4 font-medium">
-                  Permanently delete your account and all associated data.
+                  {t("settings.deleteAccountDesc")}
                 </p>
                 <Link
                   to="/dashboard"
                   className="block w-full py-2.5 px-4 bg-error text-surface rounded-lg text-body-sm font-semibold text-center hover:bg-error/90 transition shadow-sm"
                 >
-                  Delete Account
+                  {t("settings.deleteAccountButton")}
                 </Link>
               </div>
             </div>

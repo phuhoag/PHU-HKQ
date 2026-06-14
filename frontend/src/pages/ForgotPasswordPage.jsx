@@ -1,6 +1,9 @@
 import ForgotPasswordForm from "../components/auth/ForgotPasswordForm.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function ForgotPasswordPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-grow flex items-center justify-center py-stack-lg px-margin-mobile">
@@ -15,11 +18,10 @@ export default function ForgotPasswordPage() {
             <div className="absolute inset-0 bg-primary/10 mix-blend-multiply"></div>
             <div className="absolute inset-0 flex flex-col justify-end p-margin-desktop bg-gradient-to-t from-primary/80 to-transparent">
               <h2 className="font-h2 text-h2 text-on-primary mb-stack-sm">
-                Account Security
+                {t("forgotPassword.accountSecurity")}
               </h2>
               <p className="font-body-md text-body-md text-on-primary/90">
-                Regain access to your TechStore account with our secure password
-                recovery process.
+                {t("forgotPassword.recoveryDesc")}
               </p>
             </div>
           </div>
@@ -35,7 +37,7 @@ export default function ForgotPasswordPage() {
           <div className="mb-4 md:mb-0">
             <span className="text-h2 font-h2 text-primary">TechStore</span>
             <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-              © 2024 TechStore E-commerce. All rights reserved.
+              © {new Date().getFullYear()} {t("footer.allRightsReserved")}
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-stack-md">
@@ -43,25 +45,25 @@ export default function ForgotPasswordPage() {
               href="/privacy"
               className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
             >
-              Privacy Policy
+              {t("footer.privacyPolicy")}
             </a>
             <a
               href="/terms"
               className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
             >
-              Terms of Service
+              {t("footer.termsOfService")}
             </a>
             <a
               href="/help"
               className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
             >
-              Help Center
+              {t("footer.helpCenter")}
             </a>
             <a
               href="/contact"
               className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
             >
-              Contact Us
+              {t("footer.contactUs")}
             </a>
           </div>
         </div>

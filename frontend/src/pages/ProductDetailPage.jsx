@@ -18,12 +18,21 @@ import Footer from "../components/layouts/Footer.jsx";
 import productService from "../services/productService.js";
 import { useWishlist } from "../context/WishlistContext.jsx";
 import { useCart } from "../context/CartContext.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function ProductDetailPage() {
+  const { t, language } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { addToCart } = useCart();
+
+  const getCategoryName = (cat) => {
+    if (!cat) return t("productDetail.productsBreadcrumb");
+    const key = `home.categories.${cat.name.toLowerCase()}`;
+    const translated = t(key);
+    return translated === key ? cat.name : translated;
+  };
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,11 +70,11 @@ export default function ProductDetailPage() {
           // Đặt ảnh tạm thời từ product.image cho đến khi gallery load
           setActiveImage(res.data.image || null);
         } else {
-          setError(res.message || "Không tìm thấy sản phẩm");
+          setError(res.message || t("productDetail.notFound"));
         }
       })
       .catch((err) => {
-        setError("Lỗi kết nối: " + err.message);
+        setError(t("catalog.connError") + err.message);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -167,10 +176,10 @@ export default function ProductDetailPage() {
             <MdWarning size={40} className="text-error" />
           </div>
           <h1 className="text-h2 font-h2 text-on-surface mb-2">
-            Không tìm thấy sản phẩm
+            {t("productDetail.notFound")}
           </h1>
           <p className="text-body-md text-on-surface-variant mb-8 max-w-sm">
-            {error || "Sản phẩm này không tồn tại hoặc đã bị xóa."}
+            {error || t("productDetail.notFoundDesc")}
           </p>
           <div className="flex gap-4">
             <button
@@ -178,13 +187,13 @@ export default function ProductDetailPage() {
               className="flex items-center gap-2 px-6 py-3 border border-outline rounded-xl text-body-md hover:bg-surface-container transition"
             >
               <MdArrowBack size={18} />
-              Quay lại
+              {t("productDetail.backButton")}
             </button>
             <Link
               to="/shop"
               className="px-6 py-3 bg-primary text-surface rounded-xl text-body-md hover:bg-primary/90 transition"
             >
-              Xem tất cả sản phẩm
+              {t("productDetail.viewAllProducts")}
             </Link>
           </div>
         </main>
@@ -194,7 +203,7 @@ export default function ProductDetailPage() {
   }
 
   const price = getPrice(product);
-  const categoryName = product.category_id?.name || "Sản phẩm";
+  const categoryName = getCategoryName(product.category_id);
   const isInStock = product.stock > 0;
 
   return (
@@ -205,11 +214,11 @@ export default function ProductDetailPage() {
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 mb-stack-md text-on-surface-variant text-body-sm">
           <Link to="/" className="hover:text-primary transition-colors">
-            Trang chủ
+            {t("productDetail.homeBreadcrumb")}
           </Link>
           <MdChevronRight className="text-[14px]" />
           <Link to="/shop" className="hover:text-primary transition-colors">
-            Sản phẩm
+            {t("productDetail.productsBreadcrumb")}
           </Link>
           <MdChevronRight className="text-[14px]" />
           <Link
@@ -244,7 +253,7 @@ export default function ProductDetailPage() {
                 {(!activeImage || imageError) && (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-surface-container">
                     <MdInventory size={60} className="text-on-surface-variant/30" />
-                    <span className="text-body-sm text-on-surface-variant/50">Chưa có hình ảnh</span>
+                    <span className="text-body-sm text-on-surface-variant/50">{t("productDetail.noImage")}</span>
                   </div>
                 )}
               </div>
@@ -252,11 +261,11 @@ export default function ProductDetailPage() {
               {/* Stock badge */}
               {isInStock ? (
                 <span className="absolute top-4 left-4 px-3 py-1 bg-success text-surface rounded-full text-body-sm font-semibold shadow">
-                  Còn hàng
+                  {t("productDetail.inStock")}
                 </span>
               ) : (
                 <span className="absolute top-4 left-4 px-3 py-1 bg-error text-surface rounded-full text-body-sm font-semibold shadow">
-                  Hết hàng
+                  {t("productDetail.outOfStock")}
                 </span>
               )}
             </div>
@@ -312,7 +321,7 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-2 mb-4">
               <MdInventory className="text-on-surface-variant" />
               <span className="text-body-md text-on-surface-variant">
-                Tồn kho:{" "}
+                {t("productDetail.stockLabel")}{" "}
                 <span
                   className={`font-semibold ${
                     product.stock > 10
@@ -322,7 +331,7 @@ export default function ProductDetailPage() {
                       : "text-error"
                   }`}
                 >
-                  {product.stock > 0 ? `${product.stock} sản phẩm` : "Hết hàng"}
+                  {product.stock > 0 ? `${product.stock} ${t("productDetail.stockCount")}` : t("productDetail.outOfStock")}
                 </span>
               </span>
             </div>
@@ -333,7 +342,7 @@ export default function ProductDetailPage() {
                 ${price.toFixed(2)}
               </p>
               <p className="text-body-sm text-on-surface-variant mt-1">
-                Đã bao gồm thuế
+                {t("productDetail.taxIncluded")}
               </p>
             </div>
 
@@ -341,7 +350,7 @@ export default function ProductDetailPage() {
             {product.description && (
               <div className="mb-6">
                 <h3 className="text-body-md font-bold text-on-surface mb-2">
-                  Mô tả sản phẩm
+                  {t("productDetail.descriptionTitle")}
                 </h3>
                 <p className="text-body-md text-on-surface-variant leading-relaxed">
                   {product.description}
@@ -352,7 +361,7 @@ export default function ProductDetailPage() {
             {/* Quantity */}
             <div className="flex items-center gap-3 mb-6">
               <span className="text-body-md text-on-surface-variant">
-                Số lượng:
+                {t("productDetail.quantityLabel")}
               </span>
               <div className="flex items-center border-2 border-outline-variant rounded-xl overflow-hidden">
                 <button
@@ -393,12 +402,12 @@ export default function ProductDetailPage() {
               >
                 <MdShoppingCart size={20} />
                 {addedToCart
-                  ? "✓ Đã thêm vào giỏ!"
+                  ? t("productDetail.addedToCartToast")
                   : addingToCart
-                  ? "Đang thêm..."
+                  ? t("productDetail.addingToCartToast")
                   : isInStock
-                  ? "Thêm vào giỏ hàng"
-                  : "Hết hàng"}
+                  ? t("productDetail.addToCart")
+                  : t("productDetail.outOfStock")}
               </button>
               <button
                 onClick={handleWishlist}
@@ -423,11 +432,11 @@ export default function ProductDetailPage() {
             <div className="border-t border-outline-variant pt-4 space-y-2">
               <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
                 <MdLocalShipping className="text-success text-[18px]" />
-                <span>Miễn phí vận chuyển cho đơn hàng trên $50</span>
+                <span>{t("productDetail.freeShippingPromo")}</span>
               </div>
               <div className="flex items-center gap-2 text-body-sm text-on-surface-variant">
                 <MdVerified className="text-primary text-[18px]" />
-                <span>Bảo hành chính hãng 12 tháng</span>
+                <span>{t("productDetail.warrantyPromo")}</span>
               </div>
             </div>
           </div>
@@ -438,7 +447,7 @@ export default function ProductDetailPage() {
         {galleryImages.length > 0 && (
           <div className="mb-12">
             <h2 className="text-h3 font-h3 text-on-surface mb-6">
-              🖼️ Hình ảnh sản phẩm
+              🖼️ {t("productDetail.imagesTitle")}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {galleryImages.map((img) => (
@@ -472,7 +481,7 @@ export default function ProductDetailPage() {
                   {/* Primary badge */}
                   {img.is_primary && (
                     <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-primary text-surface text-[10px] font-bold rounded-full z-10">
-                      Chính
+                      {t("productDetail.primaryBadge")}
                     </span>
                   )}
                   {/* Active overlay */}
@@ -495,13 +504,13 @@ export default function ProductDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
           <div className="lg:col-span-2 bg-surface-container-lowest border border-outline-variant rounded-2xl p-6">
             <h2 className="text-h3 font-h3 text-on-surface mb-4">
-              Thông tin sản phẩm
+              {t("productDetail.infoTitle")}
             </h2>
             <table className="w-full">
               <tbody className="divide-y divide-outline-variant">
                 <tr>
                   <td className="py-3 text-body-sm text-on-surface-variant w-1/3">
-                    Tên sản phẩm
+                    {t("productDetail.nameLabel")}
                   </td>
                   <td className="py-3 text-body-md text-on-surface font-medium">
                     {product.name}
@@ -509,7 +518,7 @@ export default function ProductDetailPage() {
                 </tr>
                 <tr>
                   <td className="py-3 text-body-sm text-on-surface-variant">
-                    Danh mục
+                    {t("productDetail.categoryLabel")}
                   </td>
                   <td className="py-3 text-body-md text-on-surface font-medium">
                     {categoryName}
@@ -517,7 +526,7 @@ export default function ProductDetailPage() {
                 </tr>
                 <tr>
                   <td className="py-3 text-body-sm text-on-surface-variant">
-                    Giá
+                    {t("productDetail.priceLabel")}
                   </td>
                   <td className="py-3 text-body-md text-primary font-bold">
                     ${price.toFixed(2)}
@@ -525,19 +534,19 @@ export default function ProductDetailPage() {
                 </tr>
                 <tr>
                   <td className="py-3 text-body-sm text-on-surface-variant">
-                    Tồn kho
+                    {t("productDetail.stockLabel")}
                   </td>
                   <td className="py-3 text-body-md text-on-surface font-medium">
-                    {product.stock} sản phẩm
+                    {product.stock} {t("productDetail.stockCount")}
                   </td>
                 </tr>
                 {product.createdAt && (
                   <tr>
                     <td className="py-3 text-body-sm text-on-surface-variant">
-                      Ngày thêm
+                      {t("productDetail.createdAtLabel")}
                     </td>
                     <td className="py-3 text-body-md text-on-surface">
-                      {new Date(product.createdAt).toLocaleDateString("vi-VN")}
+                      {new Date(product.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US")}
                     </td>
                   </tr>
                 )}
@@ -547,15 +556,15 @@ export default function ProductDetailPage() {
 
           <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6">
             <h2 className="text-h3 font-h3 text-on-surface mb-4">
-              Chính sách mua hàng
+              {t("productDetail.policyTitle")}
             </h2>
             <ul className="space-y-3">
               {[
-                "✅ Đổi trả trong 30 ngày",
-                "🚚 Giao hàng 2-5 ngày làm việc",
-                "🛡️ Bảo hành 12 tháng",
-                "💳 Thanh toán an toàn 100%",
-                "🎁 Quà tặng kèm theo đơn hàng",
+                t("productDetail.policyExchange"),
+                t("productDetail.policyDelivery"),
+                t("productDetail.policyWarranty"),
+                t("productDetail.policyPayment"),
+                t("productDetail.policyGift"),
               ].map((item, i) => (
                 <li key={i} className="text-body-sm text-on-surface-variant">
                   {item}
@@ -572,7 +581,7 @@ export default function ProductDetailPage() {
             className="flex items-center gap-2 px-6 py-3 border-2 border-outline-variant rounded-xl text-body-md text-on-surface-variant hover:border-primary hover:text-primary transition-all"
           >
             <MdArrowBack size={18} />
-            Quay lại danh sách
+            {t("productDetail.backToList")}
           </button>
         </div>
       </main>

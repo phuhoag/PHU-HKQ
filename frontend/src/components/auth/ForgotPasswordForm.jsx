@@ -2,8 +2,10 @@ import { useState } from "react";
 import { MdEmail, MdError, MdArrowBack, MdCheckCircle } from "react-icons/md";
 import { Link } from "react-router-dom";
 import authService from "../../services/authService";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function ForgotPasswordForm() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -14,9 +16,9 @@ export default function ForgotPasswordForm() {
     const newErrors = {};
 
     if (!email) {
-      newErrors.email = "Email is required";
+      newErrors.email = t("forgotPassword.validateEmailRequired");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email";
+      newErrors.email = t("forgotPassword.validateEmailInvalid");
     }
 
     return newErrors;
@@ -42,7 +44,7 @@ export default function ForgotPasswordForm() {
       }
     } catch (error) {
       setApiError(
-        error.message || "Failed to send reset email. Please try again.",
+        error.message || t("forgotPassword.sendEmailFailed"),
       );
       console.error("Forgot password error:", error);
     } finally {
@@ -63,11 +65,10 @@ export default function ForgotPasswordForm() {
               </div>
             )}
             <h1 className="font-h1 text-h1 text-primary mb-2">
-              Reset Your Password
+              {t("forgotPassword.title")}
             </h1>
             <p className="font-body-md text-on-surface-variant">
-              Enter your email address and we'll send you a link to reset your
-              password.
+              {t("forgotPassword.description")}
             </p>
           </div>
 
@@ -78,7 +79,7 @@ export default function ForgotPasswordForm() {
                 htmlFor="email"
                 className="block font-label-caps text-label-caps text-on-surface-variant mb-2"
               >
-                EMAIL ADDRESS
+                {t("auth.emailLabel")}
               </label>
               <div className="relative">
                 <input
@@ -114,7 +115,7 @@ export default function ForgotPasswordForm() {
               disabled={loading}
               className="w-full py-3 bg-primary text-on-primary font-label-caps text-label-caps rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-stack-md"
             >
-              {loading ? "Sending..." : "Send Reset Link"}
+              {loading ? t("forgotPassword.sending") : t("forgotPassword.resetButton")}
             </button>
           </form>
 
@@ -125,7 +126,7 @@ export default function ForgotPasswordForm() {
               className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-body-md"
             >
               <MdArrowBack className="text-[20px]" />
-              Back to Login
+              {t("forgotPassword.backToLogin")}
             </Link>
           </div>
         </>
@@ -135,17 +136,16 @@ export default function ForgotPasswordForm() {
           <div className="mb-stack-lg">
             <MdCheckCircle className="text-[64px] text-success mx-auto mb-stack-md" />
             <h2 className="font-h2 text-h2 text-primary text-center mb-stack-sm">
-              Check Your Email
+              {t("forgotPassword.successTitle")}
             </h2>
             <p className="font-body-md text-on-surface-variant text-center max-w-[300px]">
-              We've sent a password reset link to{" "}
+              {t("forgotPassword.successDesc").replace("{email}", "")}
               <span className="font-semibold text-on-surface">{email}</span>
             </p>
           </div>
 
           <p className="font-body-sm text-body-sm text-on-surface-variant text-center max-w-[350px] mb-stack-lg">
-            The link will expire in 24 hours. If you don't see the email, check
-            your spam folder.
+            {t("forgotPassword.successExpiryNote")}
           </p>
 
           <div className="space-y-stack-sm w-full">
@@ -153,7 +153,7 @@ export default function ForgotPasswordForm() {
               to="/login"
               className="block w-full py-3 bg-primary text-on-primary font-label-caps text-label-caps rounded-lg hover:bg-primary/90 transition-all text-center"
             >
-              Back to Login
+              {t("forgotPassword.backToLogin")}
             </Link>
             <button
               onClick={() => {
@@ -163,7 +163,7 @@ export default function ForgotPasswordForm() {
               }}
               className="block w-full py-3 bg-surface-container text-on-surface font-label-caps text-label-caps rounded-lg hover:bg-surface-container/80 transition-all border-2 border-outline-variant"
             >
-              Try Another Email
+              {t("forgotPassword.tryAnotherEmail")}
             </button>
           </div>
         </div>
