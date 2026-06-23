@@ -4,8 +4,11 @@ import {
   MdPerson,
   MdTrendingDown,
 } from "react-icons/md";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function DashboardStats({ statsData }) {
+  const { t } = useLanguage();
+
   const formatRevenue = (val) => {
     return typeof val === "number"
       ? `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -15,36 +18,36 @@ export default function DashboardStats({ statsData }) {
   const stats = [
     {
       icon: MdTrendingUp,
-      label: "Tổng doanh thu",
+      label: t("dashboard.totalRevenue"),
       value: formatRevenue(statsData?.totalRevenue),
-      change: "Thời gian thực",
+      change: t("dashboard.realTime"),
       changeType: "positive",
       bgColor: "bg-primary/10",
       iconColor: "text-primary",
     },
     {
       icon: MdShoppingCart,
-      label: "Tổng đơn hàng",
+      label: t("dashboard.totalOrders"),
       value: statsData?.totalOrders?.toLocaleString("en-US") || "0",
-      change: "Đã hoàn thành: " + (statsData?.completedOrders || 0),
+      change: `${t("dashboard.completed")}: ${statsData?.completedOrders || 0}`,
       changeType: "positive",
       bgColor: "bg-success/10",
       iconColor: "text-success",
     },
     {
       icon: MdPerson,
-      label: "Khách hàng",
+      label: t("dashboard.customers"),
       value: statsData?.totalUsers?.toLocaleString("en-US") || "0",
-      change: "Hoạt động: " + (statsData?.activeUsers || 0),
+      change: `${t("dashboard.active")}: ${statsData?.activeUsers || 0}`,
       changeType: "positive",
       bgColor: "bg-warning/10",
       iconColor: "text-warning",
     },
     {
       icon: MdTrendingUp,
-      label: "Tỷ lệ chuyển đổi",
+      label: t("dashboard.conversionRate"),
       value: statsData?.conversionRate !== undefined ? `${statsData.conversionRate}%` : "0.00%",
-      change: "Đơn hàng / Thành viên",
+      change: t("dashboard.conversionDesc"),
       changeType: "positive",
       bgColor: "bg-tertiary/10",
       iconColor: "text-tertiary",

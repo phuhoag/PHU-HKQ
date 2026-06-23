@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function SalesAnalytics({ monthlySales }) {
+  const { t } = useLanguage();
   const [hoveredBar, setHoveredBar] = useState(null);
 
   // Determine year from data or current year
@@ -14,7 +16,7 @@ export default function SalesAnalytics({ monthlySales }) {
 
   // Pre-fill 12 months for the determined year
   const paddedData = Array.from({ length: 12 }, (_, i) => ({
-    month: `Tháng ${i + 1}`,
+    month: `${t("dashboard.monthPrefix")} ${i + 1}`,
     value: 0,
     orders: 0,
   }));
@@ -49,15 +51,15 @@ export default function SalesAnalytics({ monthlySales }) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-h3 font-h3 text-on-background font-bold">
-            Phân tích doanh thu năm {dataYear}
+            {t("dashboard.revenueAnalysisYear").replace("{year}", dataYear)}
           </h3>
           <p className="text-body-sm text-on-surface-variant mt-1">
-            Biểu đồ doanh số bán hàng theo từng tháng của năm {dataYear}
+            {t("dashboard.revenueChartDesc").replace("{year}", dataYear)}
           </p>
         </div>
         <div className="flex space-x-3">
           <button className="px-3 py-1 text-body-sm font-semibold text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition">
-            Doanh thu
+            {t("dashboard.revenueLabel")}
           </button>
         </div>
       </div>
@@ -93,8 +95,8 @@ export default function SalesAnalytics({ monthlySales }) {
                 {/* Hover Tooltip */}
                 {isHovered && item.value > 0 && (
                   <div className="absolute -top-14 z-20 bg-on-background text-background text-body-sm font-semibold py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap animate-bounce">
-                    <div>Doanh thu: {formatCurrency(item.value)}</div>
-                    <div className="text-center text-xs opacity-75">{item.orders} đơn hàng</div>
+                    <div>{t("dashboard.revenueLabel")}: {formatCurrency(item.value)}</div>
+                    <div className="text-center text-xs opacity-75">{item.orders} {t("dashboard.orderCount")}</div>
                   </div>
                 )}
 
@@ -118,7 +120,7 @@ export default function SalesAnalytics({ monthlySales }) {
       <div className="flex justify-around mt-4 pt-3 text-body-sm text-on-surface-variant font-bold ml-16 mr-4">
         {paddedData.map((item, index) => (
           <span key={index} className="text-center flex-1 text-[10px] sm:text-[11px] truncate px-0.5" title={item.month}>
-            Tháng {index + 1}
+            {t("dashboard.monthPrefix")} {index + 1}
           </span>
         ))}
       </div>
