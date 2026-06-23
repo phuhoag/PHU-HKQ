@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { MdQrCodeScanner, MdContentCopy, MdCheck } from "react-icons/md";
 import { useLanguage } from "../../context/LanguageContext.jsx";
 
-export default function SepayPaymentCard({ orderId, totalAmount }) {
+export default function SepayPaymentCard({ orderId, totalAmount, onPaymentSuccess }) {
   const { t, language } = useLanguage();
   const [copiedAccount, setCopiedAccount] = useState(false);
   const [copiedContent, setCopiedContent] = useState(false);
@@ -16,6 +16,66 @@ export default function SepayPaymentCard({ orderId, totalAmount }) {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSimulateSuccess = async () => {
+    try {
+      const response = await fetch("/api/payments/sepay-webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-secret-key": "sepay_sandbox_secret_key_123",
+        },
+        body: JSON.stringify({
+          id: Math.floor(Math.random() * 10000000),
+          content: transferContent,
+          transferAmount: amountInVnd,
+          referenceCode: `FT${Math.floor(Math.random() * 10000000)}`,
+          transferType: "in",
+        }),
+      });
+      if (response.ok) {
+        alert("🎉 Mô phỏng chuyển khoản thành công! Hãy tải lại trang hoặc bấm OK để cập nhật trạng thái đơn hàng.");
+        if (onPaymentSuccess) {
+          onPaymentSuccess();
+        }
+      } else {
+        const res = await response.json();
+        alert("❌ Mô phỏng thất bại: " + (res.message || "Lỗi không xác định"));
+      }
+    } catch (err) {
+      alert("❌ Lỗi kết nối mô phỏng: " + err.message);
+    }
+  };
+
+  const handleSimulateFailure = async () => {
+    try {
+      const response = await fetch("/api/payments/sepay-webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-secret-key": "sepay_sandbox_secret_key_123",
+        },
+        body: JSON.stringify({
+          id: Math.floor(Math.random() * 10000000),
+          content: transferContent,
+          transferAmount: 0, // Mismatched amount to trigger failure status
+          referenceCode: `FT${Math.floor(Math.random() * 10000000)}`,
+          transferType: "in",
+        }),
+      });
+      if (response.ok) {
+        alert("❌ Mô phỏng chuyển khoản thất bại thành công! Hãy tải lại trang hoặc bấm OK để cập nhật trạng thái đơn hàng.");
+        if (onPaymentSuccess) {
+          onPaymentSuccess();
+        }
+      } else {
+        const res = await response.json();
+        alert("❌ Mô phỏng thất bại: " + (res.message || "Lỗi không xác định"));
+      }
+    } catch (err) {
+      alert("❌ Lỗi kết nối mô phỏng: " + err.message);
+    }
   };
 
   return (
@@ -104,6 +164,21 @@ export default function SepayPaymentCard({ orderId, totalAmount }) {
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={handleSimulateSuccess}
+              className="flex-1 py-2.5 px-4 bg-success/15 hover:bg-success/20 text-success border border-success/30 rounded-xl text-body-sm font-semibold transition"
+            >
+              🚀 Mô phỏng thành công
+            </button>
+            <button
+              onClick={handleSimulateFailure}
+              className="flex-1 py-2.5 px-4 bg-error/15 hover:bg-error/20 text-error border border-error/30 rounded-xl text-body-sm font-semibold transition"
+            >
+              ❌ Mô phỏng thất bại
+            </button>
           </div>
         </div>
       </div>

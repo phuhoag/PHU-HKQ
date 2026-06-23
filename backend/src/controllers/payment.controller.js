@@ -86,6 +86,10 @@ export const handleSepayWebhook = async (req, res) => {
     if (Math.abs(expectedAmountVnd - transferAmount) > 100) {
       console.error(`❌ [SePay Webhook] Amount mismatch for Order #${order._id}. Expected: ${expectedAmountVnd} VND, Received: ${transferAmount} VND.`);
       
+      // Cập nhật trạng thái thanh toán của đơn hàng thành FAILED
+      order.payment_status = PAYMENT_STATUS.FAILED;
+      await order.save();
+
       // Ghi log giao dịch lỗi
       await PaymentTransaction.create({
         order_id: order._id,

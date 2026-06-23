@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MdArrowBack,
   MdLocalShipping,
@@ -24,6 +24,7 @@ import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { cart, getTotalPrice, clearCart: clearLocalCart } = useCart();
   const { addToast } = useToast();
   const { t, language } = useLanguage();
@@ -31,6 +32,30 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
+
+  const orderIdParam = searchParams.get("orderId");
+
+  useEffect(() => {
+    if (orderIdParam) {
+      const fetchOrder = async () => {
+        setLoading(true);
+        try {
+          const res = await orderService.getOrderById(orderIdParam);
+          if (res.success) {
+            setOrderSuccess(res.data);
+            setStep(3);
+          } else {
+            addToast("Không thể tải thông tin đơn hàng", "error");
+          }
+        } catch (err) {
+          addToast("Lỗi tải thông tin đơn hàng: " + err.message, "error");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchOrder();
+    }
+  }, [orderIdParam]);
 
   const [shippingForm, setShippingForm] = useState({
     full_name: "",
@@ -108,6 +133,7 @@ export default function CheckoutPage() {
         clearLocalCart?.();
         setOrderSuccess(res.data.order);
         setStep(3);
+        setSearchParams({ orderId: res.data.order._id }, { replace: true });
         addToast(t("checkout.orderSuccessToast"), "success");
       } else {
         addToast(res.message || t("checkout.orderFailToast"), "error");
@@ -120,7 +146,7 @@ export default function CheckoutPage() {
   };
 
   // ──────────── Redirect nếu giỏ rỗng ────────────
-  if (cart.length === 0 && step !== 3) {
+  if (cart.length === 0 && step !== 3 && !orderIdParam) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -215,9 +241,19 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <p className="text-on-surface-variant text-body-sm">{t("checkout.status")}</p>
-                  <span className="inline-flex px-2 py-0.5 bg-warning/15 text-warning rounded-full text-body-sm font-semibold">
-                    {language === "vi" ? "Chờ xác nhận" : "Pending Confirmation"}
-                  </span>
+                  {orderSuccess.payment_status === "paid" ? (
+                    <span className="inline-flex px-2 py-0.5 bg-success/15 text-success rounded-full text-body-sm font-semibold">
+                      {language === "vi" ? "Đang xử lý" : "Processing"}
+                    </span>
+                  ) : orderSuccess.payment_status === "failed" ? (
+                    <span className="inline-flex px-2 py-0.5 bg-error/15 text-error rounded-full text-body-sm font-semibold">
+                      {language === "vi" ? "Thanh toán thất bại" : "Payment Failed"}
+                    </span>
+                  ) : (
+                    <span className="inline-flex px-2 py-0.5 bg-warning/15 text-warning rounded-full text-body-sm font-semibold">
+                      {language === "vi" ? "Chờ xác nhận" : "Pending Confirmation"}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <p className="text-on-surface-variant text-body-sm">{t("checkout.totalAmount")}</p>
@@ -229,6 +265,8 @@ export default function CheckoutPage() {
                   <p className="text-on-surface-variant text-body-sm">{t("checkout.paymentStatus")}</p>
                   <p className="font-semibold text-on-surface capitalize">
                     {orderSuccess.payment_method?.replace(/_/g, " ")}
+                    {orderSuccess.payment_status === "paid" && (language === "vi" ? " (Đã thanh toán)" : " (Paid)")}
+                    {orderSuccess.payment_status === "failed" && (language === "vi" ? " (Thanh toán thất bại)" : " (Payment Failed)")}
                   </p>
                 </div>
               </div>
@@ -236,10 +274,46 @@ export default function CheckoutPage() {
 
             {/* SePay Payment Card */}
             {orderSuccess.payment_method === "qr_code" && (
-              <SepayPaymentCard
-                orderId={orderSuccess._id}
-                totalAmount={parseFloat(orderSuccess.total_amount?.toString() || "0")}
-              />
+              orderSuccess.payment_status === "paid" ? (
+                <div className="bg-success/10 border border-success/20 rounded-2xl p-6 mb-8 text-center shadow-sm">
+                  <div className="text-success text-5xl mb-3">✓</div>
+                  <h3 className="text-h3 font-h3 text-success font-bold mb-2">
+                    {language === "vi" ? "Thanh toán chuyển khoản thành công!" : "Bank transfer payment successful!"}
+                  </h3>
+                  <p className="text-body-md text-on-surface-variant">
+                    {language === "vi"
+                      ? "Hệ thống đã ghi nhận số tiền thanh toán của bạn. Đơn hàng đang được chuẩn bị để giao."
+                      : "We have received your payment. Your order is being prepared for shipment."}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {orderSuccess.payment_status === "failed" && (
+                    <div className="bg-error/10 border border-error/20 rounded-2xl p-6 mb-4 text-center shadow-sm">
+                      <div className="text-error text-5xl mb-3">✗</div>
+                      <h3 className="text-h3 font-h3 text-error font-bold mb-2">
+                        {language === "vi" ? "Thanh toán chuyển khoản thất bại!" : "Bank transfer payment failed!"}
+                      </h3>
+                      <p className="text-body-md text-on-surface-variant">
+                        {language === "vi"
+                          ? "Số tiền chuyển khoản không khớp hoặc giao dịch bị lỗi. Vui lòng quét mã QR bên dưới để thực hiện lại giao dịch."
+                          : "The transferred amount did not match or the transaction failed. Please scan the QR code below to retry the transaction."}
+                      </p>
+                    </div>
+                  )}
+                  <SepayPaymentCard
+                    orderId={orderSuccess._id}
+                    totalAmount={parseFloat(orderSuccess.total_amount?.toString() || "0")}
+                    onPaymentSuccess={() => {
+                      if (orderSuccess._id) {
+                        orderService.getOrderById(orderSuccess._id).then((res) => {
+                          if (res.success) setOrderSuccess(res.data);
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              )
             )}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
