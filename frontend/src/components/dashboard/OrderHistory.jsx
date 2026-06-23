@@ -1,58 +1,61 @@
 import { MdCheckCircle, MdLocalShipping, MdHistory, MdCancel } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function OrderHistory({ orders }) {
+  const { t, language } = useLanguage();
+
   const getStatusDetails = (status) => {
     switch (status) {
       case "delivered":
-        return { label: "Đã giao", color: "text-success", icon: MdCheckCircle };
+        return { label: t("dashboard.statusDelivered"), color: "text-success", icon: MdCheckCircle };
       case "shipped":
-        return { label: "Đang giao", color: "text-info", icon: MdLocalShipping };
+        return { label: t("dashboard.statusShipped"), color: "text-info", icon: MdLocalShipping };
       case "processing":
-        return { label: "Đang xử lý", color: "text-warning", icon: MdHistory };
+        return { label: t("dashboard.statusProcessing"), color: "text-warning", icon: MdHistory };
       case "cancelled":
-        return { label: "Đã hủy", color: "text-error", icon: MdCancel };
+        return { label: t("dashboard.statusCancelled"), color: "text-error", icon: MdCancel };
       case "pending":
       default:
-        return { label: "Chờ xác nhận", color: "text-warning", icon: MdHistory };
+        return { label: t("dashboard.statusPending"), color: "text-warning", icon: MdHistory };
     }
   };
 
   return (
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
       <div className="p-6 border-b border-outline-variant">
-        <h2 className="text-h3 font-h3 text-on-background">Đơn hàng mới nhận</h2>
+        <h2 className="text-h3 font-h3 text-on-background">{t("dashboard.recentOrdersReceived")}</h2>
         <p className="text-body-sm font-body-sm text-on-surface-variant mt-1">
-          Danh sách các đơn hàng vừa được đặt trên hệ thống
+          {t("dashboard.recentOrdersDesc")}
         </p>
       </div>
 
       <div className="overflow-x-auto">
         {(!orders || orders.length === 0) ? (
           <div className="p-8 text-center text-body-md text-on-surface-variant">
-            Chưa có đơn hàng nào trong hệ thống.
+            {t("dashboard.noOrdersInSystem")}
           </div>
         ) : (
           <table className="w-full">
             <thead className="bg-surface-container border-b border-outline-variant">
               <tr>
                 <th className="px-6 py-3 text-left text-label-md font-label-md text-on-surface-variant">
-                  Mã đơn hàng
+                  {t("dashboard.tableOrderCode")}
                 </th>
                 <th className="px-6 py-3 text-left text-label-md font-label-md text-on-surface-variant">
-                  Ngày đặt
+                  {t("dashboard.tableOrderDate")}
                 </th>
                 <th className="px-6 py-3 text-left text-label-md font-label-md text-on-surface-variant">
-                  Chi tiết sản phẩm
+                  {t("dashboard.tableProducts")}
                 </th>
                 <th className="px-6 py-3 text-left text-label-md font-label-md text-on-surface-variant">
-                  Tổng tiền
+                  {t("dashboard.tableTotal")}
                 </th>
                 <th className="px-6 py-3 text-left text-label-md font-label-md text-on-surface-variant">
-                  Trạng thái
+                  {t("dashboard.tableStatus")}
                 </th>
                 <th className="px-6 py-3 text-center text-label-md font-label-md text-on-surface-variant">
-                  Thao tác
+                  {t("dashboard.tableActions")}
                 </th>
               </tr>
             </thead>
@@ -60,8 +63,8 @@ export default function OrderHistory({ orders }) {
               {orders.map((order) => {
                 const { label, color, icon: StatusIcon } = getStatusDetails(order.status);
                 const itemsStr = order.items && order.items.length > 0
-                  ? order.items.map((i) => `${i.product_id?.name || "Sản phẩm"} (x${i.quantity})`).join(", ")
-                  : "Không có chi tiết";
+                  ? order.items.map((i) => `${i.product_id?.name || t("dashboard.tableProducts")} (x${i.quantity})`).join(", ")
+                  : t("dashboard.noDetails");
 
                 return (
                   <tr
@@ -77,7 +80,7 @@ export default function OrderHistory({ orders }) {
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-body-md font-body-md text-on-background">
-                      {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                      {new Date(order.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US")}
                     </td>
                     <td className="px-6 py-4 text-body-md font-body-md text-on-surface-variant max-w-xs truncate" title={itemsStr}>
                       {itemsStr}
@@ -98,7 +101,7 @@ export default function OrderHistory({ orders }) {
                         to="/orders"
                         className="inline-block px-3 py-1.5 bg-primary/10 text-primary font-semibold text-body-sm rounded-lg hover:bg-primary/20 transition"
                       >
-                        Quản lý
+                        {t("dashboard.manage")}
                       </Link>
                     </td>
                   </tr>
@@ -111,7 +114,7 @@ export default function OrderHistory({ orders }) {
 
       <div className="p-4 border-t border-outline-variant text-center">
         <Link to="/orders" className="text-primary text-body-md font-body-md hover:underline font-semibold">
-          Xem tất cả đơn hàng →
+          {t("dashboard.viewAllOrders")}
         </Link>
       </div>
     </div>

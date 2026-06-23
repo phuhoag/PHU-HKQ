@@ -1,12 +1,15 @@
 import { MdCheckCircle, MdLocalShipping, MdHistory, MdPersonAdd, MdPayment } from "react-icons/md";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function RecentActivity({ activities }) {
+  const { t } = useLanguage();
+
   const list = activities && activities.length > 0 ? activities : [
     {
       id: "system-init",
-      title: "Hệ thống đang hoạt động ổn định",
+      title: t("dashboard.systemActiveStable"),
       detail: "",
-      date: "Bây giờ",
+      date: t("dashboard.now"),
       icon: MdCheckCircle,
       color: "text-success",
       bgColor: "bg-success/10",
@@ -17,7 +20,7 @@ export default function RecentActivity({ activities }) {
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
       <div className="p-6 border-b border-outline-variant">
         <h3 className="text-h3 font-h3 text-on-background">
-          Hoạt động gần đây
+          {t("dashboard.recentActivity")}
         </h3>
       </div>
 

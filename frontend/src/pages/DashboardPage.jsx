@@ -375,11 +375,13 @@ export default function DashboardPage() {
         // 3. Generate dynamic activities based on recent orders
         const activities = [];
         rOrders.forEach((o, index) => {
-          const custName = `${o.user_id?.first_name || ""} ${o.user_id?.last_name || ""}`.trim() || "Khách hàng";
+          const custName = `${o.user_id?.first_name || ""} ${o.user_id?.last_name || ""}`.trim() || t("dashboard.customerFallback");
           activities.push({
             id: `order-${o._id}-${index}`,
-            title: `Đơn hàng mới #${o._id?.slice(-8).toUpperCase()} từ ${custName}`,
-            detail: `Tổng thanh toán: $${parseFloat(o.total_amount || 0).toFixed(2)} (${o.payment_method?.replace(/_/g, " ").toUpperCase()})`,
+            title: t("dashboard.newOrderTitle")
+              .replace("{code}", o._id?.slice(-8).toUpperCase())
+              .replace("{name}", custName),
+            detail: `${t("dashboard.totalPayment")}: $${parseFloat(o.total_amount || 0).toFixed(2)} (${o.payment_method?.replace(/_/g, " ").toUpperCase()})`,
             date: new Date(o.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US"),
             icon: MdShoppingCart,
             color: "text-primary",
