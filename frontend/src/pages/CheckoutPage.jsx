@@ -20,44 +20,13 @@ import { useCart } from "../context/CartContext.jsx";
 import { orderService } from "../services/orderService.js";
 import { useToast } from "../context/ToastContext.jsx";
 import SepayPaymentCard from "../components/checkout/SepayPaymentCard.jsx";
-
-const PAYMENT_OPTIONS = [
-  {
-    value: "cash_on_delivery",
-    label: "Thanh toán khi nhận hàng (COD)",
-    icon: MdAttachMoney,
-    desc: "Trả tiền mặt khi nhận hàng",
-  },
-  {
-    value: "qr_code",
-    label: "Thanh toán qua mã QR (SePay)",
-    icon: MdQrCodeScanner,
-    desc: "Quét mã QR để chuyển khoản nhanh qua App Ngân hàng",
-  },
-  {
-    value: "bank_transfer",
-    label: "Chuyển khoản ngân hàng",
-    icon: MdAccountBalance,
-    desc: "Chuyển khoản qua tài khoản ngân hàng",
-  },
-  {
-    value: "credit_card",
-    label: "Thẻ tín dụng / Ghi nợ",
-    icon: MdCreditCard,
-    desc: "Visa, MasterCard, JCB",
-  },
-];
-
-const ORDER_STEPS = [
-  { id: 1, label: "Thông tin giao hàng", icon: MdLocalShipping },
-  { id: 2, label: "Thanh toán", icon: MdPayment },
-  { id: 3, label: "Xác nhận", icon: MdCheckCircle },
-];
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { cart, getTotalPrice, clearCart: clearLocalCart } = useCart();
   const { addToast } = useToast();
+  const { t, language } = useLanguage();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -74,15 +43,49 @@ export default function CheckoutPage() {
 
   const totalPrice = getTotalPrice ? getTotalPrice() : 0;
 
+  // ──────────── Payment options & steps inside component to access translator ────────────
+  const PAYMENT_OPTIONS = [
+    {
+      value: "cash_on_delivery",
+      label: t("checkout.codLabel"),
+      icon: MdAttachMoney,
+      desc: t("checkout.codDesc"),
+    },
+    {
+      value: "qr_code",
+      label: t("checkout.sepayLabel"),
+      icon: MdQrCodeScanner,
+      desc: t("checkout.sepayDesc"),
+    },
+    {
+      value: "bank_transfer",
+      label: t("checkout.bankLabel"),
+      icon: MdAccountBalance,
+      desc: t("checkout.bankDesc"),
+    },
+    {
+      value: "credit_card",
+      label: t("checkout.cardLabel"),
+      icon: MdCreditCard,
+      desc: t("checkout.cardDesc"),
+    },
+  ];
+
+  const ORDER_STEPS = [
+    { id: 1, label: t("checkout.shippingInfo"), icon: MdLocalShipping },
+    { id: 2, label: t("checkout.payment"), icon: MdPayment },
+    { id: 3, label: t("checkout.confirmation"), icon: MdCheckCircle },
+  ];
+
   // ──────────── Validate ────────────
   const validateShipping = () => {
     const errs = {};
-    if (!shippingForm.full_name.trim()) errs.full_name = "Vui lòng nhập họ tên";
-    if (!shippingForm.phone.trim()) errs.phone = "Vui lòng nhập số điện thoại";
+    if (!shippingForm.full_name.trim()) errs.full_name = t("checkout.validateName");
+    if (!shippingForm.phone.trim()) errs.phone = t("checkout.validatePhone");
     else if (!/^[0-9]{9,11}$/.test(shippingForm.phone.replace(/\s/g, "")))
-      errs.phone = "Số điện thoại không hợp lệ";
+      errs.phone = t("checkout.validatePhoneInvalid");
     if (!shippingForm.shipping_address.trim())
-      errs.shipping_address = "Vui lòng nhập địa chỉ giao hàng";
+      errs.shipping_address = t("checkout.validateAddress");
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -105,12 +108,12 @@ export default function CheckoutPage() {
         clearLocalCart?.();
         setOrderSuccess(res.data.order);
         setStep(3);
-        addToast("🎉 Đặt hàng thành công!", "success");
+        addToast(t("checkout.orderSuccessToast"), "success");
       } else {
-        addToast(res.message || "Đặt hàng thất bại", "error");
+        addToast(res.message || t("checkout.orderFailToast"), "error");
       }
     } catch {
-      addToast("Lỗi kết nối server", "error");
+      addToast(t("checkout.connErrorToast"), "error");
     } finally {
       setLoading(false);
     }
@@ -124,15 +127,15 @@ export default function CheckoutPage() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center py-16">
             <MdShoppingBag size={80} className="text-on-surface-variant/30 mx-auto mb-4" />
-            <h2 className="text-h2 font-h2 text-on-surface mb-2">Giỏ hàng trống</h2>
+            <h2 className="text-h2 font-h2 text-on-surface mb-2">{t("checkout.emptyCartTitle")}</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
-              Thêm sản phẩm vào giỏ hàng để tiếp tục đặt hàng
+              {t("checkout.emptyCartDesc")}
             </p>
             <button
               onClick={() => navigate("/shop")}
               className="px-6 py-3 bg-primary text-surface rounded-xl font-button"
             >
-              Tiếp tục mua sắm
+              {t("cart.summary.continueShopping")}
             </button>
           </div>
         </main>
@@ -153,12 +156,14 @@ export default function CheckoutPage() {
             className="flex items-center gap-2 text-primary hover:gap-3 transition mb-6"
           >
             <MdArrowBack size={20} />
-            <span className="text-body-md">{step === 1 ? "Quay lại giỏ hàng" : "Quay lại"}</span>
+            <span className="text-body-md">
+              {step === 1 ? t("checkout.backButton") : t("checkout.backButton")}
+            </span>
           </button>
         )}
 
         <h1 className="text-h1 font-h1 text-on-surface mb-8">
-          {step === 3 ? "🎉 Đặt hàng thành công!" : "Thanh toán"}
+          {step === 3 ? t("checkout.confirmation") : t("nav.dashboard")}
         </h1>
 
         {/* ─── Progress Steps ─── */}
@@ -195,33 +200,33 @@ export default function CheckoutPage() {
             <div className="w-24 h-24 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <MdCheckCircle size={60} className="text-success" />
             </div>
-            <h2 className="text-h2 font-h2 text-on-surface mb-2">Cảm ơn bạn đã đặt hàng!</h2>
+            <h2 className="text-h2 font-h2 text-on-surface mb-2">{t("checkout.successTitle")}</h2>
             <p className="text-body-md text-on-surface-variant mb-6">
-              Đơn hàng của bạn đã được ghi nhận và đang chờ xác nhận
+              {t("checkout.successDesc")}
             </p>
 
             <div className="bg-surface-container rounded-2xl p-6 mb-8 text-left border border-outline-variant">
               <div className="grid grid-cols-2 gap-4 text-body-md">
                 <div>
-                  <p className="text-on-surface-variant text-body-sm">Mã đơn hàng</p>
+                  <p className="text-on-surface-variant text-body-sm">{t("checkout.orderId")}</p>
                   <p className="font-semibold text-on-surface font-mono text-sm">
                     #{orderSuccess._id?.slice(-8).toUpperCase()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-on-surface-variant text-body-sm">Trạng thái</p>
+                  <p className="text-on-surface-variant text-body-sm">{t("checkout.status")}</p>
                   <span className="inline-flex px-2 py-0.5 bg-warning/15 text-warning rounded-full text-body-sm font-semibold">
-                    Chờ xác nhận
+                    {language === "vi" ? "Chờ xác nhận" : "Pending Confirmation"}
                   </span>
                 </div>
                 <div>
-                  <p className="text-on-surface-variant text-body-sm">Tổng tiền</p>
+                  <p className="text-on-surface-variant text-body-sm">{t("checkout.totalAmount")}</p>
                   <p className="font-bold text-primary text-xl">
                     ${parseFloat(orderSuccess.total_amount?.toString() || "0").toFixed(2)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-on-surface-variant text-body-sm">Thanh toán</p>
+                  <p className="text-on-surface-variant text-body-sm">{t("checkout.paymentStatus")}</p>
                   <p className="font-semibold text-on-surface capitalize">
                     {orderSuccess.payment_method?.replace(/_/g, " ")}
                   </p>
@@ -242,13 +247,13 @@ export default function CheckoutPage() {
                 onClick={() => navigate("/orders")}
                 className="px-6 py-3 bg-primary text-surface rounded-xl font-button hover:bg-primary/90 transition"
               >
-                Xem lịch sử đơn hàng
+                {t("checkout.viewOrdersButton")}
               </button>
               <button
                 onClick={() => navigate("/shop")}
                 className="px-6 py-3 border-2 border-outline-variant text-on-surface rounded-xl font-button hover:border-primary hover:text-primary transition"
               >
-                Tiếp tục mua sắm
+                {t("cart.summary.continueShopping")}
               </button>
             </div>
           </div>
@@ -265,7 +270,7 @@ export default function CheckoutPage() {
                 <div className="bg-surface-container rounded-2xl p-6 border border-outline-variant">
                   <h2 className="text-h3 font-h3 text-on-surface mb-6 flex items-center gap-2">
                     <MdLocalShipping className="text-primary" size={24} />
-                    Thông tin giao hàng
+                    {t("checkout.shippingInfo")}
                   </h2>
 
                   <div className="space-y-4">
@@ -273,7 +278,7 @@ export default function CheckoutPage() {
                     <div>
                       <label className="block text-body-sm font-semibold text-on-surface mb-1">
                         <MdPerson className="inline mr-1" size={16} />
-                        Họ và tên *
+                        {t("checkout.fullNameLabel")} *
                       </label>
                       <input
                         type="text"
@@ -281,7 +286,7 @@ export default function CheckoutPage() {
                         onChange={(e) =>
                           setShippingForm({ ...shippingForm, full_name: e.target.value })
                         }
-                        placeholder="Nguyễn Văn A"
+                        placeholder={t("checkout.fullNamePlaceholder")}
                         className={`w-full px-4 py-3 rounded-xl border-2 bg-surface text-on-surface outline-none transition ${
                           errors.full_name
                             ? "border-error focus:border-error"
@@ -297,7 +302,7 @@ export default function CheckoutPage() {
                     <div>
                       <label className="block text-body-sm font-semibold text-on-surface mb-1">
                         <MdPhone className="inline mr-1" size={16} />
-                        Số điện thoại *
+                        {t("checkout.phoneLabel")} *
                       </label>
                       <input
                         type="tel"
@@ -305,7 +310,7 @@ export default function CheckoutPage() {
                         onChange={(e) =>
                           setShippingForm({ ...shippingForm, phone: e.target.value })
                         }
-                        placeholder="0901 234 567"
+                        placeholder={t("checkout.phonePlaceholder")}
                         className={`w-full px-4 py-3 rounded-xl border-2 bg-surface text-on-surface outline-none transition ${
                           errors.phone
                             ? "border-error focus:border-error"
@@ -321,14 +326,14 @@ export default function CheckoutPage() {
                     <div>
                       <label className="block text-body-sm font-semibold text-on-surface mb-1">
                         <MdHome className="inline mr-1" size={16} />
-                        Địa chỉ giao hàng *
+                        {t("checkout.addressLabel")} *
                       </label>
                       <textarea
                         value={shippingForm.shipping_address}
                         onChange={(e) =>
                           setShippingForm({ ...shippingForm, shipping_address: e.target.value })
                         }
-                        placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
+                        placeholder={t("checkout.addressPlaceholder")}
                         rows={3}
                         className={`w-full px-4 py-3 rounded-xl border-2 bg-surface text-on-surface outline-none transition resize-none ${
                           errors.shipping_address
@@ -346,7 +351,7 @@ export default function CheckoutPage() {
                     onClick={handleNextStep}
                     className="mt-6 w-full py-4 bg-primary text-surface rounded-xl font-button text-button hover:bg-primary/90 active:scale-95 transition-all"
                   >
-                    Tiếp theo: Chọn thanh toán →
+                    {t("checkout.nextButton")} →
                   </button>
                 </div>
               )}
@@ -356,7 +361,7 @@ export default function CheckoutPage() {
                 <div className="bg-surface-container rounded-2xl p-6 border border-outline-variant">
                   <h2 className="text-h3 font-h3 text-on-surface mb-6 flex items-center gap-2">
                     <MdPayment className="text-primary" size={24} />
-                    Phương thức thanh toán
+                    {t("checkout.paymentMethodLabel")}
                   </h2>
 
                   <div className="space-y-3 mb-6">
@@ -401,7 +406,7 @@ export default function CheckoutPage() {
                   {/* Shipping summary */}
                   <div className="bg-surface rounded-xl p-4 border border-outline-variant mb-6">
                     <h3 className="font-semibold text-on-surface text-body-md mb-2">
-                      📦 Giao hàng đến:
+                      📦 {t("checkout.shippingInfo")}:
                     </h3>
                     <p className="text-body-sm text-on-surface-variant">
                       <strong>{shippingForm.full_name}</strong> • {shippingForm.phone}
@@ -416,7 +421,7 @@ export default function CheckoutPage() {
                     disabled={loading}
                     className="w-full py-4 bg-primary text-surface rounded-xl font-button text-button hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-wait"
                   >
-                    {loading ? "Đang đặt hàng..." : `🛍️ Đặt hàng • $${totalPrice}`}
+                    {loading ? t("checkout.placingOrderButton") : `🛍️ ${t("checkout.placeOrderButton")} • $${totalPrice}`}
                   </button>
                 </div>
               )}
@@ -426,7 +431,7 @@ export default function CheckoutPage() {
             <div className="lg:col-span-1">
               <div className="bg-surface-container rounded-2xl p-6 border border-outline-variant sticky top-24">
                 <h3 className="text-h3 font-h3 text-on-surface mb-4">
-                  Đơn hàng ({cart.length} sản phẩm)
+                  {t("checkout.summaryTitle")} ({cart.length} {language === "vi" ? "sản phẩm" : "items"})
                 </h3>
 
                 <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
@@ -467,15 +472,15 @@ export default function CheckoutPage() {
 
                 <div className="border-t border-outline-variant pt-4 space-y-2">
                   <div className="flex justify-between text-body-sm text-on-surface-variant">
-                    <span>Tạm tính</span>
+                    <span>{t("checkout.tempTotal")}</span>
                     <span>${totalPrice}</span>
                   </div>
                   <div className="flex justify-between text-body-sm text-on-surface-variant">
-                    <span>Phí vận chuyển</span>
-                    <span className="text-success font-semibold">Miễn phí</span>
+                    <span>{t("checkout.shipFee")}</span>
+                    <span className="text-success font-semibold">{t("checkout.free")}</span>
                   </div>
                   <div className="flex justify-between font-bold text-on-surface pt-2 border-t border-outline-variant">
-                    <span>Tổng cộng</span>
+                    <span>{t("cart.summary.total")}</span>
                     <span className="text-primary text-xl">${totalPrice}</span>
                   </div>
                 </div>

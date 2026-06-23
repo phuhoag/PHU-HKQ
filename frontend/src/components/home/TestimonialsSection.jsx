@@ -1,42 +1,45 @@
 import { MdStarRate } from "react-icons/md";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 const TESTIMONIALS = [
   {
     id: 1,
     name: "Alex Johnson",
-    role: "Software Engineer",
+    roleKey: "home.testimonials.softwareEngineer",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
     rating: 5,
-    text: "Outstanding quality and fast shipping! The laptop I purchased exceeded my expectations.",
+    textKey: "home.testimonials.alexText",
   },
   {
     id: 2,
     name: "Sarah Chen",
-    role: "Content Creator",
+    roleKey: "home.testimonials.contentCreator",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
     rating: 5,
-    text: "Best prices for tech products. Their customer service is responsive and helpful.",
+    textKey: "home.testimonials.sarahText",
   },
   {
     id: 3,
     name: "Michael Brown",
-    role: "Gamer",
+    roleKey: "home.testimonials.gamer",
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
     rating: 5,
-    text: "Amazing selection and competitive pricing. Will definitely shop here again!",
+    textKey: "home.testimonials.michaelText",
   },
 ];
 
 export default function TestimonialsSection() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-stack-lg">
       <div className="max-w-container-max mx-auto px-margin-desktop">
         <div className="text-center mb-stack-lg">
           <h2 className="font-h2 text-h2 text-on-surface mb-2">
-            What Our Customers Say
+            {t("home.testimonials.title")}
           </h2>
           <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto">
-            Join thousands of satisfied customers who trust TechStore
+            {t("home.testimonials.subtitle")}
           </p>
         </div>
 
@@ -55,7 +58,7 @@ export default function TestimonialsSection() {
 
               {/* Text */}
               <p className="font-body-md text-body-md text-on-surface mb-stack-md italic">
-                "{testimonial.text}"
+                "{t(testimonial.textKey)}"
               </p>
 
               {/* Author */}
@@ -70,7 +73,7 @@ export default function TestimonialsSection() {
                     {testimonial.name}
                   </p>
                   <p className="font-body-sm text-body-sm text-on-surface-variant">
-                    {testimonial.role}
+                    {t(testimonial.roleKey)}
                   </p>
                 </div>
               </div>

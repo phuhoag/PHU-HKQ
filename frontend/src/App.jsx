@@ -4,6 +4,7 @@ import "./App.css";
 import { ToastProvider } from "./context/ToastContext.jsx";
 import { CartProvider } from "./context/CartContext.jsx";
 import { WishlistProvider } from "./context/WishlistContext.jsx";
+import { LanguageProvider } from "./context/LanguageContext.jsx";
 
 function App() {
   useEffect(() => {
@@ -16,13 +17,15 @@ function App() {
   }, []);
 
   return (
-    <ToastProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <Outlet />
-        </WishlistProvider>
-      </CartProvider>
-    </ToastProvider>
+    <LanguageProvider>
+      <ToastProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <Outlet />
+          </WishlistProvider>
+        </CartProvider>
+      </ToastProvider>
+    </LanguageProvider>
   );
 }
 

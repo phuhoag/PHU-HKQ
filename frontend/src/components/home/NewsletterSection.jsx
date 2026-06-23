@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { MdEmail } from "react-icons/md";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function NewsletterSection() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const { t } = useLanguage();
 
   const handleSubscribe = (e) => {
     e.preventDefault();
@@ -20,11 +22,10 @@ export default function NewsletterSection() {
         {/* Left Content */}
         <div className="flex-1">
           <h2 className="font-h2 text-h2 text-on-primary mb-stack-sm">
-            Subscribe to Our Newsletter
+            {t("home.newsletter.title")}
           </h2>
           <p className="font-body-md text-body-md text-on-primary opacity-90">
-            Get exclusive deals, new product launches, and tech tips delivered
-            to your inbox.
+            {t("home.newsletter.description")}
           </p>
         </div>
 
@@ -37,7 +38,7 @@ export default function NewsletterSection() {
             />
             <input
               type="email"
-              placeholder="Enter your email"
+              placeholder={t("home.newsletter.placeholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -48,7 +49,7 @@ export default function NewsletterSection() {
             type="submit"
             className="px-8 py-3 bg-on-primary text-primary rounded-lg font-button text-button hover:bg-surface-container-low transition-colors whitespace-nowrap"
           >
-            {subscribed ? "Subscribed!" : "Subscribe"}
+            {subscribed ? t("home.newsletter.subscribed") : t("home.newsletter.subscribe")}
           </button>
         </form>
       </div>

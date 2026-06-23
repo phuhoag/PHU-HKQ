@@ -1,4 +1,5 @@
 import React from "react";
+import { translations } from "../../constants/translations";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -21,6 +22,9 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      const lang = localStorage.getItem("lang") || "vi";
+      const t = translations[lang] || translations["vi"];
+
       return (
         <div
           style={{
@@ -53,11 +57,11 @@ class ErrorBoundary extends React.Component {
           </div>
 
           <h2 style={{ fontSize: "1.5rem", fontWeight: "700", color: "#1a1a1a", margin: 0 }}>
-            Lỗi tải trang
+            {t.error.pageLoadError}
           </h2>
 
           <p style={{ fontSize: "1rem", color: "#6b7280", maxWidth: "400px", margin: 0 }}>
-            Có lỗi xảy ra khi tải trang. Vui lòng thử lại.
+            {t.error.pageLoadDesc}
           </p>
 
           {process.env.NODE_ENV === "development" && this.state.error && (
@@ -75,7 +79,7 @@ class ErrorBoundary extends React.Component {
               }}
             >
               <summary style={{ cursor: "pointer", fontWeight: "600" }}>
-                Chi tiết lỗi (development)
+                {t.error.devDetails}
               </summary>
               <pre style={{ marginTop: "8px", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
                 {this.state.error.toString()}
@@ -99,7 +103,7 @@ class ErrorBoundary extends React.Component {
             onMouseOver={(e) => (e.target.style.backgroundColor = "#4f46e5")}
             onMouseOut={(e) => (e.target.style.backgroundColor = "#6366f1")}
           >
-            Quay lại trang chủ
+            {t.error.goHome}
           </button>
         </div>
       );

@@ -44,10 +44,16 @@ export const productService = {
         message: data.message,
         data: {
           products: data.data || [],
-          pagination: data.pagination || {
+          pagination: data.pagination ? {
+            currentPage: data.pagination.page,
+            totalPages: data.pagination.totalPages,
+            totalItems: data.pagination.total,
+            itemsPerPage: data.pagination.limit,
+          } : {
             currentPage: parseInt(params.page) || 1,
             totalPages: 1,
             totalItems: (data.data || []).length,
+            itemsPerPage: parseInt(params.limit) || 9,
           },
         },
       };
@@ -58,7 +64,7 @@ export const productService = {
         message: error.message,
         data: {
           products: [],
-          pagination: { currentPage: 1, totalPages: 1, totalItems: 0 },
+          pagination: { currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: 9 },
         },
       };
     }

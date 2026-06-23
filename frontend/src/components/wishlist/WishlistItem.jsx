@@ -2,10 +2,12 @@ import { MdClose, MdAddShoppingCart, MdStarRate } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { useWishlist } from "../../context/WishlistContext.jsx";
 import { useCart } from "../../context/CartContext.jsx";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function WishlistItem({ product }) {
   const { removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { t } = useLanguage();
 
   const handleAddToCart = async () => {
     try {
@@ -42,6 +44,7 @@ export default function WishlistItem({ product }) {
 
       {/* Product Details */}
       <div className="md:col-span-2 flex flex-col justify-between py-2">
+        {/* Brand/Category */}
         <div>
           <span className="font-label-caps text-label-caps text-on-surface-variant uppercase">
             {product.brand}
@@ -56,7 +59,7 @@ export default function WishlistItem({ product }) {
           <div className="flex items-center gap-1 mt-2 text-tertiary">
             <MdStarRate className="text-[16px] fill-current" />
             <span className="font-body-sm text-body-sm text-on-surface-variant font-medium">
-              {product.rating || "N/A"} ({product.reviews || 0} reviews)
+              {product.rating || "N/A"} ({product.reviews || 0} {t("home.productCard.reviews")})
             </span>
           </div>
 
@@ -64,10 +67,10 @@ export default function WishlistItem({ product }) {
           <div className="mt-2">
             {product.stock > 0 ? (
               <span className="text-body-sm text-on-surface-variant">
-                ✓ In Stock ({product.stock} available)
+                ✓ {t("wishlist.inStock")} ({product.stock} {t("wishlist.available")})
               </span>
             ) : (
-              <span className="text-body-sm text-error">Out of Stock</span>
+              <span className="text-body-sm text-error">{t("wishlist.outOfStock")}</span>
             )}
           </div>
         </div>
@@ -86,7 +89,7 @@ export default function WishlistItem({ product }) {
           </div>
           {product.original_price && product.original_price > product.price && (
             <div className="text-body-sm text-primary font-medium">
-              Save{" "}
+              {t("wishlist.save")}{" "}
               {Math.round(
                 ((product.original_price - product.price) /
                   product.original_price) *
@@ -105,13 +108,13 @@ export default function WishlistItem({ product }) {
             className="flex-1 bg-primary text-on-primary px-3 py-2 rounded-lg hover:bg-primary-container transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <MdAddShoppingCart size={18} />
-            <span className="hidden sm:inline text-body-sm">Add</span>
+            <span className="hidden sm:inline text-body-sm">{t("wishlist.add")}</span>
           </button>
 
           <button
             onClick={() => removeFromWishlist(product.id)}
             className="bg-surface-container text-on-surface px-3 py-2 rounded-lg hover:bg-outline-variant transition-colors flex items-center justify-center"
-            title="Remove from wishlist"
+            title={t("home.productCard.removeFromFavorites")}
           >
             <MdClose size={18} />
           </button>

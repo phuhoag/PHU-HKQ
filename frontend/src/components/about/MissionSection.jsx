@@ -1,4 +1,8 @@
+import { useLanguage } from "../../context/LanguageContext.jsx";
+
 export default function MissionSection() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-24 bg-surface">
       <div className="max-w-container-max mx-auto px-margin-desktop">
@@ -6,17 +10,13 @@ export default function MissionSection() {
           {/* Left Content */}
           <div className="lg:col-span-5">
             <span className="font-label-caps text-label-caps text-primary tracking-widest uppercase mb-4 block">
-              Our Purpose
+              {t("about.ourPurpose")}
             </span>
             <h2 className="font-h1 text-h1 text-on-surface mb-6">
-              Redefining Tech Accessibility
+              {t("about.redefiningAccessibility")}
             </h2>
             <p className="font-body-md text-body-md text-on-surface-variant mb-8">
-              Founded in 2018, our mission is to provide professional-grade
-              technology to enthusiasts and enterprises alike. We believe that
-              hardware should empower creativity, not limit it. By curating only
-              the most reliable and innovative components, we ensure our
-              customers are always one step ahead.
+              {t("about.purposeDesc")}
             </p>
 
             {/* Stats */}
@@ -24,13 +24,13 @@ export default function MissionSection() {
               <div>
                 <span className="block font-h2 text-h2 text-primary">50k+</span>
                 <span className="font-label-caps text-label-caps text-outline">
-                  Clients Served
+                  {t("about.clientsServed")}
                 </span>
               </div>
               <div>
                 <span className="block font-h2 text-h2 text-primary">120+</span>
                 <span className="font-label-caps text-label-caps text-outline">
-                  Tech Partners
+                  {t("about.techPartners")}
                 </span>
               </div>
             </div>

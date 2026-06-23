@@ -14,8 +14,10 @@ import {
   MdDelete,
   MdClose,
 } from "react-icons/md";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function UsersPage() {
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -93,10 +95,10 @@ export default function UsersPage() {
       if (response.ok) {
         setUsers(res.data || []);
       } else {
-        setError(res.message || "Không thể tải danh sách tài khoản");
+        setError(res.message || t("users.alertFetchError"));
       }
     } catch (err) {
-      setError("Lỗi kết nối đến máy chủ: " + err.message);
+      setError(t("users.alertConnError") + err.message);
     } finally {
       setLoading(false);
     }
@@ -118,7 +120,7 @@ export default function UsersPage() {
       const res = await response.json();
 
       if (response.ok) {
-        alert("✅ Tạo người dùng mới thành công!");
+        alert(t("users.alertCreateSuccess"));
         setAddModalOpen(false);
         setAddFormData({
           first_name: "",
@@ -131,10 +133,10 @@ export default function UsersPage() {
         });
         fetchUsers();
       } else {
-        alert("❌ " + (res.message || "Tạo tài khoản thất bại"));
+        alert("❌ " + (res.message || t("users.alertCreateFail")));
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("products.alertError") + err.message);
     }
   };
 
@@ -160,22 +162,22 @@ export default function UsersPage() {
       const res = await response.json();
 
       if (response.ok) {
-        alert("✅ Cập nhật thông tin tài khoản thành công!");
+        alert(t("users.alertUpdateSuccess"));
         setEditModalOpen(false);
         fetchUsers();
       } else {
-        alert("❌ " + (res.message || "Cập nhật tài khoản thất bại"));
+        alert("❌ " + (res.message || t("users.alertUpdateFail")));
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("products.alertError") + err.message);
     }
   };
 
   const handleDeleteUser = async (userId, userEmail) => {
-    const doubleConfirm = window.confirm(`⚠️ CẢNH BÁO NGUY HIỂM: Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản của người dùng: ${userEmail} khỏi cơ sở dữ liệu? Hành động này KHÔNG THỂ HỒI PHỤC.`);
+    const doubleConfirm = window.confirm(t("users.alertDeleteConfirm1").replace("{email}", userEmail));
     if (!doubleConfirm) return;
 
-    const tripleConfirm = window.confirm("Xác nhận xóa tài khoản lần cuối? Mọi đơn hàng và thông tin liên quan của tài khoản này sẽ bị ảnh hưởng.");
+    const tripleConfirm = window.confirm(t("users.alertDeleteConfirm2"));
     if (!tripleConfirm) return;
 
     try {
@@ -191,19 +193,20 @@ export default function UsersPage() {
       const res = await response.json();
 
       if (response.ok) {
-        alert("✅ Đã xóa tài khoản vĩnh viễn thành công!");
+        alert(t("users.alertDeleteSuccess"));
         fetchUsers();
       } else {
-        alert("❌ " + (res.message || "Xóa tài khoản thất bại"));
+        alert("❌ " + (res.message || t("users.alertDeleteFail")));
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("products.alertError") + err.message);
     }
   };
 
   const handleToggleStatus = async (userId, currentStatus) => {
     const newStatus = !currentStatus;
-    if (!window.confirm(`⚠️ Bạn có chắc chắn muốn ${newStatus ? "kích hoạt" : "vô hiệu hóa"} tài khoản này?`)) {
+    const actionText = newStatus ? t("users.actionActivate") : t("users.actionDeactivate");
+    if (!window.confirm(t("users.alertToggleStatusConfirm").replace("{action}", actionText))) {
       return;
     }
 
@@ -222,12 +225,12 @@ export default function UsersPage() {
 
       if (response.ok) {
         setUsers(users.map((u) => (u._id === userId ? { ...u, is_active: newStatus } : u)));
-        alert(`✅ Tài khoản đã được ${newStatus ? "kích hoạt" : "vô hiệu hóa"} thành công`);
+        alert(t("users.alertToggleStatusSuccess").replace("{action}", actionText));
       } else {
-        alert("❌ " + (res.message || "Cập nhật trạng thái thất bại"));
+        alert("❌ " + (res.message || t("users.alertToggleStatusFail")));
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("products.alertError") + err.message);
     }
   };
 
@@ -247,10 +250,10 @@ export default function UsersPage() {
   };
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return "Chưa cập nhật";
+    if (!dateStr) return t("users.notUpdated");
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return "Chưa cập nhật";
-    return d.toLocaleDateString("vi-VN", {
+    if (isNaN(d.getTime())) return t("users.notUpdated");
+    return d.toLocaleDateString(language === "vi" ? "vi-VN" : "en-US", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -297,10 +300,10 @@ export default function UsersPage() {
           <div>
             <h1 className="text-h1 font-h1 text-on-background dark:text-inverse-on-surface flex items-center gap-3">
               <MdPeople className="text-primary" size={32} />
-              Quản lý tài khoản người dùng
+              {t("users.title")}
             </h1>
             <p className="text-body-md text-on-surface-variant dark:text-surface-variant mt-1">
-              Thêm, sửa, xóa, phân quyền và khóa các tài khoản thành viên trong hệ thống.
+              {t("users.description")}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -309,14 +312,14 @@ export default function UsersPage() {
               className="flex items-center gap-2 px-4 py-2 bg-primary text-surface rounded-lg hover:bg-primary/95 transition font-semibold shadow-sm"
             >
               <MdAdd size={20} />
-              Thêm tài khoản
+              {t("users.addUser")}
             </button>
             <button
               onClick={fetchUsers}
               className="flex items-center gap-2 px-4 py-2 border border-outline rounded-lg text-on-background hover:bg-surface-container transition font-semibold"
             >
               <MdRefresh size={18} />
-              Làm mới
+              {t("users.refresh")}
             </button>
           </div>
         </div>
@@ -325,7 +328,7 @@ export default function UsersPage() {
           <div className="mb-6 p-4 bg-error/10 text-error border border-error/20 rounded-lg flex items-start gap-3">
             <MdWarning className="text-[24px] flex-shrink-0" />
             <div>
-              <p className="font-button text-button">Lỗi tải dữ liệu</p>
+              <p className="font-button text-button">{t("users.loadError")}</p>
               <p className="text-body-md">{error}</p>
             </div>
           </div>
@@ -334,7 +337,7 @@ export default function UsersPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-body-md text-on-surface-variant animate-pulse">Đang tải danh sách thành viên...</p>
+            <p className="text-body-md text-on-surface-variant animate-pulse">{t("users.loadingUsers")}</p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -344,8 +347,10 @@ export default function UsersPage() {
               <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant rounded-xl p-6 shadow-sm">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="text-body-sm font-semibold text-on-surface-variant">Tổng thành viên</p>
-                    <p className="text-h2 font-h2 text-primary font-bold mt-1">{totalUsers} tài khoản</p>
+                    <p className="text-body-sm font-semibold text-on-surface-variant">{t("users.statsTotal")}</p>
+                    <p className="text-h2 font-h2 text-primary font-bold mt-1">
+                      {totalUsers} {t("users.statsTotalUnit")}
+                    </p>
                   </div>
                   <div className="p-3 bg-primary/10 rounded-lg text-primary">
                     <MdPeople size={24} />
@@ -357,8 +362,10 @@ export default function UsersPage() {
               <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant rounded-xl p-6 shadow-sm">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="text-body-sm font-semibold text-on-surface-variant">Khách hàng (Customers)</p>
-                    <p className="text-h2 font-h2 text-success font-bold mt-1">{customerCount} người</p>
+                    <p className="text-body-sm font-semibold text-on-surface-variant">{t("users.statsCustomers")}</p>
+                    <p className="text-h2 font-h2 text-success font-bold mt-1">
+                      {customerCount} {t("users.statsCustomersUnit")}
+                    </p>
                   </div>
                   <div className="p-3 bg-success/10 rounded-lg text-success">
                     <MdPeople size={24} />
@@ -370,8 +377,10 @@ export default function UsersPage() {
               <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant rounded-xl p-6 shadow-sm">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="text-body-sm font-semibold text-on-surface-variant">Quản trị viên (Admins)</p>
-                    <p className="text-h2 font-h2 text-warning font-bold mt-1">{adminCount} tài khoản</p>
+                    <p className="text-body-sm font-semibold text-on-surface-variant">{t("users.statsAdmins")}</p>
+                    <p className="text-h2 font-h2 text-warning font-bold mt-1">
+                      {adminCount} {t("users.statsAdminsUnit")}
+                    </p>
                   </div>
                   <div className="p-3 bg-warning/10 rounded-lg text-warning">
                     <MdAdminPanelSettings size={24} />
@@ -383,8 +392,10 @@ export default function UsersPage() {
               <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant rounded-xl p-6 shadow-sm">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="text-body-sm font-semibold text-on-surface-variant">Đang hoạt động</p>
-                    <p className="text-h2 font-h2 text-info font-bold mt-1">{activeCount} hoạt động</p>
+                    <p className="text-body-sm font-semibold text-on-surface-variant">{t("users.statsActive")}</p>
+                    <p className="text-h2 font-h2 text-info font-bold mt-1">
+                      {activeCount} {t("users.statsActiveUnit")}
+                    </p>
                   </div>
                   <div className="p-3 bg-info/10 rounded-lg text-info">
                     <MdCheckCircle size={24} />
@@ -399,7 +410,7 @@ export default function UsersPage() {
                 <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
                 <input
                   type="text"
-                  placeholder="Tìm theo Tên, Email hoặc Số điện thoại..."
+                  placeholder={t("users.searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none focus:border-primary transition"
@@ -413,9 +424,9 @@ export default function UsersPage() {
                   onChange={(e) => setRoleFilter(e.target.value)}
                   className="px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none cursor-pointer focus:border-primary transition"
                 >
-                  <option value="">Tất cả vai trò</option>
-                  <option value="admin">Quản trị viên (Admin)</option>
-                  <option value="customer">Khách hàng (Customer)</option>
+                  <option value="">{t("users.roleAll")}</option>
+                  <option value="admin">{t("users.roleAdmin")}</option>
+                  <option value="customer">{t("users.roleCustomer")}</option>
                 </select>
 
                 {/* Status Filter */}
@@ -424,9 +435,9 @@ export default function UsersPage() {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none cursor-pointer focus:border-primary transition"
                 >
-                  <option value="">Tất cả trạng thái</option>
-                  <option value="active">Đang hoạt động</option>
-                  <option value="inactive">Đã khóa / Tạm dừng</option>
+                  <option value="">{t("users.statusAll")}</option>
+                  <option value="active">{t("users.statusActive")}</option>
+                  <option value="inactive">{t("users.statusInactive")}</option>
                 </select>
               </div>
             </div>
@@ -434,7 +445,7 @@ export default function UsersPage() {
             {/* Users Table */}
             {filteredUsers.length === 0 ? (
               <div className="text-center py-10 bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant rounded-xl shadow-sm">
-                <p className="text-body-md text-on-surface-variant">Không tìm thấy thành viên nào khớp với bộ lọc.</p>
+                <p className="text-body-md text-on-surface-variant">{t("users.noUsersFound")}</p>
               </div>
             ) : (
               <div className="bg-surface-container-lowest dark:bg-on-secondary-fixed-variant/20 border border-outline-variant rounded-xl overflow-hidden shadow-sm">
@@ -442,17 +453,17 @@ export default function UsersPage() {
                   <table className="w-full">
                     <thead className="bg-surface-container border-b border-outline-variant">
                       <tr>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Thành viên</th>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Điện thoại</th>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Ngày đăng ký</th>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Vai trò</th>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Trạng thái</th>
-                        <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">Thao tác</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("users.tableMember")}</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("users.tablePhone")}</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("users.tableRegisterDate")}</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("users.tableRole")}</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("users.tableStatus")}</th>
+                        <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">{t("users.tableActions")}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredUsers.map((userItem) => {
-                        const fullName = `${userItem.first_name || ""} ${userItem.last_name || ""}`.trim() || "Thành viên mới";
+                        const fullName = `${userItem.first_name || ""} ${userItem.last_name || ""}`.trim() || t("users.newUserDefaultName");
                         const initials = ((userItem.first_name?.[0] || "") + (userItem.last_name?.[0] || "")).toUpperCase() || userItem.email?.[0]?.toUpperCase() || "?";
                         
                         return (
@@ -467,13 +478,13 @@ export default function UsersPage() {
                                 <div className="text-body-sm text-on-surface-variant">{userItem.email}</div>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-body-md text-on-surface">{userItem.phone || "Chưa cập nhật"}</td>
+                            <td className="px-6 py-4 text-body-md text-on-surface">{userItem.phone || t("users.notUpdated")}</td>
                             <td className="px-6 py-4 text-body-md text-on-surface-variant">{formatDate(userItem.createdAt)}</td>
                             <td className="px-6 py-4">
                               <span className={`px-2.5 py-1 rounded-full text-body-sm font-semibold ${
                                 userItem.role === "admin" ? "bg-warning/10 text-warning" : "bg-primary/10 text-primary"
                               }`}>
-                                {userItem.role === "admin" ? "Quản trị" : "Khách hàng"}
+                                {userItem.role === "admin" ? t("users.roleAdminLabel") : t("users.roleCustomerLabel")}
                               </span>
                             </td>
                             <td className="px-6 py-4">
@@ -484,7 +495,7 @@ export default function UsersPage() {
                                     : "bg-error/15 text-error"
                                 }`}
                               >
-                                {userItem.is_active ? "Đang hoạt động" : "Đã khóa"}
+                                {userItem.is_active ? t("users.statusActiveLabel") : t("users.statusInactiveLabel")}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-center">
@@ -492,10 +503,10 @@ export default function UsersPage() {
                                 <button
                                   onClick={() => openEditModal(userItem)}
                                   className="flex items-center gap-1 px-3 py-1.5 bg-primary/10 text-primary font-semibold text-body-sm rounded-lg hover:bg-primary/20 transition-all"
-                                  title="Chỉnh sửa tài khoản"
+                                  title={t("users.actionEdit")}
                                 >
                                   <MdEdit size={16} />
-                                  Sửa
+                                  {t("users.actionEdit")}
                                 </button>
                                 <button
                                   onClick={() => handleToggleStatus(userItem._id, userItem.is_active)}
@@ -504,18 +515,18 @@ export default function UsersPage() {
                                       ? "bg-warning/10 text-warning hover:bg-warning/20"
                                       : "bg-success/10 text-success hover:bg-success/20"
                                   }`}
-                                  title={userItem.is_active ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+                                  title={userItem.is_active ? t("users.actionLock") : t("users.actionUnlock")}
                                 >
                                   <MdBlock size={16} />
-                                  {userItem.is_active ? "Khóa" : "Mở"}
+                                  {userItem.is_active ? t("users.actionLock") : t("users.actionUnlock")}
                                 </button>
                                 <button
                                   onClick={() => handleDeleteUser(userItem._id, userItem.email)}
                                   className="flex items-center gap-1 px-3 py-1.5 bg-error/10 text-error font-semibold text-body-sm rounded-lg hover:bg-error/20 transition-all"
-                                  title="Xóa vĩnh viễn tài khoản"
+                                  title={t("users.actionDelete")}
                                 >
                                   <MdDelete size={16} />
-                                  Xóa
+                                  {t("users.actionDelete")}
                                 </button>
                               </div>
                             </td>
@@ -539,7 +550,7 @@ export default function UsersPage() {
             <div className="flex justify-between items-center p-6 border-b border-outline-variant dark:border-outline">
               <h2 className="text-h2 font-h2 text-on-surface font-bold flex items-center gap-2">
                 <MdPeople className="text-primary" />
-                Thêm tài khoản mới
+                {t("users.addModalTitle")}
               </h2>
               <button
                 onClick={() => setAddModalOpen(false)}
@@ -553,7 +564,7 @@ export default function UsersPage() {
             <form onSubmit={handleAddUserSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Họ</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelLastName")}</label>
                   <input
                     type="text"
                     required
@@ -563,7 +574,7 @@ export default function UsersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Tên</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelFirstName")}</label>
                   <input
                     type="text"
                     required
@@ -575,7 +586,7 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Email (Tên đăng nhập)</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelEmail")}</label>
                 <input
                   type="email"
                   required
@@ -586,11 +597,11 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Mật khẩu</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelPassword")}</label>
                 <input
                   type="password"
                   required
-                  placeholder="Tối thiểu 6 ký tự"
+                  placeholder={t("users.labelPasswordPlaceholder")}
                   value={addFormData.password}
                   onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-body-md text-on-surface outline-none focus:border-primary transition"
@@ -598,7 +609,7 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Số điện thoại</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelPhone")}</label>
                 <input
                   type="text"
                   value={addFormData.phone}
@@ -608,7 +619,7 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Địa chỉ</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelAddress")}</label>
                 <textarea
                   rows={2}
                   value={addFormData.address}
@@ -618,14 +629,14 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Phân quyền vai trò</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelRole")}</label>
                 <select
                   value={addFormData.role}
                   onChange={(e) => setAddFormData({ ...addFormData, role: e.target.value })}
                   className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none cursor-pointer focus:border-primary transition"
                 >
-                  <option value="customer">Khách hàng (Customer)</option>
-                  <option value="admin">Quản trị viên (Admin)</option>
+                  <option value="customer">{t("users.roleCustomer")}</option>
+                  <option value="admin">{t("users.roleAdmin")}</option>
                 </select>
               </div>
 
@@ -636,13 +647,13 @@ export default function UsersPage() {
                   onClick={() => setAddModalOpen(false)}
                   className="px-5 py-2 border border-outline rounded-lg text-on-background hover:bg-surface-container transition font-semibold"
                 >
-                  Hủy
+                  {t("users.buttonCancel")}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-primary text-surface rounded-lg hover:bg-primary/95 transition font-semibold"
                 >
-                  Lưu lại
+                  {t("users.buttonSave")}
                 </button>
               </div>
             </form>
@@ -658,7 +669,7 @@ export default function UsersPage() {
             <div className="flex justify-between items-center p-6 border-b border-outline-variant dark:border-outline">
               <h2 className="text-h2 font-h2 text-on-surface font-bold flex items-center gap-2">
                 <MdEdit className="text-primary" />
-                Cập nhật thông tin tài khoản
+                {t("users.editModalTitle")}
               </h2>
               <button
                 onClick={() => setEditModalOpen(false)}
@@ -672,7 +683,7 @@ export default function UsersPage() {
             <form onSubmit={handleEditUserSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Họ</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelLastName")}</label>
                   <input
                     type="text"
                     required
@@ -682,7 +693,7 @@ export default function UsersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Tên</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelFirstName")}</label>
                   <input
                     type="text"
                     required
@@ -694,7 +705,7 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Email (Tên đăng nhập)</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelEmail")}</label>
                 <input
                   type="email"
                   required
@@ -705,10 +716,10 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Mật khẩu mới (Để trống nếu không đổi)</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelPasswordEditHelp")}</label>
                 <input
                   type="password"
-                  placeholder="Nhập mật khẩu mới từ 6 ký tự để đổi"
+                  placeholder={t("users.labelPasswordEditPlaceholder")}
                   value={editFormData.password}
                   onChange={(e) => setEditFormData({ ...editFormData, password: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-body-md text-on-surface outline-none focus:border-primary transition"
@@ -716,7 +727,7 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Số điện thoại</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelPhone")}</label>
                 <input
                   type="text"
                   value={editFormData.phone}
@@ -726,7 +737,7 @@ export default function UsersPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Địa chỉ</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelAddress")}</label>
                 <textarea
                   rows={2}
                   value={editFormData.address}
@@ -737,25 +748,25 @@ export default function UsersPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Vai trò</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelRole")}</label>
                   <select
                     value={editFormData.role}
                     onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
                     className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none cursor-pointer focus:border-primary transition"
                   >
-                    <option value="customer">Khách hàng</option>
-                    <option value="admin">Quản trị viên</option>
+                    <option value="customer">{t("users.roleCustomerLabel")}</option>
+                    <option value="admin">{t("users.roleAdminLabel")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Trạng thái</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("users.labelStatus")}</label>
                   <select
                     value={editFormData.is_active ? "true" : "false"}
                     onChange={(e) => setEditFormData({ ...editFormData, is_active: e.target.value === "true" })}
                     className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none cursor-pointer focus:border-primary transition"
                   >
-                    <option value="true">Đang hoạt động</option>
-                    <option value="false">Đã khóa</option>
+                    <option value="true">{t("users.statusActiveLabel")}</option>
+                    <option value="false">{t("users.statusInactiveLabel")}</option>
                   </select>
                 </div>
               </div>
@@ -767,13 +778,13 @@ export default function UsersPage() {
                   onClick={() => setEditModalOpen(false)}
                   className="px-5 py-2 border border-outline rounded-lg text-on-background hover:bg-surface-container transition font-semibold"
                 >
-                  Hủy
+                  {t("users.buttonCancel")}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-primary text-surface rounded-lg hover:bg-primary/95 transition font-semibold"
                 >
-                  Cập nhật
+                  {t("users.buttonUpdate")}
                 </button>
               </div>
             </form>

@@ -7,6 +7,7 @@ import {
 import { Link } from "react-router-dom";
 import { useWishlist } from "../../context/WishlistContext.jsx";
 import { useCart } from "../../context/CartContext.jsx";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 /**
  * Parse price từ MongoDB Decimal128 ({ $numberDecimal }) hoặc string/number
@@ -22,6 +23,7 @@ const parsePrice = (raw) => {
 export default function ProductCard({ product, badge }) {
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { t } = useLanguage();
 
   // MongoDB dùng _id, fallback sang id
   const productId = product._id || product.id;
@@ -82,7 +84,7 @@ export default function ProductCard({ product, badge }) {
         {/* Stock badge */}
         {product.stock !== undefined && product.stock <= 0 && (
           <span className="absolute top-3 left-3 px-2 py-1 bg-error text-surface rounded-full text-xs font-bold">
-            Hết hàng
+            {t("home.productCard.outOfStock")}
           </span>
         )}
 
@@ -90,7 +92,7 @@ export default function ProductCard({ product, badge }) {
         <button
           onClick={handleToggleWishlist}
           className="absolute top-3 right-3 bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-110"
-          title={inWishlist ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+          title={inWishlist ? t("home.productCard.removeFromFavorites") : t("home.productCard.addToFavorites")}
         >
           {inWishlist ? (
             <MdFavorite size={20} className="text-error" />
@@ -119,7 +121,7 @@ export default function ProductCard({ product, badge }) {
             <div className="flex items-center gap-1 mt-2 text-tertiary">
               <MdStarRate className="text-[14px] fill-current" />
               <span className="font-body-sm text-body-sm text-on-surface-variant font-medium">
-                {product.rating} ({product.reviews || 0} reviews)
+                {product.rating} ({product.reviews || 0} {t("home.productCard.reviews")})
               </span>
             </div>
           )}
@@ -134,7 +136,7 @@ export default function ProductCard({ product, badge }) {
             onClick={handleAddToCart}
             disabled={product.stock !== undefined && product.stock <= 0}
             className="bg-primary text-on-primary p-2 rounded-lg hover:bg-primary-container transition-colors flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
-            title="Thêm vào giỏ hàng"
+            title={t("home.productCard.addToCart")}
           >
             <MdAddShoppingCart size={20} />
           </button>

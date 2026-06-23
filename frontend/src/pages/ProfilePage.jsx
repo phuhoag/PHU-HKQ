@@ -9,8 +9,10 @@ import {
 } from "react-icons/md";
 import Header from "../components/layouts/Header.jsx";
 import Footer from "../components/layouts/Footer.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function ProfilePage() {
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [profile, setProfile] = useState({
     first_name: "",
@@ -74,7 +76,7 @@ export default function ProfilePage() {
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
-      setMessage({ type: "error", text: "Failed to load profile details." });
+      setMessage({ type: "error", text: t("profile.loadError") });
     } finally {
       setLoading(false);
     }
@@ -148,13 +150,13 @@ export default function ProfilePage() {
         };
         localStorage.setItem("user", JSON.stringify(updatedUser));
 
-        setMessage({ type: "success", text: "✅ Profile updated successfully!" });
+        setMessage({ type: "success", text: t("profile.updateSuccess") });
         setIsEditing(false);
         
         // Fire a window storage event to notify other components (e.g. Header displayName)
         window.dispatchEvent(new Event("storage"));
       } else {
-        setMessage({ type: "error", text: `❌ ${res.message || "Failed to update profile."}` });
+        setMessage({ type: "error", text: `❌ ${res.message || t("profile.updateFail")}` });
       }
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -165,7 +167,7 @@ export default function ProfilePage() {
   };
 
   const joinDate = profile.createdAt
-    ? new Date(profile.createdAt).toLocaleDateString("en-US", {
+    ? new Date(profile.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US", {
         month: "long",
         year: "numeric",
       })
@@ -178,7 +180,7 @@ export default function ProfilePage() {
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="flex-grow flex items-center justify-center">
-          <p className="text-body-lg text-on-surface-variant">Loading profile details...</p>
+          <p className="text-body-lg text-on-surface-variant">{t("profile.loadingText")}</p>
         </main>
         <Footer />
       </div>
@@ -196,10 +198,10 @@ export default function ProfilePage() {
             <div>
               <h1 className="text-h1 font-h1 text-on-background flex items-center gap-3">
                 <MdPerson size={32} className="text-primary" />
-                My Profile
+                {t("profile.title")}
               </h1>
               <p className="text-body-md text-on-surface-variant mt-2">
-                Manage your account information and preferences
+                {t("profile.subtitle")}
               </p>
             </div>
 
@@ -225,7 +227,7 @@ export default function ProfilePage() {
               <div className="bg-surface border border-outline-variant rounded-xl p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-h2 font-h2 text-on-surface">
-                    Personal Information
+                    {t("profile.personalInfo")}
                   </h2>
                   {!isEditing && (
                     <button
@@ -233,7 +235,7 @@ export default function ProfilePage() {
                       className="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary/90 transition shadow-sm"
                     >
                       <MdEdit size={18} />
-                      <span className="text-body-sm font-semibold">Edit</span>
+                      <span className="text-body-sm font-semibold">{t("profile.edit")}</span>
                     </button>
                   )}
                 </div>
@@ -243,7 +245,7 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-label-sm font-semibold text-on-surface-variant">
-                          First Name *
+                          {t("profile.firstNameLabel")}
                         </label>
                         <input
                           type="text"
@@ -257,7 +259,7 @@ export default function ProfilePage() {
                       </div>
                       <div>
                         <label className="text-label-sm font-semibold text-on-surface-variant">
-                          Last Name
+                          {t("profile.lastNameLabel")}
                         </label>
                         <input
                           type="text"
@@ -272,7 +274,7 @@ export default function ProfilePage() {
 
                     <div>
                       <label className="text-label-sm font-semibold text-on-surface-variant flex items-center gap-1.5">
-                        Phone Number
+                        {t("profile.phoneLabel")}
                       </label>
                       <input
                         type="text"
@@ -286,7 +288,7 @@ export default function ProfilePage() {
 
                     <div>
                       <label className="text-label-sm font-semibold text-on-surface-variant flex items-center gap-1.5">
-                        Address
+                        {t("profile.addressLabel")}
                       </label>
                       <textarea
                         value={editData.address}
@@ -304,7 +306,7 @@ export default function ProfilePage() {
                         disabled={saving}
                         className="px-5 py-2 bg-primary text-on-primary rounded-lg hover:bg-primary/90 transition text-body-sm font-semibold disabled:opacity-50"
                       >
-                        {saving ? "Saving..." : "Save Changes"}
+                        {saving ? t("profile.saving") : t("profile.save")}
                       </button>
                       <button
                         type="button"
@@ -319,7 +321,7 @@ export default function ProfilePage() {
                         }}
                         className="px-5 py-2 border border-outline rounded-lg text-body-sm text-on-background hover:bg-surface-container transition font-semibold"
                       >
-                        Cancel
+                        {t("profile.cancel")}
                       </button>
                     </div>
                   </form>
@@ -327,7 +329,7 @@ export default function ProfilePage() {
                   <div className="space-y-4">
                     <div>
                       <label className="text-label-sm text-on-surface-variant">
-                        Full Name
+                        {t("profile.fullNameLabel")}
                       </label>
                       <p className="text-body-md text-on-surface mt-1 font-medium">
                         {displayName}
@@ -336,7 +338,7 @@ export default function ProfilePage() {
 
                     <div>
                       <label className="text-label-sm text-on-surface-variant flex items-center gap-2">
-                        Email Address
+                        {t("settings.emailLabel")}
                       </label>
                       <p className="text-body-md text-on-surface mt-1">
                         {profile.email}
@@ -345,19 +347,19 @@ export default function ProfilePage() {
 
                     <div>
                       <label className="text-label-sm text-on-surface-variant flex items-center gap-2">
-                        Phone Number
+                        {t("profile.phoneLabel")}
                       </label>
                       <p className="text-body-md text-on-surface mt-1">
-                        {profile.phone || "Not updated"}
+                        {profile.phone || t("users.notUpdated")}
                       </p>
                     </div>
 
                     <div>
                       <label className="text-label-sm text-on-surface-variant flex items-center gap-2">
-                        Address
+                        {t("profile.addressLabel")}
                       </label>
                       <p className="text-body-md text-on-surface mt-1">
-                        {profile.address || "Not updated"}
+                        {profile.address || t("users.notUpdated")}
                       </p>
                     </div>
                   </div>
@@ -367,13 +369,13 @@ export default function ProfilePage() {
               {/* Account Statistics */}
               <div className="bg-surface border border-outline-variant rounded-xl p-6">
                 <h2 className="text-h2 font-h2 text-on-surface mb-6">
-                  Account Statistics
+                  {t("profile.statsTitle")}
                 </h2>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-surface-container-low rounded-lg p-4">
                     <p className="text-label-sm text-on-surface-variant">
-                      Member Since
+                      {t("profile.joinDateLabel")}
                     </p>
                     <p className="text-h3 font-h3 text-on-surface mt-2">
                       {joinDate}
@@ -382,7 +384,7 @@ export default function ProfilePage() {
 
                   <div className="bg-surface-container-low rounded-lg p-4">
                     <p className="text-label-sm text-on-surface-variant">
-                      Total Orders
+                      {t("profile.totalOrdersLabel")}
                     </p>
                     <p className="text-h3 font-h3 text-primary mt-2">
                       {stats.totalOrders}
@@ -391,7 +393,7 @@ export default function ProfilePage() {
 
                   <div className="bg-surface-container-low rounded-lg p-4">
                     <p className="text-label-sm text-on-surface-variant">
-                      Total Spent
+                      {t("profile.totalSpentLabel")}
                     </p>
                     <p className="text-h3 font-h3 text-success mt-2">
                       ${stats.totalSpent.toFixed(2)}
@@ -400,10 +402,10 @@ export default function ProfilePage() {
 
                   <div className="bg-surface-container-low rounded-lg p-4">
                     <p className="text-label-sm text-on-surface-variant">
-                      Account Status
+                      {t("dashboard.accountStatus")}
                     </p>
                     <p className="text-h3 font-h3 text-secondary mt-2">
-                      {profile.is_active ? "Active" : "Deactivated"}
+                      {profile.is_active ? t("profile.activeStatus") : t("profile.inactiveStatus")}
                     </p>
                   </div>
                 </div>
@@ -415,7 +417,7 @@ export default function ProfilePage() {
               {/* Quick Actions */}
               <div className="bg-surface border border-outline-variant rounded-xl p-6">
                 <h3 className="text-h3 font-h3 text-on-surface mb-4">
-                  Quick Actions
+                  {t("profile.quickActions")}
                 </h3>
 
                 <div className="space-y-3">
@@ -423,19 +425,19 @@ export default function ProfilePage() {
                     to="/dashboard"
                     className="block w-full py-3 px-4 border border-outline-variant rounded-lg text-on-surface hover:bg-surface-container-low transition text-body-sm font-semibold text-center"
                   >
-                    Go to Dashboard
+                    {t("settings.goToDashboard")}
                   </Link>
                   <Link
                     to="/wishlist"
                     className="block w-full py-3 px-4 border border-outline-variant rounded-lg text-on-surface hover:bg-surface-container-low transition text-body-sm font-semibold text-center"
                   >
-                    Wishlist
+                    {t("nav.wishlist")}
                   </Link>
                   <Link
                     to="/shop"
                     className="block w-full py-3 px-4 border border-outline-variant rounded-lg text-on-surface hover:bg-surface-container-low transition text-body-sm font-semibold text-center"
                   >
-                    Continue Shopping
+                    {t("sidebar.continueShopping")}
                   </Link>
                 </div>
               </div>
@@ -443,16 +445,16 @@ export default function ProfilePage() {
               {/* Account Security */}
               <div className="bg-primary-container rounded-xl p-6">
                 <h3 className="text-h3 font-h3 text-on-primary-container mb-2">
-                  Account Security
+                  {t("forgotPassword.accountSecurity")}
                 </h3>
                 <p className="text-body-sm text-on-primary-container/80 mb-4">
-                  Your account is protected with secure session tokens and industry standard hashing.
+                  {t("profile.securityDesc")}
                 </p>
                 <Link
                   to="/dashboard"
                   className="block w-full py-2 px-4 bg-primary text-on-primary rounded-lg text-body-sm font-semibold hover:bg-primary/90 transition text-center shadow-sm"
                 >
-                  Manage Security
+                  {t("settings.securityTitle")}
                 </Link>
               </div>
             </div>

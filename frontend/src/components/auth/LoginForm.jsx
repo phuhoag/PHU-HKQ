@@ -11,10 +11,12 @@ import { Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import authService from "../../services/authService";
 import { useCart } from "../../context/CartContext.jsx";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const { onLogin } = useCart();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,15 +30,15 @@ export default function LoginForm() {
     const newErrors = {};
 
     if (!email) {
-      newErrors.email = "Email is required";
+      newErrors.email = t("auth.validateEmailRequired");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email";
+      newErrors.email = t("auth.validateEmailInvalid");
     }
 
     if (!password) {
-      newErrors.password = "Password is required";
+      newErrors.password = t("auth.validatePasswordRequired");
     } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = t("auth.validatePasswordMin");
     }
 
     return newErrors;
@@ -62,7 +64,7 @@ export default function LoginForm() {
         navigate("/");
       }
     } catch (error) {
-      setApiError(error.message || "Login failed. Please try again.");
+      setApiError(error.message || t("auth.googleLoginFailed"));
       console.error("Login error:", error);
     } finally {
       setLoading(false);
@@ -79,7 +81,7 @@ export default function LoginForm() {
         navigate("/");
       }
     } catch (error) {
-      setApiError(error.message || "Đăng nhập Google thất bại. Vui lòng thử lại.");
+      setApiError(error.message || t("auth.googleLoginFailed"));
       console.error("Google login error:", error);
     } finally {
       setGoogleLoading(false);
@@ -87,15 +89,15 @@ export default function LoginForm() {
   };
 
   const handleGoogleError = () => {
-    setApiError("Đăng nhập Google thất bại. Vui lòng thử lại.");
+    setApiError(t("auth.googleLoginFailed"));
   };
 
   return (
     <div className="p-stack-lg md:p-16 flex flex-col justify-center bg-surface">
       <div className="mb-stack-lg">
-        <h1 className="font-h1 text-h1 text-primary mb-2">Welcome Back</h1>
+        <h1 className="font-h1 text-h1 text-primary mb-2">{t("auth.welcomeBack")}</h1>
         <p className="font-body-md text-on-surface-variant">
-          Access your dashboard with secure verification.
+          {t("auth.accessDashboard")}
         </p>
       </div>
 
@@ -114,7 +116,7 @@ export default function LoginForm() {
             htmlFor="email"
             className="block font-label-caps text-label-caps text-on-surface-variant mb-2"
           >
-            EMAIL ADDRESS
+            {t("auth.emailLabel")}
           </label>
           <div className="relative">
             <input
@@ -151,13 +153,13 @@ export default function LoginForm() {
               htmlFor="password"
               className="block font-label-caps text-label-caps text-on-surface-variant"
             >
-              PASSWORD
+              {t("auth.passwordLabel")}
             </label>
             <Link
               to="/forgot-password"
               className="font-body-sm text-body-sm text-primary hover:underline transition-all"
             >
-              Forgot?
+              {t("auth.forgotPassword")}
             </Link>
           </div>
           <div className="relative">
@@ -211,7 +213,7 @@ export default function LoginForm() {
             htmlFor="remember"
             className="font-body-sm text-body-sm text-on-surface-variant cursor-pointer"
           >
-            Keep me signed in for 30 days
+            {t("auth.rememberMe")}
           </label>
         </div>
 
@@ -221,7 +223,7 @@ export default function LoginForm() {
           disabled={loading}
           className="w-full bg-primary text-on-primary font-button text-button py-4 rounded-lg shadow-sm hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {loading ? "Signing In..." : "Sign In"}
+          {loading ? t("auth.signingIn") : t("auth.signInButton")}
           <MdArrowForward className="text-[18px]" />
         </button>
       </form>
@@ -233,7 +235,7 @@ export default function LoginForm() {
             <div className="w-full border-t border-outline-variant"></div>
           </div>
           <span className="relative bg-surface px-4 font-label-caps text-label-caps text-on-surface-variant">
-            OR CONTINUE WITH
+            {t("auth.orContinueWith")}
           </span>
         </div>
 
@@ -245,7 +247,7 @@ export default function LoginForm() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span className="font-button text-button">Đang đăng nhập...</span>
+              <span className="font-button text-button">{t("auth.signingIn")}</span>
             </div>
           ) : (
             <div className="w-full flex justify-center [&>div]:w-full [&_iframe]:w-full">
@@ -267,10 +269,10 @@ export default function LoginForm() {
       {/* Sign Up Link */}
       <div className="mt-stack-lg text-center">
         <p className="font-body-sm text-body-sm text-on-surface-variant">
-          Don't have an account yet?{" "}
-          <a href="/signup" className="text-primary font-bold hover:underline">
-            Create an Account
-          </a>
+          {t("auth.noAccount")}{" "}
+          <Link to="/signup" className="text-primary font-bold hover:underline">
+            {t("auth.createAccount")}
+          </Link>
         </p>
       </div>
     </div>

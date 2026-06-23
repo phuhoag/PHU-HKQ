@@ -12,8 +12,10 @@ import {
   MdLocalMall,
 } from "react-icons/md";
 import { analyticsService } from "../services/analyticsService.js";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function AnalyticsPage() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -64,10 +66,10 @@ export default function AnalyticsPage() {
       if (res.success) {
         setData(res.data);
       } else {
-        setError(res.message || "Không thể tải dữ liệu thống kê");
+        setError(res.message || t("analytics.loadError"));
       }
     } catch (err) {
-      setError("Lỗi kết nối đến máy chủ: " + err.message);
+      setError(t("analytics.connError") + err.message);
     } finally {
       setLoading(false);
     }
@@ -112,10 +114,10 @@ export default function AnalyticsPage() {
           <div>
             <h1 className="text-h1 font-h1 text-on-background dark:text-inverse-on-surface flex items-center gap-3">
               <MdAnalytics className="text-primary" size={32} />
-              Phân tích & Báo cáo doanh thu
+              {t("analytics.title")}
             </h1>
             <p className="text-body-md text-on-surface-variant dark:text-surface-variant mt-1">
-              Thống kê chi tiết tình hình hoạt động kinh doanh, doanh số và các sản phẩm bán chạy nhất.
+              {t("analytics.subtitle")}
             </p>
           </div>
           <div>
@@ -124,7 +126,7 @@ export default function AnalyticsPage() {
               className="flex items-center gap-2 px-4 py-2 border border-outline rounded-lg text-on-background hover:bg-surface-container transition font-semibold"
             >
               <MdRefresh size={18} />
-              Làm mới
+              {t("analytics.refresh")}
             </button>
           </div>
         </div>
@@ -133,7 +135,7 @@ export default function AnalyticsPage() {
           <div className="mb-6 p-4 bg-error/10 text-error border border-error/20 rounded-lg flex items-start gap-3">
             <MdWarning className="text-[24px] flex-shrink-0" />
             <div>
-              <p className="font-button text-button">Lỗi tải dữ liệu</p>
+              <p className="font-button text-button">{t("analytics.loadDataFail")}</p>
               <p className="text-body-md">{error}</p>
             </div>
           </div>
@@ -142,7 +144,7 @@ export default function AnalyticsPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-body-md text-on-surface-variant animate-pulse">Đang thu thập dữ liệu thống kê từ hệ thống...</p>
+            <p className="text-body-md text-on-surface-variant animate-pulse">{t("analytics.loadingData")}</p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -153,7 +155,7 @@ export default function AnalyticsPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <p className="text-body-sm font-semibold text-on-surface-variant mb-1">
-                      Tổng doanh thu
+                      {t("analytics.totalRevenue")}
                     </p>
                     <p className="text-h2 font-h2 text-primary font-bold">
                       {formatCurrency(data.summary.totalRevenue)}
@@ -164,7 +166,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <p className="text-body-sm text-on-surface-variant">
-                  Doanh số tích lũy (không tính đơn hủy)
+                  {t("analytics.revenueDesc")}
                 </p>
               </div>
 
@@ -173,10 +175,10 @@ export default function AnalyticsPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <p className="text-body-sm font-semibold text-on-surface-variant mb-1">
-                      Tổng số đơn hàng
+                      {t("analytics.totalOrders")}
                     </p>
                     <p className="text-h2 font-h2 text-success font-bold">
-                      {data.summary.totalOrders} đơn
+                      {data.summary.totalOrders} {t("analytics.orderCountUnit")}
                     </p>
                   </div>
                   <div className="p-3 bg-success/10 rounded-lg text-success">
@@ -184,7 +186,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <p className="text-body-sm text-on-surface-variant">
-                  {data.summary.completedOrders} đơn hàng đã giao thành công
+                  {t("analytics.orderSuccessDesc").replace("{count}", data.summary.completedOrders)}
                 </p>
               </div>
 
@@ -193,10 +195,10 @@ export default function AnalyticsPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <p className="text-body-sm font-semibold text-on-surface-variant mb-1">
-                      Tổng khách hàng
+                      {t("analytics.totalCustomers")}
                     </p>
                     <p className="text-h2 font-h2 text-warning font-bold">
-                      {data.summary.totalUsers} khách
+                      {data.summary.totalUsers} {t("analytics.customerCountUnit")}
                     </p>
                   </div>
                   <div className="p-3 bg-warning/10 rounded-lg text-warning">
@@ -204,7 +206,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <p className="text-body-sm text-on-surface-variant">
-                  Có {data.summary.activeUsers} khách hàng đang hoạt động
+                  {t("analytics.activeCustomersDesc").replace("{count}", data.summary.activeUsers)}
                 </p>
               </div>
 
@@ -213,7 +215,7 @@ export default function AnalyticsPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <p className="text-body-sm font-semibold text-on-surface-variant mb-1">
-                      Giá trị trung bình đơn
+                      {t("analytics.avgOrderValue")}
                     </p>
                     <p className="text-h2 font-h2 text-info font-bold">
                       {formatCurrency(data.summary.avgOrderValue)}
@@ -224,7 +226,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <p className="text-body-sm text-on-surface-variant">
-                  Doanh số trung bình trên mỗi đơn hàng
+                  {t("analytics.avgOrderValueDesc")}
                 </p>
               </div>
             </div>
@@ -235,12 +237,12 @@ export default function AnalyticsPage() {
               <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
                 <h3 className="text-h3 font-h3 text-on-background mb-6 font-bold flex items-center gap-2">
                   <MdTrendingUp className="text-primary" />
-                  Doanh thu theo tháng
+                  {t("analytics.monthlyRevenue")}
                 </h3>
 
                 {monthlyData.length === 0 ? (
                   <div className="h-64 flex items-center justify-center bg-surface border border-outline-variant border-dashed rounded-lg">
-                    <p className="text-body-md text-on-surface-variant">Chưa có dữ liệu giao dịch</p>
+                    <p className="text-body-md text-on-surface-variant">{t("analytics.noTransactionData")}</p>
                   </div>
                 ) : (
                   <div>
@@ -275,8 +277,8 @@ export default function AnalyticsPage() {
                               {/* Hover Tooltip */}
                               {isHovered && (
                                 <div className="absolute -top-14 z-20 bg-on-background text-background text-body-sm font-semibold py-1.5 px-3 rounded-lg shadow-lg whitespace-nowrap animate-bounce">
-                                  <div>Doanh thu: {formatCurrency(item.sales)}</div>
-                                  <div className="text-center text-xs opacity-75">{item.orders} đơn hàng</div>
+                                  <div>{t("analytics.totalRevenue")}: {formatCurrency(item.sales)}</div>
+                                  <div className="text-center text-xs opacity-75">{item.orders} {t("analytics.ordersUnit")}</div>
                                 </div>
                               )}
 
@@ -312,12 +314,12 @@ export default function AnalyticsPage() {
               <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
                 <h3 className="text-h3 font-h3 text-on-background mb-6 font-bold flex items-center gap-2">
                   <MdLocalMall className="text-primary" />
-                  Doanh số theo danh mục
+                  {t("analytics.categoryRevenue")}
                 </h3>
 
                 {categoryData.length === 0 ? (
                   <div className="h-64 flex items-center justify-center bg-surface border border-outline-variant border-dashed rounded-lg">
-                    <p className="text-body-md text-on-surface-variant">Chưa có dữ liệu giao dịch sản phẩm</p>
+                    <p className="text-body-md text-on-surface-variant">{t("analytics.noProductData")}</p>
                   </div>
                 ) : (
                   <div className="space-y-5 h-64 overflow-y-auto pr-2">
@@ -340,7 +342,7 @@ export default function AnalyticsPage() {
                             />
                           </div>
                           <div className="text-xs text-on-surface-variant">
-                            Đã bán ra {item.qty} sản phẩm
+                            {t("analytics.soldCountUnit").replace("{count}", item.qty)}
                           </div>
                         </div>
                       );
@@ -355,24 +357,24 @@ export default function AnalyticsPage() {
               <div className="p-6 border-b border-outline-variant">
                 <h3 className="text-h3 font-h3 text-on-background font-bold flex items-center gap-2">
                   <MdLocalMall className="text-primary" />
-                  Top 5 sản phẩm bán chạy nhất
+                  {t("analytics.topProducts")}
                 </h3>
               </div>
 
               {data.topProducts.length === 0 ? (
                 <div className="p-10 text-center">
-                  <p className="text-body-md text-on-surface-variant">Chưa có dữ liệu giao dịch sản phẩm.</p>
+                  <p className="text-body-md text-on-surface-variant">{t("analytics.noProductDataShort")}</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-surface-container border-b border-outline-variant">
                       <tr>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Hình ảnh</th>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Tên sản phẩm</th>
-                        <th className="px-6 py-4 text-right text-label-md font-label-md text-on-surface-variant">Giá bán lẻ</th>
-                        <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">Số lượng bán ra</th>
-                        <th className="px-6 py-4 text-right text-label-md font-label-md text-on-surface-variant">Doanh số đem lại</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("analytics.tableImage")}</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("analytics.tableName")}</th>
+                        <th className="px-6 py-4 text-right text-label-md font-label-md text-on-surface-variant">{t("analytics.tablePrice")}</th>
+                        <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">{t("analytics.tableQuantitySold")}</th>
+                        <th className="px-6 py-4 text-right text-label-md font-label-md text-on-surface-variant">{t("analytics.tableRevenue")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -389,7 +391,7 @@ export default function AnalyticsPage() {
                           <td className="px-6 py-4 text-right text-body-md text-on-surface-variant">${p.price.toFixed(2)}</td>
                           <td className="px-6 py-4 text-center">
                             <span className="px-3 py-1 bg-success/15 text-success rounded-full font-semibold text-body-sm">
-                              {p.unitsSold} sản phẩm
+                              {p.unitsSold} {t("analytics.unitsSoldUnit")}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right font-semibold text-body-md text-primary">{formatCurrency(p.revenue)}</td>

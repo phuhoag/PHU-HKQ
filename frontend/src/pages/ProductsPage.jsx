@@ -12,8 +12,10 @@ import {
   MdWarning,
   MdClose,
 } from "react-icons/md";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function ProductsPage() {
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -67,7 +69,7 @@ export default function ProductsPage() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("❌ Dung lượng ảnh không được vượt quá 5MB!");
+      alert(t("products.alertImageSizeLimit"));
       return;
     }
 
@@ -96,10 +98,10 @@ export default function ProductsPage() {
           },
         }));
       } else {
-        alert("❌ Upload thất bại: " + (res.message || "Lỗi không xác định"));
+        alert(t("products.alertUploadFail") + (res.message || (language === "vi" ? "Lỗi không xác định" : "Unknown error")));
       }
     } catch (err) {
-      alert("❌ Lỗi upload: " + err.message);
+      alert(t("products.alertUploadError") + err.message);
     } finally {
       setUploadingProductImage(false);
     }
@@ -110,7 +112,7 @@ export default function ProductsPage() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("❌ Dung lượng ảnh không được vượt quá 5MB!");
+      alert(t("products.alertImageSizeLimit"));
       return;
     }
 
@@ -139,10 +141,10 @@ export default function ProductsPage() {
           },
         }));
       } else {
-        alert("❌ Upload thất bại: " + (res.message || "Lỗi không xác định"));
+        alert(t("products.alertUploadFail") + (res.message || (language === "vi" ? "Lỗi không xác định" : "Unknown error")));
       }
     } catch (err) {
-      alert("❌ Lỗi upload: " + err.message);
+      alert(t("products.alertUploadError") + err.message);
     } finally {
       setUploadingCategoryImage(false);
     }
@@ -229,7 +231,7 @@ export default function ProductsPage() {
     const { _id, name, category_id, price, stock, description, image } = productModal.data;
 
     if (!name || !category_id || !price) {
-      alert("Tên, danh mục và giá sản phẩm là bắt buộc!");
+      alert(t("products.alertRequiredFields"));
       return;
     }
 
@@ -255,19 +257,19 @@ export default function ProductsPage() {
 
       const res = await response.json();
       if (response.ok) {
-        alert(productModal.mode === "add" ? "✅ Tạo sản phẩm thành công!" : "✅ Cập nhật sản phẩm thành công!");
+        alert(productModal.mode === "add" ? t("products.alertCreateProductSuccess") : t("products.alertUpdateProductSuccess"));
         setProductModal({ ...productModal, isOpen: false });
         fetchProducts(token, productPage, productSearch, productCategoryFilter);
       } else {
-        alert("❌ " + (res.message || "Thao tác thất bại"));
+        alert(t("products.alertSaveFail") + ": " + (res.message || ""));
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("products.alertError") + err.message);
     }
   };
 
   const handleDeleteProduct = async (productId) => {
-    if (!window.confirm("🗑️ Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+    if (!window.confirm(t("products.alertDeleteProductConfirm"))) return;
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`/api/products/${productId}`, {
@@ -279,13 +281,13 @@ export default function ProductsPage() {
       });
       const res = await response.json();
       if (response.ok) {
-        alert("✅ Xóa sản phẩm thành công!");
+        alert(t("products.alertDeleteProductSuccess"));
         fetchProducts(token, productPage, productSearch, productCategoryFilter);
       } else {
-        alert("❌ " + (res.message || "Xóa sản phẩm thất bại"));
+        alert(t("products.alertDeleteProductFail") + ": " + (res.message || ""));
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("products.alertError") + err.message);
     }
   };
 
@@ -296,7 +298,7 @@ export default function ProductsPage() {
     const { _id, name, description, image } = categoryModal.data;
 
     if (!name) {
-      alert("Tên danh mục là bắt buộc!");
+      alert(t("products.alertCategoryNameRequired"));
       return;
     }
 
@@ -315,19 +317,19 @@ export default function ProductsPage() {
 
       const res = await response.json();
       if (response.ok) {
-        alert(categoryModal.mode === "add" ? "✅ Tạo danh mục thành công!" : "✅ Cập nhật danh mục thành công!");
+        alert(categoryModal.mode === "add" ? t("products.alertCreateCategorySuccess") : t("products.alertUpdateCategorySuccess"));
         setCategoryModal({ ...categoryModal, isOpen: false });
         fetchCategories(token);
       } else {
-        alert("❌ " + (res.message || "Thao tác thất bại"));
+        alert(t("products.alertSaveFail") + ": " + (res.message || ""));
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("products.alertError") + err.message);
     }
   };
 
   const handleDeleteCategory = async (categoryId) => {
-    if (!window.confirm("🗑️ Bạn có chắc muốn xóa danh mục này? Tất cả sản phẩm thuộc danh mục sẽ không đổi nhưng danh mục sẽ bị mất.")) return;
+    if (!window.confirm(t("products.alertDeleteCategoryConfirm"))) return;
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`/api/categories/${categoryId}`, {
@@ -339,13 +341,13 @@ export default function ProductsPage() {
       });
       const res = await response.json();
       if (response.ok) {
-        alert("✅ Xóa danh mục thành công!");
+        alert(t("products.alertDeleteCategorySuccess"));
         fetchCategories(token);
       } else {
-        alert("❌ " + (res.message || "Xóa danh mục thất bại"));
+        alert(t("products.alertDeleteCategoryFail") + ": " + (res.message || ""));
       }
     } catch (err) {
-      alert("Lỗi: " + err.message);
+      alert(t("products.alertError") + err.message);
     }
   };
 
@@ -361,10 +363,10 @@ export default function ProductsPage() {
           <div>
             <h1 className="text-h1 font-h1 text-on-background dark:text-inverse-on-surface flex items-center gap-3">
               <MdShoppingCart className="text-primary" size={32} />
-              Quản lý sản phẩm & danh mục
+              {t("products.title")}
             </h1>
             <p className="text-body-md text-on-surface-variant dark:text-surface-variant mt-1">
-              Thêm, sửa, xóa sản phẩm và phân nhóm danh mục sản phẩm của cửa hàng.
+              {t("products.description")}
             </p>
           </div>
           <div>
@@ -373,7 +375,7 @@ export default function ProductsPage() {
               className="flex items-center gap-2 px-4 py-2 text-body-md font-body-md border border-outline rounded-lg text-on-background hover:bg-surface-container transition"
             >
               <MdArrowBack size={18} />
-              Về Dashboard
+              {t("products.backToDashboard")}
             </Link>
           </div>
         </div>
@@ -389,7 +391,7 @@ export default function ProductsPage() {
             }`}
           >
             <MdShoppingCart size={20} />
-            Sản phẩm ({products.length})
+            {t("products.tabProducts")} ({products.length})
           </button>
           <button
             onClick={() => setActiveTab("categories")}
@@ -400,7 +402,7 @@ export default function ProductsPage() {
             }`}
           >
             <MdCategory size={20} />
-            Danh mục ({categories.length})
+            {t("products.tabCategories")} ({categories.length})
           </button>
         </div>
 
@@ -415,7 +417,7 @@ export default function ProductsPage() {
                   <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
                   <input
                     type="text"
-                    placeholder="Tìm kiếm sản phẩm..."
+                    placeholder={t("products.searchPlaceholder")}
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none focus:border-primary transition"
@@ -427,7 +429,7 @@ export default function ProductsPage() {
                   onChange={(e) => setProductCategoryFilter(e.target.value)}
                   className="px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none cursor-pointer focus:border-primary transition"
                 >
-                  <option value="">Tất cả danh mục</option>
+                  <option value="">{t("products.allCategories")}</option>
                   {categories.map((c) => (
                     <option key={c._id} value={c._id}>
                       {c.name}
@@ -448,16 +450,16 @@ export default function ProductsPage() {
                 className="flex items-center gap-2 px-5 py-2.5 bg-primary text-surface font-semibold rounded-lg hover:bg-primary/90 transition shadow-sm w-full md:w-auto justify-center"
               >
                 <MdAdd size={20} />
-                Thêm sản phẩm
+                {t("products.addProduct")}
               </button>
             </div>
 
             {/* Products Table */}
             {loadingProducts ? (
-              <p className="text-center py-10 text-body-md text-on-surface-variant">Đang tải danh sách sản phẩm...</p>
+              <p className="text-center py-10 text-body-md text-on-surface-variant">{t("products.loadingProducts")}</p>
             ) : products.length === 0 ? (
               <div className="text-center py-10 bg-surface-container-lowest border border-outline-variant rounded-xl">
-                <p className="text-body-md text-on-surface-variant">Không tìm thấy sản phẩm nào.</p>
+                <p className="text-body-md text-on-surface-variant">{t("products.noProducts")}</p>
               </div>
             ) : (
               <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
@@ -465,12 +467,12 @@ export default function ProductsPage() {
                   <table className="w-full">
                     <thead className="bg-surface-container border-b border-outline-variant">
                       <tr>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Hình ảnh</th>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Tên sản phẩm</th>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Danh mục</th>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Giá bán</th>
-                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Kho hàng</th>
-                        <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">Thao tác</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("products.tableImage")}</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("products.tableName")}</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("products.tableCategory")}</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("products.tablePrice")}</th>
+                        <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("products.tableStock")}</th>
+                        <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">{t("products.tableActions")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -484,13 +486,13 @@ export default function ProductsPage() {
                             />
                           </td>
                           <td className="px-6 py-4 font-semibold text-body-md text-on-surface">{p.name}</td>
-                          <td className="px-6 py-4 text-body-md text-on-surface-variant">{p.category_id?.name || "N/A"}</td>
+                          <td className="px-6 py-4 text-body-md text-on-surface-variant">{p.category_id?.name || t("products.notAvailable")}</td>
                           <td className="px-6 py-4 font-semibold text-body-md text-primary">
                             ${Number(p.price?.$numberDecimal || p.price || 0).toFixed(2)}
                           </td>
                           <td className="px-6 py-4 text-body-md text-on-surface">
                             <span className={`px-2.5 py-0.5 rounded font-semibold ${p.stock > 10 ? "bg-success/15 text-success" : p.stock > 0 ? "bg-warning/15 text-warning" : "bg-error/15 text-error"}`}>
-                              {p.stock} sản phẩm
+                              {p.stock} {t("products.stockCount")}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-center">
@@ -512,14 +514,14 @@ export default function ProductsPage() {
                                   })
                                 }
                                 className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition"
-                                title="Sửa sản phẩm"
+                                title={t("products.titleEditProduct")}
                               >
                                 <MdEdit size={18} />
                               </button>
                               <button
                                 onClick={() => handleDeleteProduct(p._id)}
                                 className="p-2 bg-error/10 text-error rounded-lg hover:bg-error/20 transition"
-                                title="Xóa sản phẩm"
+                                title={t("products.alertDeleteProductConfirm")}
                               >
                                 <MdDelete size={18} />
                               </button>
@@ -539,15 +541,17 @@ export default function ProductsPage() {
                       disabled={productPage === 1}
                       className="px-4 py-2 border border-outline-variant rounded-lg text-body-sm font-semibold hover:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
-                      Trước
+                      {t("dashboard.paginationPrev")}
                     </button>
-                    <span className="text-body-sm text-on-surface-variant font-semibold">Trang {productPage} / {productTotalPages}</span>
+                    <span className="text-body-sm text-on-surface-variant font-semibold">
+                      {language === "vi" ? `Trang ${productPage} / ${productTotalPages}` : `Page ${productPage} / ${productTotalPages}`}
+                    </span>
                     <button
                       onClick={() => fetchProducts(localStorage.getItem("token"), productPage + 1, productSearch, productCategoryFilter)}
                       disabled={productPage === productTotalPages}
                       className="px-4 py-2 border border-outline-variant rounded-lg text-body-sm font-semibold hover:bg-surface-container disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
-                      Sau
+                      {t("dashboard.paginationNext")}
                     </button>
                   </div>
                 )}
@@ -571,25 +575,25 @@ export default function ProductsPage() {
                 className="flex items-center gap-2 px-5 py-2.5 bg-primary text-surface font-semibold rounded-lg hover:bg-primary/90 transition shadow-sm w-full md:w-auto justify-center"
               >
                 <MdAdd size={20} />
-                Thêm danh mục
+                {t("products.addCategory")}
               </button>
             </div>
 
             {loadingCategories ? (
-              <p className="text-center py-10 text-body-md text-on-surface-variant">Đang tải danh mục...</p>
+              <p className="text-center py-10 text-body-md text-on-surface-variant">{t("products.loadingCategories")}</p>
             ) : categories.length === 0 ? (
               <div className="text-center py-10 bg-surface-container-lowest border border-outline-variant rounded-xl">
-                <p className="text-body-md text-on-surface-variant">Chưa có danh mục nào được tạo.</p>
+                <p className="text-body-md text-on-surface-variant">{t("products.noCategories")}</p>
               </div>
             ) : (
               <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
                 <table className="w-full">
                   <thead className="bg-surface-container border-b border-outline-variant">
                     <tr>
-                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Hình ảnh</th>
-                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Tên danh mục</th>
-                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">Mô tả</th>
-                      <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">Thao tác</th>
+                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("products.tableImage")}</th>
+                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("products.tableCategoryName")}</th>
+                      <th className="px-6 py-4 text-left text-label-md font-label-md text-on-surface-variant">{t("products.tableCategoryDesc")}</th>
+                      <th className="px-6 py-4 text-center text-label-md font-label-md text-on-surface-variant">{t("products.tableActions")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -603,7 +607,7 @@ export default function ProductsPage() {
                           />
                         </td>
                         <td className="px-6 py-4 font-semibold text-body-md text-on-surface">{c.name}</td>
-                        <td className="px-6 py-4 text-body-md text-on-surface-variant truncate max-w-xs">{c.description || "Chưa có mô tả"}</td>
+                        <td className="px-6 py-4 text-body-md text-on-surface-variant truncate max-w-xs">{c.description || t("products.noDescription")}</td>
                         <td className="px-6 py-4 text-center">
                           <div className="flex gap-2 justify-center">
                             <button
@@ -620,14 +624,14 @@ export default function ProductsPage() {
                                 })
                               }
                               className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition"
-                              title="Sửa danh mục"
+                              title={t("products.titleEditCategory")}
                             >
                               <MdEdit size={18} />
                             </button>
                             <button
                               onClick={() => handleDeleteCategory(c._id)}
                               className="p-2 bg-error/10 text-error rounded-lg hover:bg-error/20 transition"
-                              title="Xóa danh mục"
+                              title={t("products.alertDeleteCategoryConfirm")}
                             >
                               <MdDelete size={18} />
                             </button>
@@ -649,7 +653,7 @@ export default function ProductsPage() {
           <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl w-full max-w-xl shadow-lg flex flex-col max-h-[90vh]">
             <div className="flex justify-between items-center p-6 border-b border-outline-variant">
               <h2 className="text-h2 font-h2 text-on-surface font-bold">
-                {productModal.mode === "add" ? "Thêm sản phẩm mới" : "Sửa thông tin sản phẩm"}
+                {productModal.mode === "add" ? t("products.titleAddProduct") : t("products.titleEditProduct")}
               </h2>
               <button
                 onClick={() => setProductModal({ ...productModal, isOpen: false })}
@@ -660,7 +664,7 @@ export default function ProductsPage() {
             </div>
             <form onSubmit={handleSaveProduct} className="p-6 space-y-4 overflow-y-auto flex-1">
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Tên sản phẩm *</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelProductName")}</label>
                 <input
                   type="text"
                   required
@@ -672,7 +676,7 @@ export default function ProductsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Danh mục *</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelCategory")}</label>
                   <select
                     value={productModal.data.category_id}
                     onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, category_id: e.target.value } })}
@@ -686,7 +690,7 @@ export default function ProductsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Giá bán ($) *</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelPrice")}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -700,7 +704,7 @@ export default function ProductsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Kho hàng</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelStock")}</label>
                   <input
                     type="number"
                     value={productModal.data.stock}
@@ -709,7 +713,7 @@ export default function ProductsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Ảnh sản phẩm</label>
+                  <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelImage")}</label>
                   <div className="flex items-center gap-4">
                     <div className="relative w-20 h-20 rounded-lg border border-outline-variant bg-surface flex items-center justify-center overflow-hidden flex-shrink-0 group">
                       {productModal.data.image ? (
@@ -729,7 +733,7 @@ export default function ProductsPage() {
                           </button>
                         </>
                       ) : (
-                        <div className="text-on-surface-variant text-body-sm text-center px-1">Chưa có ảnh</div>
+                        <div className="text-on-surface-variant text-body-sm text-center px-1">{language === "vi" ? "Chưa có ảnh" : "No image"}</div>
                       )}
                     </div>
                     <div className="flex-1">
@@ -741,16 +745,16 @@ export default function ProductsPage() {
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                               </svg>
-                              Đang upload...
+                              {t("products.uploading")}
                             </>
                           ) : (
                             <>
                               <MdAdd size={18} />
-                              Chọn ảnh
+                              {t("products.uploadButton")}
                             </>
                           )}
                         </span>
-                        <span className="text-label-sm text-on-surface-variant mt-0.5">Tối đa 5MB</span>
+                        <span className="text-label-sm text-on-surface-variant mt-0.5">{language === "vi" ? "Tối đa 5MB" : "Max 5MB"}</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -765,7 +769,7 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Mô tả sản phẩm</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelDescription")}</label>
                 <textarea
                   value={productModal.data.description}
                   onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, description: e.target.value } })}
@@ -780,13 +784,13 @@ export default function ProductsPage() {
                   onClick={() => setProductModal({ ...productModal, isOpen: false })}
                   className="px-5 py-2 border border-outline rounded-lg text-body-md text-on-background hover:bg-surface-container transition font-semibold"
                 >
-                  Hủy bỏ
+                  {t("products.buttonCancel")}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-primary text-surface rounded-lg hover:bg-primary/90 transition font-semibold shadow-sm"
                 >
-                  {productModal.mode === "add" ? "Tạo sản phẩm" : "Lưu thay đổi"}
+                  {productModal.mode === "add" ? t("products.buttonSave") : t("products.buttonUpdate")}
                 </button>
               </div>
             </form>
@@ -800,7 +804,7 @@ export default function ProductsPage() {
           <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl w-full max-w-xl shadow-lg flex flex-col">
             <div className="flex justify-between items-center p-6 border-b border-outline-variant">
               <h2 className="text-h2 font-h2 text-on-surface font-bold">
-                {categoryModal.mode === "add" ? "Thêm danh mục mới" : "Sửa thông tin danh mục"}
+                {categoryModal.mode === "add" ? t("products.titleAddCategory") : t("products.titleEditCategory")}
               </h2>
               <button
                 onClick={() => setCategoryModal({ ...categoryModal, isOpen: false })}
@@ -811,7 +815,7 @@ export default function ProductsPage() {
             </div>
             <form onSubmit={handleSaveCategory} className="p-6 space-y-4">
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Tên danh mục *</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelCategoryName")}</label>
                 <input
                   type="text"
                   required
@@ -822,7 +826,7 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Ảnh danh mục</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelCategoryImage")}</label>
                 <div className="flex items-center gap-4">
                   <div className="relative w-20 h-20 rounded-lg border border-outline-variant bg-surface flex items-center justify-center overflow-hidden flex-shrink-0 group">
                     {categoryModal.data.image ? (
@@ -842,7 +846,7 @@ export default function ProductsPage() {
                         </button>
                       </>
                     ) : (
-                      <div className="text-on-surface-variant text-body-sm text-center px-1">Chưa có ảnh</div>
+                      <div className="text-on-surface-variant text-body-sm text-center px-1">{language === "vi" ? "Chưa có ảnh" : "No image"}</div>
                     )}
                   </div>
                   <div className="flex-1">
@@ -854,16 +858,16 @@ export default function ProductsPage() {
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
-                            Đang upload...
+                            {t("products.uploading")}
                           </>
                         ) : (
                           <>
                             <MdAdd size={18} />
-                            Chọn ảnh
+                            {t("products.uploadButton")}
                           </>
                         )}
                       </span>
-                      <span className="text-label-sm text-on-surface-variant mt-0.5">Tối đa 5MB</span>
+                      <span className="text-label-sm text-on-surface-variant mt-0.5">{language === "vi" ? "Tối đa 5MB" : "Max 5MB"}</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -877,7 +881,7 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">Mô tả danh mục</label>
+                <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelCategoryDesc")}</label>
                 <textarea
                   value={categoryModal.data.description}
                   onChange={(e) => setCategoryModal({ ...categoryModal, data: { ...categoryModal.data, description: e.target.value } })}
@@ -892,13 +896,13 @@ export default function ProductsPage() {
                   onClick={() => setCategoryModal({ ...categoryModal, isOpen: false })}
                   className="px-5 py-2 border border-outline rounded-lg text-body-md text-on-background hover:bg-surface-container transition font-semibold"
                 >
-                  Hủy bỏ
+                  {t("products.buttonCancel")}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-primary text-surface rounded-lg hover:bg-primary/90 transition font-semibold shadow-sm"
                 >
-                  {categoryModal.mode === "add" ? "Tạo danh mục" : "Lưu thay đổi"}
+                  {categoryModal.mode === "add" ? t("products.buttonSave") : t("products.buttonUpdate")}
                 </button>
               </div>
             </form>

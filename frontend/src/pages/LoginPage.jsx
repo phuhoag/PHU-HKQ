@@ -1,6 +1,9 @@
 import LoginForm from "../components/auth/LoginForm.jsx";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function LoginPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-grow flex items-center justify-center py-stack-lg px-margin-mobile">
@@ -15,8 +18,7 @@ export default function LoginPage() {
             <div className="absolute inset-0 bg-primary/10 mix-blend-multiply"></div>
             <div className="absolute inset-0 flex flex-col justify-end p-margin-desktop bg-gradient-to-t from-primary/80 to-transparent">
               <p className="font-body-md text-body-md text-on-primary/90">
-                Experience seamless session management and secure JWT-verified
-                access for all your enterprise needs.
+                {t("auth.loginDesc")}
               </p>
             </div>
           </div>
@@ -32,7 +34,7 @@ export default function LoginPage() {
           <div className="mb-4 md:mb-0">
             <span className="text-h2 font-h2 text-primary">TechStore</span>
             <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-              © 2024 TechStore E-commerce. All rights reserved.
+              © 2026 {t("footer.allRightsReserved")}
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-stack-md">
@@ -40,25 +42,25 @@ export default function LoginPage() {
               href="/privacy"
               className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
             >
-              Privacy Policy
+              {t("footer.privacyPolicy")}
             </a>
             <a
               href="/terms"
               className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
             >
-              Terms of Service
+              {t("footer.termsOfService")}
             </a>
             <a
               href="/help"
               className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
             >
-              Help Center
+              {t("footer.helpCenter")}
             </a>
             <a
               href="/contact"
               className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors"
             >
-              Contact Us
+              {t("footer.contactUs")}
             </a>
           </div>
         </div>

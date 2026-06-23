@@ -12,6 +12,7 @@ import Footer from "../components/layouts/Footer";
 import ProductGrid from "../components/products/ProductGrid";
 import Pagination from "../components/common/Pagination";
 import productService from "../services/productService";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 const SORT_OPTIONS = [
   { value: "newest", label: "Mới nhất" },
@@ -24,7 +25,15 @@ const SORT_OPTIONS = [
 const ITEMS_PER_PAGE = 9;
 
 export default function ProductCatalog() {
+  const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const getCategoryName = (cat) => {
+    if (!cat) return "";
+    const key = `home.categories.${cat.name.toLowerCase()}`;
+    const translated = t(key);
+    return translated === key ? cat.name : translated;
+  };
 
   // Đọc filter trực tiếp từ URL (nguồn duy nhất)
   const selectedCategory = searchParams.get("category") || "";
@@ -98,11 +107,11 @@ export default function ProductCatalog() {
             setProducts(res.data.products || []);
             setPagination(res.data.pagination);
           } else {
-            setError(res.message || "Không thể tải sản phẩm");
+            setError(res.message || t("catalog.loadError"));
           }
         }
       } catch (err) {
-        if (!cancelled) setError("Lỗi kết nối: " + err.message);
+        if (!cancelled) setError(t("catalog.connError") + err.message);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -160,7 +169,7 @@ export default function ProductCatalog() {
       <div>
         <h3 className="text-body-md font-bold text-on-surface mb-3 flex items-center gap-2">
           <MdFilterList className="text-primary" />
-          Danh mục
+          {t("catalog.categories")}
         </h3>
         <div className="space-y-1.5">
           <button
@@ -171,7 +180,7 @@ export default function ProductCatalog() {
                 : "text-on-surface hover:bg-surface-container"
             }`}
           >
-            Tất cả sản phẩm
+            {t("catalog.allProducts")}
           </button>
           {categories.map((cat) => (
             <button
@@ -183,12 +192,12 @@ export default function ProductCatalog() {
                   : "text-on-surface hover:bg-surface-container"
               }`}
             >
-              {cat.name}
+              {getCategoryName(cat)}
             </button>
           ))}
           {categories.length === 0 && (
             <p className="text-body-sm text-on-surface-variant px-3 animate-pulse">
-              Đang tải danh mục...
+              {t("catalog.loadingCategories")}
             </p>
           )}
         </div>
@@ -197,12 +206,12 @@ export default function ProductCatalog() {
       {/* Price Range */}
       <div>
         <h3 className="text-body-md font-bold text-on-surface mb-3">
-          Khoảng giá
+          {t("catalog.priceRange")}
         </h3>
         <div className="space-y-3">
           <div>
             <label className="text-body-sm text-on-surface-variant block mb-1">
-              Giá tối đa:{" "}
+              {t("catalog.maxPriceLabel")}{" "}
               <span className="text-primary font-semibold">
                 ${parseInt(maxPrice || 5000).toLocaleString()}
               </span>
@@ -224,7 +233,7 @@ export default function ProductCatalog() {
           <div className="flex gap-2">
             <input
               type="number"
-              placeholder="Min $"
+              placeholder={t("catalog.minPricePlaceholder")}
               value={minPrice}
               min="0"
               onChange={(e) => handleMinPriceChange(e.target.value)}
@@ -232,7 +241,7 @@ export default function ProductCatalog() {
             />
             <input
               type="number"
-              placeholder="Max $"
+              placeholder={t("catalog.maxPricePlaceholder")}
               value={maxPrice}
               min="0"
               onChange={(e) => handleMaxPriceChange(e.target.value)}
@@ -249,7 +258,7 @@ export default function ProductCatalog() {
           className="w-full py-2 px-4 border-2 border-error text-error rounded-lg text-body-sm hover:bg-error/10 transition-all flex items-center justify-center gap-2"
         >
           <MdClose size={16} />
-          Xóa bộ lọc
+          {t("catalog.resetFilters")}
         </button>
       )}
     </div>
@@ -263,16 +272,16 @@ export default function ProductCatalog() {
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-body-sm text-on-surface-variant mb-6">
           <Link to="/" className="hover:text-primary transition-colors">
-            Trang chủ
+            {t("catalog.homeBreadcrumb")}
           </Link>
           <MdChevronRight className="text-[16px]" />
-          <span className="text-on-surface font-medium">Sản phẩm</span>
+          <span className="text-on-surface font-medium">{t("catalog.productsBreadcrumb")}</span>
           {selectedCategory &&
             categories.find((c) => c._id === selectedCategory) && (
               <>
                 <MdChevronRight className="text-[16px]" />
                 <span className="text-on-surface font-medium">
-                  {categories.find((c) => c._id === selectedCategory)?.name}
+                  {getCategoryName(categories.find((c) => c._id === selectedCategory))}
                 </span>
               </>
             )}
@@ -284,13 +293,13 @@ export default function ProductCatalog() {
             <h1 className="text-h1 font-h1 text-on-surface">
               {selectedCategory &&
               categories.find((c) => c._id === selectedCategory)
-                ? categories.find((c) => c._id === selectedCategory).name
-                : "Tất cả sản phẩm"}
+                ? getCategoryName(categories.find((c) => c._id === selectedCategory))
+                : t("catalog.titleAll")}
             </h1>
             <p className="text-body-md text-on-surface-variant mt-1">
               {loading
-                ? "Đang tải..."
-                : `Hiển thị ${products.length} / ${pagination.totalItems} sản phẩm`}
+                ? t("catalog.loadingProducts")
+                : `${t("catalog.showing")} ${products.length} / ${pagination.totalItems || 0} ${t("catalog.products")}`}
             </p>
           </div>
 
@@ -301,7 +310,7 @@ export default function ProductCatalog() {
               type="text"
               value={searchInput}
               onChange={(e) => handleSearchInput(e.target.value)}
-              placeholder="Tìm kiếm sản phẩm theo tên..."
+              placeholder={t("catalog.searchPlaceholder")}
               className="w-full pl-10 pr-10 py-2.5 bg-surface border-2 border-outline-variant rounded-xl text-body-md focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             />
             {searchInput && (
@@ -320,7 +329,7 @@ export default function ProductCatalog() {
           <div className="flex flex-wrap gap-2 mb-4">
             {search && (
               <span className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-body-sm">
-                Tìm: "{search}"
+                {t("catalog.searchFor")}: "{search}"
                 <button onClick={() => updateParams({ search: "", page: 1 })}>
                   <MdClose size={14} />
                 </button>
@@ -329,7 +338,7 @@ export default function ProductCatalog() {
             {selectedCategory &&
               categories.find((c) => c._id === selectedCategory) && (
                 <span className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-body-sm">
-                  {categories.find((c) => c._id === selectedCategory)?.name}
+                  {getCategoryName(categories.find((c) => c._id === selectedCategory))}
                   <button
                     onClick={() => updateParams({ category: "", page: 1 })}
                   >
@@ -339,7 +348,7 @@ export default function ProductCatalog() {
               )}
             {maxPrice && (
               <span className="flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary rounded-full text-body-sm">
-                Giá đến ${parseInt(maxPrice).toLocaleString()}
+                {t("catalog.priceUpTo")} ${parseInt(maxPrice).toLocaleString()}
                 <button onClick={() => updateParams({ maxPrice: "", page: 1 })}>
                   <MdClose size={14} />
                 </button>
@@ -355,7 +364,7 @@ export default function ProductCatalog() {
             className="lg:hidden flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg text-body-sm hover:bg-surface-container transition"
           >
             <MdTune size={18} />
-            Bộ lọc
+            {t("catalog.filters")}
             {hasActiveFilters && (
               <span className="w-2 h-2 bg-primary rounded-full" />
             )}
@@ -363,18 +372,26 @@ export default function ProductCatalog() {
 
           <div className="flex items-center gap-3 ml-auto">
             <span className="text-body-sm text-on-surface-variant hidden sm:block">
-              Sắp xếp:
+              {t("catalog.sortBy")}
             </span>
             <select
               value={sort}
               onChange={(e) => handleSortChange(e.target.value)}
               className="bg-surface border-2 border-outline-variant rounded-lg px-4 py-2 text-body-sm focus:outline-none focus:border-primary transition-all"
             >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
+              {SORT_OPTIONS.map((opt) => {
+                let labelKey = "";
+                if (opt.value === "newest") labelKey = "catalog.sortNewest";
+                else if (opt.value === "price-low") labelKey = "catalog.sortPriceLow";
+                else if (opt.value === "price-high") labelKey = "catalog.sortPriceHigh";
+                else if (opt.value === "name-asc") labelKey = "catalog.sortNameAsc";
+                else if (opt.value === "name-desc") labelKey = "catalog.sortNameDesc";
+                return (
+                  <option key={opt.value} value={opt.value}>
+                    {labelKey ? t(labelKey) : opt.label}
+                  </option>
+                );
+              })}
             </select>
           </div>
         </div>
@@ -423,16 +440,16 @@ export default function ProductCatalog() {
                   <MdSearch size={40} className="text-on-surface-variant" />
                 </div>
                 <h3 className="text-h3 font-h3 text-on-surface mb-2">
-                  Không tìm thấy sản phẩm
+                  {t("catalog.noProductsFound")}
                 </h3>
                 <p className="text-body-md text-on-surface-variant mb-6 max-w-sm">
-                  Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm khác.
+                  {t("catalog.noProductsFoundDesc")}
                 </p>
                 <button
                   onClick={handleResetFilters}
                   className="px-6 py-2.5 bg-primary text-surface rounded-xl text-body-md hover:bg-primary/90 transition-all"
                 >
-                  Xem tất cả sản phẩm
+                  {t("catalog.viewAllProducts")}
                 </button>
               </div>
             )}
@@ -461,7 +478,7 @@ export default function ProductCatalog() {
           />
           <div className="relative ml-auto w-80 max-w-full bg-background h-full overflow-y-auto p-6 shadow-2xl animate-slide-in-right">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-h3 font-h3 text-on-surface">Bộ lọc</h2>
+              <h2 className="text-h3 font-h3 text-on-surface">{t("catalog.filters")}</h2>
               <button
                 onClick={() => setShowMobileFilter(false)}
                 className="p-2 hover:bg-surface-container rounded-lg transition"
@@ -474,7 +491,7 @@ export default function ProductCatalog() {
               onClick={() => setShowMobileFilter(false)}
               className="w-full mt-8 py-3 bg-primary text-surface rounded-xl text-body-md font-semibold hover:bg-primary/90 transition-all"
             >
-              Áp dụng bộ lọc
+              {t("catalog.applyFilters")}
             </button>
           </div>
         </div>
