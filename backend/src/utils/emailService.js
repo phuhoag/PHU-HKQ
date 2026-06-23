@@ -60,7 +60,7 @@ export const sendPasswordResetEmail = async (
   userSmtpConfig = null,
 ) => {
   try {
-    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3001"}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password/${resetToken}`;
 
     // Nếu user có SMTP config, tạo transporter từ config của user
     let emailTransporter = transporter;
