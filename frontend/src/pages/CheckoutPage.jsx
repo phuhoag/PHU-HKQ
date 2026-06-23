@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   MdArrowBack,
   MdLocalShipping,
@@ -56,12 +56,37 @@ const ORDER_STEPS = [
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { cart, getTotalPrice, clearCart: clearLocalCart } = useCart();
   const { addToast } = useToast();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
+
+  const orderIdParam = searchParams.get("orderId");
+
+  useEffect(() => {
+    if (orderIdParam) {
+      const fetchOrder = async () => {
+        setLoading(true);
+        try {
+          const res = await orderService.getOrderById(orderIdParam);
+          if (res.success) {
+            setOrderSuccess(res.data);
+            setStep(3);
+          } else {
+            addToast("Không thể tải thông tin đơn hàng", "error");
+          }
+        } catch (err) {
+          addToast("Lỗi tải thông tin đơn hàng: " + err.message, "error");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchOrder();
+    }
+  }, [orderIdParam]);
 
   const [shippingForm, setShippingForm] = useState({
     full_name: "",
@@ -105,6 +130,7 @@ export default function CheckoutPage() {
         clearLocalCart?.();
         setOrderSuccess(res.data.order);
         setStep(3);
+        setSearchParams({ orderId: res.data.order._id }, { replace: true });
         addToast("🎉 Đặt hàng thành công!", "success");
       } else {
         addToast(res.message || "Đặt hàng thất bại", "error");
@@ -117,7 +143,7 @@ export default function CheckoutPage() {
   };
 
   // ──────────── Redirect nếu giỏ rỗng ────────────
-  if (cart.length === 0 && step !== 3) {
+  if (cart.length === 0 && step !== 3 && !orderIdParam) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -210,9 +236,19 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <p className="text-on-surface-variant text-body-sm">Trạng thái</p>
-                  <span className="inline-flex px-2 py-0.5 bg-warning/15 text-warning rounded-full text-body-sm font-semibold">
-                    Chờ xác nhận
-                  </span>
+                  {orderSuccess.payment_status === "paid" ? (
+                    <span className="inline-flex px-2 py-0.5 bg-success/15 text-success rounded-full text-body-sm font-semibold">
+                      Đang xử lý
+                    </span>
+                  ) : orderSuccess.payment_status === "failed" ? (
+                    <span className="inline-flex px-2 py-0.5 bg-error/15 text-error rounded-full text-body-sm font-semibold">
+                      Thanh toán thất bại
+                    </span>
+                  ) : (
+                    <span className="inline-flex px-2 py-0.5 bg-warning/15 text-warning rounded-full text-body-sm font-semibold">
+                      Chờ xác nhận
+                    </span>
+                  )}
                 </div>
                 <div>
                   <p className="text-on-surface-variant text-body-sm">Tổng tiền</p>
@@ -224,6 +260,8 @@ export default function CheckoutPage() {
                   <p className="text-on-surface-variant text-body-sm">Thanh toán</p>
                   <p className="font-semibold text-on-surface capitalize">
                     {orderSuccess.payment_method?.replace(/_/g, " ")}
+                    {orderSuccess.payment_status === "paid" && " (Đã thanh toán)"}
+                    {orderSuccess.payment_status === "failed" && " (Thanh toán thất bại)"}
                   </p>
                 </div>
               </div>
@@ -231,10 +269,38 @@ export default function CheckoutPage() {
 
             {/* SePay Payment Card */}
             {orderSuccess.payment_method === "qr_code" && (
-              <SepayPaymentCard
-                orderId={orderSuccess._id}
-                totalAmount={parseFloat(orderSuccess.total_amount?.toString() || "0")}
-              />
+              orderSuccess.payment_status === "paid" ? (
+                <div className="bg-success/10 border border-success/20 rounded-2xl p-6 mb-8 text-center shadow-sm">
+                  <div className="text-success text-5xl mb-3">✓</div>
+                  <h3 className="text-h3 font-h3 text-success font-bold mb-2">Thanh toán chuyển khoản thành công!</h3>
+                  <p className="text-body-md text-on-surface-variant">
+                    Hệ thống đã ghi nhận số tiền thanh toán của bạn. Đơn hàng đang được chuẩn bị để giao.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {orderSuccess.payment_status === "failed" && (
+                    <div className="bg-error/10 border border-error/20 rounded-2xl p-6 mb-4 text-center shadow-sm">
+                      <div className="text-error text-5xl mb-3">✗</div>
+                      <h3 className="text-h3 font-h3 text-error font-bold mb-2">Thanh toán chuyển khoản thất bại!</h3>
+                      <p className="text-body-md text-on-surface-variant">
+                        Số tiền chuyển khoản không khớp hoặc giao dịch bị lỗi. Vui lòng quét mã QR bên dưới để thực hiện lại giao dịch.
+                      </p>
+                    </div>
+                  )}
+                  <SepayPaymentCard
+                    orderId={orderSuccess._id}
+                    totalAmount={parseFloat(orderSuccess.total_amount?.toString() || "0")}
+                    onPaymentSuccess={() => {
+                      if (orderSuccess._id) {
+                        orderService.getOrderById(orderSuccess._id).then((res) => {
+                          if (res.success) setOrderSuccess(res.data);
+                        });
+                      }
+                    }}
+                  />
+                </div>
+              )
             )}
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
