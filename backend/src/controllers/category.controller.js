@@ -1,17 +1,62 @@
 import Category from "../models/category.model.js";
+import Product from "../models/product.model.js";
 
 /**
- * @desc   Lấy danh sách tất cả danh mục
+ * @desc   Lấy danh sách tất cả danh mục (hỗ trợ search + pagination)
  * @route  GET /api/categories
  * @access Public
  */
 export const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find().sort({ name: 1 });
+    const { search, page = 1, limit = 50 } = req.query;
+
+    const filter = {};
+    if (search) {
+      filter.name = { $regex: search, $options: "i" };
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [categories, total] = await Promise.all([
+      Category.find(filter).sort({ name: 1 }).skip(skip).limit(parseInt(limit)),
+      Category.countDocuments(filter),
+    ]);
 
     res.status(200).json({
       success: true,
       data: categories,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc   Lấy danh sách danh mục kèm số lượng sản phẩm
+ * @route  GET /api/categories/with-count
+ * @access Public
+ */
+export const getCategoriesWithProductCount = async (req, res) => {
+  try {
+    const categories = await Category.find().sort({ name: 1 }).lean();
+
+    const categoriesWithCount = await Promise.all(
+      categories.map(async (cat) => {
+        const productCount = await Product.countDocuments({
+          category_id: cat._id,
+          is_active: true,
+        });
+        return { ...cat, productCount };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      data: categoriesWithCount,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
