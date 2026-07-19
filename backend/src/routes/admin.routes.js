@@ -11,6 +11,7 @@ import Order from "../models/order.model.js";
 import OrderItem from "../models/order-item.model.js";
 import Product from "../models/product.model.js";
 import Category from "../models/category.model.js";
+import Review from "../models/review.model.js";
 
 const router = express.Router();
 
@@ -569,6 +570,63 @@ router.get(
         success: false,
         message: "Lỗi lấy thống kê phân tích",
         error: error.message
+      });
+    }
+  }
+);
+
+/**
+ * @route   GET /api/admin/reviews
+ * @access  Admin only
+ * @desc    Get all product reviews with filters and pagination
+ */
+router.get(
+  "/reviews",
+  authenticateToken,
+  authorizeAdmin,
+  async (req, res) => {
+    try {
+      const { page = 1, limit = 10, search = "", rating } = req.query;
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+
+      // Build filter
+      const filter = {};
+      if (rating) {
+        filter.rating = parseInt(rating);
+      }
+
+      if (search) {
+        filter.comment = { $regex: search, $options: "i" };
+      }
+
+      const [reviews, total] = await Promise.all([
+        Review.find(filter)
+          .populate("user_id", "full_name first_name last_name email avatar")
+          .populate("product_id", "name price image")
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(parseInt(limit)),
+        Review.countDocuments(filter),
+      ]);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          reviews,
+          pagination: {
+            total,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalPages: Math.ceil(total / parseInt(limit)),
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Admin get reviews error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Lỗi lấy danh sách đánh giá từ hệ thống",
+        error: error.message,
       });
     }
   }

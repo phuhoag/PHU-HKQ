@@ -32,6 +32,7 @@ const ProfilePage = React.lazy(() => import("../pages/ProfilePage"));
 const SettingsPage = React.lazy(() => import("../pages/SettingsPage"));
 const AnalyticsPage = React.lazy(() => import("../pages/AnalyticsPage"));
 const UsersPage = React.lazy(() => import("../pages/UsersPage"));
+const ReviewsManagementPage = React.lazy(() => import("../pages/ReviewsManagementPage"));
 
 
 const router = createBrowserRouter([
@@ -166,6 +167,16 @@ const router = createBrowserRouter([
           <ProtectedRoute>
             <ErrorBoundary>
               <LazyLoading children={<UsersPage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/reviews-management",
+        element: (
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<ReviewsManagementPage />} />
             </ErrorBoundary>
           </ProtectedRoute>
         ),

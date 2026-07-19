@@ -66,4 +66,33 @@ export const reviewService = {
       return { success: false, message: error.message };
     }
   },
+
+  /**
+   * Get all reviews (Admin only)
+   * GET /api/admin/reviews
+   */
+  getAdminReviews: async (params = {}) => {
+    try {
+      const token = localStorage.getItem("token");
+      const query = new URLSearchParams();
+      if (params.page) query.set("page", params.page);
+      if (params.limit) query.set("limit", params.limit);
+      if (params.search) query.set("search", params.search);
+      if (params.rating) query.set("rating", params.rating);
+
+      const response = await fetch(
+        `${API_BASE_URL}/admin/reviews?${query.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("getAdminReviews error:", error);
+      return { success: false, message: error.message };
+    }
+  },
 };

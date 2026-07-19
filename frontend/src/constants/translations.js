@@ -66,6 +66,7 @@ export const translations = {
       adminPanel: "Bảng quản trị",
       storeManagement: "Quản lý cửa hàng",
       logout: "Đăng xuất",
+      reviews: "Quản lý đánh giá",
     },
     footer: {
       allRightsReserved: "Bản quyền thuộc về TechStore E-commerce. Bảo lưu mọi quyền.",
@@ -904,6 +905,7 @@ export const translations = {
       adminPanel: "Admin Panel",
       storeManagement: "Store Management",
       logout: "Logout",
+      reviews: "Manage Reviews",
     },
     footer: {
       allRightsReserved: "TechStore E-commerce. All rights reserved.",

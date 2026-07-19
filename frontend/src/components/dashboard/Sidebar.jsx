@@ -8,6 +8,7 @@ import {
   MdPeople,
   MdSettings,
   MdLogout,
+  MdRateReview,
 } from "react-icons/md";
 import { useLanguage } from "../../context/LanguageContext.jsx";
 
@@ -36,6 +37,7 @@ export default function Sidebar() {
         { icon: MdReceipt, label: t("sidebar.orders"), href: "/orders" },
         { icon: MdAnalytics, label: t("sidebar.analytics"), href: "/analytics" },
         { icon: MdPeople, label: t("sidebar.users"), href: "/users" },
+        { icon: MdRateReview, label: t("sidebar.reviews"), href: "/reviews-management" },
         { icon: MdSettings, label: t("sidebar.settings"), href: "/settings" },
       ]
     : [
