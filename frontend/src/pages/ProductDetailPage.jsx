@@ -22,7 +22,7 @@ import { useWishlist } from "../context/WishlistContext.jsx";
 import { useCart } from "../context/CartContext.jsx";
 import { useLanguage } from "../context/LanguageContext.jsx";
 import { reviewService } from "../services/reviewService.js";
-import { authService } from "../services/authService.js";
+import authService from "../services/authService.js";
 import { useToast } from "../context/ToastContext.jsx";
 
 export default function ProductDetailPage() {
