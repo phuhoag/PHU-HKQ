@@ -76,7 +76,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-surface-container-lowest dark:bg-[#181b23] border-r border-outline-variant dark:border-outline transition-all duration-300 z-40 ${
+      className={`fixed left-0 top-0 h-screen bg-surface-container-lowest dark:bg-[#181b23] border-r border-outline-variant dark:border-outline transition-all duration-300 z-40 flex flex-col ${
         isCollapsed ? "w-20" : "w-64"
       }`}
     >
@@ -107,7 +107,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="p-4 space-y-2">
+      <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.href;
@@ -129,7 +129,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User Profile Section */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-outline-variant dark:border-outline">
+      <div className="mt-auto p-4 border-t border-outline-variant dark:border-outline">
         <div className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-surface-container dark:hover:bg-on-secondary-fixed-variant/30 transition">
           <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-surface text-h4 font-h4 flex-shrink-0">
             {getInitials()}
