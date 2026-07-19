@@ -8,6 +8,7 @@ import categoryRoutes from "./category.routes.js";
 import cartRoutes from "./cart.routes.js";
 import orderRoutes from "./order.routes.js";
 import paymentRoutes from "./payment.routes.js";
+import reviewRoutes from "./review.routes.js";
 
 const router = express.Router();
 
@@ -29,6 +30,9 @@ router.use("/categories", categoryRoutes);
 
 // Payment Webhook routes (public - tự xác thực bằng secret key)
 router.use("/payments", paymentRoutes);
+
+// Review routes (public get / protected post & delete)
+router.use("/reviews", reviewRoutes);
 
 // ============================================
 // PROTECTED ROUTES (cần authentication)
