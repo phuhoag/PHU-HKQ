@@ -730,7 +730,7 @@ export default function ProductDetailPage() {
 
             {/* Right: Write Review Form / Login prompt */}
             <div className="bg-surface-container rounded-2xl p-6 border border-outline-variant lg:col-span-2">
-              {authService.isLoggedIn() ? (
+              {authService.isAuthenticated() ? (
                 <form onSubmit={handleSubmitReview} className="space-y-4">
                   <h3 className="text-h3 font-h3 text-on-surface flex items-center gap-2">
                     <MdVerified className="text-primary" size={20} />
