@@ -7,11 +7,33 @@ import { OAuth2Client } from "google-auth-library";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+export const generateAccessToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id || user.id,
+      email: user.email,
+      role: user.role,
+    },
+    process.env.JWT_SECRET || "your-secret-key",
+    { expiresIn: "15m" }
+  );
+};
+
+export const generateRefreshToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id || user.id,
+    },
+    process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key",
+    { expiresIn: "7d" }
+  );
+};
+
 // Login service
 export const loginService = async (email, password) => {
   try {
-    // Check if user exists - explicitly select password field
-    const user = await User.findOne({ email }).select("+password");
+    // Check if user exists - explicitly select password and refreshTokens fields
+    const user = await User.findOne({ email }).select("+password +refreshTokens");
     if (!user) {
       throw new Error("Email hoặc mật khẩu không đúng");
     }
@@ -27,16 +49,13 @@ export const loginService = async (email, password) => {
       throw new Error("Tài khoản đã bị vô hiệu hóa");
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-      },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "7d" },
-    );
+    // Generate Access & Refresh tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Save refresh token to user model
+    user.refreshTokens.push(refreshToken);
+    await user.save();
 
     // Return user info and token (exclude password)
     const userResponse = {
@@ -53,7 +72,8 @@ export const loginService = async (email, password) => {
 
     return {
       user: userResponse,
-      token,
+      token: accessToken,
+      refreshToken,
     };
   } catch (error) {
     throw new Error(error.message);
@@ -88,16 +108,12 @@ export const registerService = async (userData) => {
 
     await newUser.save();
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: newUser._id,
-        email: newUser.email,
-        role: newUser.role,
-      },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "7d" },
-    );
+    // Generate tokens
+    const accessToken = generateAccessToken(newUser);
+    const refreshToken = generateRefreshToken(newUser);
+    
+    newUser.refreshTokens = [refreshToken];
+    await newUser.save();
 
     // Return user info and token
     const userResponse = {
@@ -113,7 +129,8 @@ export const registerService = async (userData) => {
 
     return {
       user: userResponse,
-      token,
+      token: accessToken,
+      refreshToken,
     };
   } catch (error) {
     throw new Error(error.message);
@@ -133,10 +150,26 @@ export const getCurrentUserService = async (userId) => {
   }
 };
 
-// Logout service (có thể mở rộng để vô hiệu hóa token)
-export const logoutService = async (token) => {
-  // Có thể thêm token vào blacklist nếu cần
-  return { success: true };
+// Logout service
+export const logoutService = async (refreshToken) => {
+  try {
+    if (refreshToken) {
+      const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key"
+      );
+      if (decoded && decoded.id) {
+        const user = await User.findById(decoded.id).select("+refreshTokens");
+        if (user) {
+          user.refreshTokens = user.refreshTokens.filter(t => t !== refreshToken);
+          await user.save();
+        }
+      }
+    }
+    return { success: true };
+  } catch (error) {
+    return { success: true };
+  }
 };
 
 // Google OAuth service
@@ -152,7 +185,7 @@ export const googleAuthService = async (credential) => {
     const { sub: googleId, email, name, picture, given_name, family_name } = payload;
 
     // Check if user already exists
-    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+    let user = await User.findOne({ $or: [{ googleId }, { email }] }).select("+refreshTokens");
 
     if (user) {
       // Update googleId nếu user đăng ký bình thường trước đó
@@ -181,16 +214,12 @@ export const googleAuthService = async (credential) => {
       await user.save();
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-      },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "7d" },
-    );
+    // Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    user.refreshTokens.push(refreshToken);
+    await user.save();
 
     const userResponse = {
       id: user._id,
@@ -204,9 +233,56 @@ export const googleAuthService = async (credential) => {
       is_active: user.is_active,
     };
 
-    return { user: userResponse, token };
+    return { user: userResponse, token: accessToken, refreshToken };
   } catch (error) {
     throw new Error(error.message);
+  }
+};
+
+// Refresh session service
+export const refreshSessionService = async (refreshToken) => {
+  try {
+    if (!refreshToken) {
+      throw new Error("Refresh token không được cung cấp");
+    }
+
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key"
+    );
+
+    const user = await User.findById(decoded.id).select("+refreshTokens");
+    if (!user || !user.refreshTokens.includes(refreshToken)) {
+      throw new Error("Refresh token không hợp lệ hoặc đã bị thu hồi");
+    }
+
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+
+    // Rotate refresh token
+    user.refreshTokens = user.refreshTokens.filter((t) => t !== refreshToken);
+    user.refreshTokens.push(newRefreshToken);
+    await user.save();
+
+    const userResponse = {
+      id: user._id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      full_name: user.full_name,
+      phone: user.phone,
+      avatar: user.avatar,
+      role: user.role,
+      is_active: user.is_active,
+    };
+
+    return {
+      user: userResponse,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
+  } catch (error) {
+    throw new Error(error.message || "Xác thực refresh token thất bại");
   }
 };
 

@@ -78,6 +78,11 @@ const userSchema = mongoose.Schema(
       default: 587,
       select: false,
     },
+    refreshTokens: {
+      type: [String],
+      default: [],
+      select: false,
+    },
   },
   { timestamps: true, versionKey: false },
 );

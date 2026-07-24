@@ -6,9 +6,31 @@ import {
   forgotPasswordService,
   resetPasswordService,
   googleAuthService,
+  refreshSessionService,
 } from "../services/auth.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { validationResult } from "express-validator";
+
+// Helper to set refresh token cookie
+const setRefreshTokenCookie = (res, token) => {
+  res.cookie("refreshToken", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+};
+
+// Helper to parse cookies from headers
+const parseCookies = (cookieHeader) => {
+  const list = {};
+  if (!cookieHeader) return list;
+  cookieHeader.split(";").forEach((cookie) => {
+    let parts = cookie.split("=");
+    list[parts.shift().trim()] = decodeURI(parts.join("="));
+  });
+  return list;
+};
 
 export const googleAuthController = asyncHandler(async (req, res) => {
   const { credential } = req.body;
@@ -22,10 +44,16 @@ export const googleAuthController = asyncHandler(async (req, res) => {
 
   const result = await googleAuthService(credential);
 
+  setRefreshTokenCookie(res, result.refreshToken);
+
   return res.status(200).json({
     success: true,
     message: "Đăng nhập Google thành công",
-    data: result,
+    data: {
+      token: result.token,
+      user: result.user,
+      refreshToken: result.refreshToken,
+    },
   });
 });
 
@@ -45,10 +73,16 @@ export const loginController = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const result = await loginService(email, password);
 
+  setRefreshTokenCookie(res, result.refreshToken);
+
   return res.status(200).json({
     success: true,
     message: "Đăng nhập thành công",
-    data: result,
+    data: {
+      token: result.token,
+      user: result.user,
+      refreshToken: result.refreshToken,
+    },
   });
 });
 
@@ -67,10 +101,16 @@ export const registerController = asyncHandler(async (req, res) => {
 
   const result = await registerService(req.body);
 
+  setRefreshTokenCookie(res, result.refreshToken);
+
   return res.status(201).json({
     success: true,
     message: "Đăng ký thành công",
-    data: result,
+    data: {
+      token: result.token,
+      user: result.user,
+      refreshToken: result.refreshToken,
+    },
   });
 });
 
@@ -86,8 +126,16 @@ export const getCurrentUserController = asyncHandler(async (req, res) => {
 });
 
 export const logoutController = asyncHandler(async (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  await logoutService(token);
+  const cookies = parseCookies(req.headers.cookie);
+  const refreshToken = cookies.refreshToken || req.body.refreshToken || req.headers["x-refresh-token"];
+
+  await logoutService(refreshToken);
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  });
 
   return res.status(200).json({
     success: true,
@@ -142,5 +190,31 @@ export const resetPasswordController = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: result.message,
+  });
+});
+
+export const refreshSessionController = asyncHandler(async (req, res) => {
+  const cookies = parseCookies(req.headers.cookie);
+  const refreshToken = cookies.refreshToken || req.body.refreshToken || req.headers["x-refresh-token"];
+
+  if (!refreshToken) {
+    return res.status(401).json({
+      success: false,
+      message: "Refresh token không được tìm thấy",
+    });
+  }
+
+  const result = await refreshSessionService(refreshToken);
+
+  setRefreshTokenCookie(res, result.refreshToken);
+
+  return res.status(200).json({
+    success: true,
+    message: "Làm mới phiên đăng nhập thành công",
+    data: {
+      token: result.accessToken,
+      user: result.user,
+      refreshToken: result.refreshToken,
+    },
   });
 });

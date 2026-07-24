@@ -7,6 +7,7 @@ import {
   forgotPasswordController,
   resetPasswordController,
   googleAuthController,
+  refreshSessionController,
 } from "../controllers/auth.controller.js";
 import {
   loginValidator,
@@ -30,6 +31,8 @@ authRoutes.post("/reset-password", resetPasswordController);
 
 // Google OAuth
 authRoutes.post("/google", googleAuthController);
+
+authRoutes.post("/refresh", refreshSessionController);
 
 // Protected routes
 authRoutes.get("/me", authenticateToken, getCurrentUserController);
