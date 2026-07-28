@@ -9,6 +9,8 @@ import {
   MdLogout,
   MdExpandMore,
   MdOutlineFavoriteBorder,
+  MdMenu,
+  MdClose,
 } from "react-icons/md";
 import { useCart } from "../../context/CartContext.jsx";
 import { useWishlist } from "../../context/WishlistContext.jsx";
@@ -23,6 +25,7 @@ export default function Header() {
   const { language, changeLanguage, t } = useLanguage();
   const cartItemCount = getTotalItems();
   const wishlistCount = getWishlistCount();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Lấy thông tin user từ localStorage
   const storedUser = localStorage.getItem("user");
@@ -57,9 +60,18 @@ export default function Header() {
 
   return (
     <header className="bg-surface dark:bg-surface-container-highest border-b border-outline-variant dark:border-outline shadow-sm sticky top-0 z-50 w-full">
-      <div className="flex items-center justify-between px-margin-desktop h-16 w-full max-w-container-max mx-auto">
+      <div className="flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 w-full max-w-container-max mx-auto">
         {/* Logo & Navigation */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4 md:gap-8">
+          {/* Hamburger Menu Icon (Mobile only) */}
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 -ml-2 text-on-surface hover:bg-surface-container-low rounded-full md:hidden flex items-center justify-center transition active:scale-95"
+            aria-label="Open navigation menu"
+          >
+            <MdMenu size={24} />
+          </button>
+
           <Link
             to="/"
             className="text-h3 font-h3 text-primary dark:text-primary-fixed hover:text-primary-container transition-colors"
@@ -96,10 +108,10 @@ export default function Header() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            {/* Language Switcher */}
-            <div className="relative group mr-1">
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 md:gap-2">
+            {/* Language Switcher (Desktop only) */}
+            <div className="hidden md:block relative group mr-1">
               <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-low hover:bg-surface-container transition text-body-sm font-semibold border border-outline-variant">
                 <span>{language === "vi" ? "🇻🇳 VI" : "🇬🇧 EN"}</span>
                 <MdExpandMore size={14} className="text-on-surface-variant group-hover:rotate-180 transition-transform duration-200" />
@@ -242,6 +254,98 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Navigation Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Drawer Content */}
+          <div className="relative flex flex-col w-4/5 max-w-xs h-full bg-surface dark:bg-surface-container-highest p-6 shadow-2xl transition-transform duration-300 animate-slide-in-left border-r border-outline-variant">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <span className="text-h3 font-h3 text-primary dark:text-primary-fixed">TechStore</span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 hover:bg-surface-container-low rounded-full text-on-surface"
+              >
+                <MdClose size={24} />
+              </button>
+            </div>
+
+            {/* Navigation Links */}
+            <nav className="flex flex-col gap-5 flex-1">
+              <Link
+                to="/shop"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-body-lg font-semibold text-on-surface hover:text-primary transition-colors py-2 border-b border-outline-variant/30"
+              >
+                {t("nav.shop")}
+              </Link>
+              <Link
+                to="/categories"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-body-lg font-semibold text-on-surface hover:text-primary transition-colors py-2 border-b border-outline-variant/30"
+              >
+                {t("nav.categories")}
+              </Link>
+              <Link
+                to="/wishlist"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-body-lg font-semibold text-on-surface hover:text-primary transition-colors py-2 border-b border-outline-variant/30"
+              >
+                {t("nav.wishlist")}
+              </Link>
+              <Link
+                to="/about"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-body-lg font-semibold text-on-surface hover:text-primary transition-colors py-2 border-b border-outline-variant/30"
+              >
+                {t("nav.about")}
+              </Link>
+            </nav>
+
+            {/* Language Switcher in Drawer */}
+            <div className="border-t border-outline-variant/60 pt-6 mt-auto">
+              <span className="text-label-sm text-on-surface-variant mb-3 block font-semibold">
+                {language === "vi" ? "NGÔN NGỮ / LANGUAGE" : "LANGUAGE / NGÔN NGỮ"}
+              </span>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    changeLanguage("vi");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex-1 py-2 px-3 border rounded-xl flex items-center justify-center gap-2 font-semibold text-body-sm transition ${
+                    language === "vi"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-outline-variant hover:bg-surface-container"
+                  }`}
+                >
+                  🇻🇳 Tiếng Việt
+                </button>
+                <button
+                  onClick={() => {
+                    changeLanguage("en");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex-1 py-2 px-3 border rounded-xl flex items-center justify-center gap-2 font-semibold text-body-sm transition ${
+                    language === "en"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-outline-variant hover:bg-surface-container"
+                  }`}
+                >
+                  🇬🇧 English
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
