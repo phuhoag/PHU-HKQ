@@ -29,7 +29,7 @@ const STATUS_STEPS = [
 const STATUS_ORDER = ["pending", "processing", "shipped", "delivered"];
 
 export default function OrderDetailPage() {
-  const { t, language } = useLanguage();
+  const { t, language, formatPrice } = useLanguage();
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -268,11 +268,11 @@ export default function OrderDetailPage() {
                           {product?.name || "Sản phẩm"}
                         </p>
                         <p className="text-body-sm text-on-surface-variant mt-0.5">
-                          {t("dashboard.tableUnitPrice")}: ${price.toFixed(2)} × {item.quantity}
+                          {t("dashboard.tableUnitPrice")}: {formatPrice(price)} × {item.quantity}
                         </p>
                       </div>
                       <p className="font-bold text-primary text-lg">
-                        ${(price * item.quantity).toFixed(2)}
+                        {formatPrice(price * item.quantity)}
                       </p>
                     </div>
                   );
@@ -326,7 +326,7 @@ export default function OrderDetailPage() {
               <div className="space-y-2 text-body-sm">
                 <div className="flex justify-between text-on-surface-variant">
                   <span>{t("dashboard.subtotalLabel")} ({order.items?.length || 0} {language === "vi" ? "sản phẩm" : "items"})</span>
-                  <span>${totalAmount.toFixed(2)}</span>
+                  <span>{formatPrice(totalAmount)}</span>
                 </div>
                 <div className="flex justify-between text-on-surface-variant">
                   <span>{t("dashboard.shippingLabel")}</span>
@@ -334,7 +334,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="flex justify-between font-bold text-on-surface text-lg pt-3 border-t border-outline-variant">
                   <span>{t("dashboard.totalLabel")}</span>
-                  <span className="text-primary">${totalAmount.toFixed(2)}</span>
+                  <span className="text-primary">{formatPrice(totalAmount)}</span>
                 </div>
               </div>
             </div>

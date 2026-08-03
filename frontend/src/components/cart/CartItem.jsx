@@ -1,8 +1,10 @@
 import { MdAdd, MdRemove, MdDelete } from "react-icons/md";
 import { useCart } from "../../context/CartContext.jsx";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function CartItem({ item }) {
   const { updateQuantity, removeFromCart } = useCart();
+  const { formatPrice } = useLanguage();
 
   return (
     <div className="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-lg border border-outline-variant hover:border-outline transition">
@@ -24,7 +26,7 @@ export default function CartItem({ item }) {
           {item.category || "Electronics"}
         </p>
         <p className="text-body-md font-body-md text-primary mt-2">
-          ${item.price?.toFixed(2) || "0.00"}
+          {formatPrice(item.price)}
         </p>
       </div>
 
@@ -52,7 +54,7 @@ export default function CartItem({ item }) {
       {/* Total Price */}
       <div className="text-right flex-shrink-0 min-w-[100px]">
         <p className="text-body-md font-body-md text-on-background">
-          ${(item.price * item.quantity)?.toFixed(2) || "0.00"}
+          {formatPrice(item.price * item.quantity)}
         </p>
       </div>
 

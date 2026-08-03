@@ -26,7 +26,7 @@ import authService from "../services/authService.js";
 import { useToast } from "../context/ToastContext.jsx";
 
 export default function ProductDetailPage() {
-  const { t, language } = useLanguage();
+  const { t, language, formatPrice } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const { isInWishlist, toggleWishlist } = useWishlist();
@@ -567,9 +567,9 @@ export default function ProductDetailPage() {
             <div className="mb-6 p-5 bg-primary/5 rounded-2xl border border-primary/20 flex flex-col justify-center">
               <div className="flex items-baseline gap-2">
                 <span className="text-[2.5rem] font-bold text-primary leading-none">
-                  ${price.toFixed(2)}
+                  {formatPrice(price)}
                 </span>
-                <span className="text-xs text-on-surface-variant font-medium">USD</span>
+                {language === "en" && <span className="text-xs text-on-surface-variant font-medium">USD</span>}
               </div>
               <p className="text-body-sm text-on-surface-variant mt-1.5">
                 {t("productDetail.taxIncluded")}
@@ -852,7 +852,7 @@ export default function ProductDetailPage() {
                         {p.name}
                       </h4>
                       <p className="text-primary font-bold mt-1 text-body-md">
-                        ${pPrice.toFixed(2)}
+                        {formatPrice(pPrice)}
                       </p>
                     </div>
                   </Link>

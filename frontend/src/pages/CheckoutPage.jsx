@@ -27,7 +27,7 @@ export default function CheckoutPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { cart, getTotalPrice, clearCart: clearLocalCart, appliedCoupon, setAppliedCoupon } = useCart();
   const { addToast } = useToast();
-  const { t, language } = useLanguage();
+  const { t, language, formatPrice } = useLanguage();
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -263,7 +263,7 @@ export default function CheckoutPage() {
                 <div>
                   <p className="text-on-surface-variant text-body-sm">{t("checkout.totalAmount")}</p>
                   <p className="font-bold text-primary text-xl">
-                    ${parseFloat(orderSuccess.total_amount?.toString() || "0").toFixed(2)}
+                    {formatPrice(parseFloat(orderSuccess.total_amount?.toString() || "0"))}
                   </p>
                 </div>
                 <div>
@@ -500,7 +500,7 @@ export default function CheckoutPage() {
                     disabled={loading}
                     className="w-full py-4 bg-primary text-surface rounded-xl font-button text-button hover:bg-primary/90 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-wait"
                   >
-                    {loading ? t("checkout.placingOrderButton") : `🛍️ ${t("checkout.placeOrderButton")} • $${totalPrice}`}
+                    {loading ? t("checkout.placingOrderButton") : `🛍️ ${t("checkout.placeOrderButton")} • ${formatPrice(totalPrice)}`}
                   </button>
                 </div>
               )}
@@ -542,7 +542,7 @@ export default function CheckoutPage() {
                           </p>
                         </div>
                         <p className="text-body-sm font-bold text-primary">
-                          ${(price * item.quantity).toFixed(2)}
+                           {formatPrice(price * item.quantity)}
                         </p>
                       </div>
                     );
@@ -552,25 +552,25 @@ export default function CheckoutPage() {
                 <div className="border-t border-outline-variant pt-4 space-y-2">
                   <div className="flex justify-between text-body-sm text-on-surface-variant">
                     <span>{t("checkout.tempTotal")}</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-body-sm text-on-surface-variant">
                     <span>{t("checkout.shipFee")}</span>
                     {shipping === 0 ? (
                       <span className="text-success font-semibold">{t("checkout.free")}</span>
                     ) : (
-                      <span>${shipping.toFixed(2)}</span>
+                      <span>{formatPrice(shipping)}</span>
                     )}
                   </div>
                   {appliedCoupon && (
                     <div className="flex justify-between text-body-sm text-success">
                       <span>{t("cart.summary.discount").replace("{code}", appliedCoupon.code)}</span>
-                      <span>-${discount.toFixed(2)}</span>
+                      <span>-{formatPrice(discount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-bold text-on-surface pt-2 border-t border-outline-variant">
                     <span>{t("cart.summary.total")}</span>
-                    <span className="text-primary text-xl">${totalPrice.toFixed(2)}</span>
+                    <span className="text-primary text-xl">{formatPrice(totalPrice)}</span>
                   </div>
                 </div>
               </div>

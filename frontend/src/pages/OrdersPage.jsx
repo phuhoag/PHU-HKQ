@@ -58,7 +58,7 @@ const STATUS_FILTERS = [
 ];
 
 export default function OrdersPage() {
-  const { t, language } = useLanguage();
+  const { t, language, formatPrice } = useLanguage();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -382,7 +382,7 @@ export default function OrdersPage() {
                             <div className="text-body-sm text-on-surface-variant capitalize">{o.payment_status || "pending"}</div>
                           </td>
                           <td className="px-6 py-4 font-semibold text-body-md text-primary">
-                            ${totalAmount.toFixed(2)}
+                            {formatPrice(totalAmount)}
                           </td>
                           <td className="px-6 py-4">
                             <select
@@ -490,7 +490,7 @@ export default function OrdersPage() {
                     <div className="space-y-1 text-body-sm text-on-surface-variant">
                       <p><span className="font-semibold text-on-surface">{t("orders.paymentMethod")}</span> <span className="capitalize">{selectedOrder.payment_method?.replace(/_/g, " ")}</span></p>
                       <p><span className="font-semibold text-on-surface">{t("orders.paymentStatus")}</span> <span className="capitalize">{selectedOrder.payment_status || "pending"}</span></p>
-                      <p><span className="font-semibold text-on-surface">{t("orders.totalAmount")}</span> <span className="text-primary font-semibold">${parseFloat(selectedOrder.total_amount?.toString() || "0").toFixed(2)}</span></p>
+                      <p><span className="font-semibold text-on-surface">{t("orders.totalAmount")}</span> <span className="text-primary font-semibold">{formatPrice(parseFloat(selectedOrder.total_amount?.toString() || "0"))}</span></p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="font-semibold text-on-surface">{t("orders.statusLabel")}</span>
                         <select
@@ -540,13 +540,13 @@ export default function OrdersPage() {
                                 {item.product_id?.name || t("dashboard.productUnavailable")}
                               </td>
                               <td className="px-4 py-2.5 text-right text-body-sm text-on-surface-variant">
-                                ${price.toFixed(2)}
+                                {formatPrice(price)}
                               </td>
                               <td className="px-4 py-2.5 text-center text-body-sm text-on-surface font-semibold">
                                 {qty}
                               </td>
                               <td className="px-4 py-2.5 text-right text-body-sm font-semibold text-primary">
-                                ${(price * qty).toFixed(2)}
+                                {formatPrice(price * qty)}
                               </td>
                             </tr>
                           );
@@ -602,7 +602,7 @@ export default function OrdersPage() {
                                     {formatDate(histOrder.createdAt)}
                                   </td>
                                   <td className="px-4 py-2.5 font-semibold">
-                                    ${parseFloat(histOrder.total_amount?.toString() || "0").toFixed(2)}
+                                    {formatPrice(parseFloat(histOrder.total_amount?.toString() || "0"))}
                                   </td>
                                   <td className="px-4 py-2.5">
                                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
@@ -789,7 +789,7 @@ export default function OrdersPage() {
                           </span>
                         </p>
                         <p className="text-xl font-bold text-primary mt-1">
-                          ${totalAmount.toFixed(2)}
+                          {formatPrice(totalAmount)}
                         </p>
                       </div>
 

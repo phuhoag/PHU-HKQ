@@ -15,7 +15,7 @@ export default function CartSummary() {
     applyCoupon,
     removeCoupon,
   } = useCart();
-  const { t, language } = useLanguage();
+  const { t, language, formatPrice } = useLanguage();
 
   const [couponCode, setCouponCode] = useState("");
   const [applying, setApplying] = useState(false);
@@ -49,7 +49,7 @@ export default function CartSummary() {
             {t("cart.summary.subtotal")} ({getTotalItems()} {language === "vi" ? "sản phẩm" : "items"})
           </span>
           <span className="text-body-md font-body-md text-on-background">
-            ${subtotal.toFixed(2)}
+            {formatPrice(subtotal)}
           </span>
         </div>
 
@@ -63,7 +63,7 @@ export default function CartSummary() {
               shipping === 0 ? "text-success" : "text-on-background"
             }`}
           >
-            {shipping === 0 ? t("cart.summary.free") : `$${shipping.toFixed(2)}`}
+            {shipping === 0 ? t("cart.summary.free") : formatPrice(shipping)}
           </span>
         </div>
 
@@ -81,7 +81,7 @@ export default function CartSummary() {
               {t("cart.summary.discount").replace("{code}", appliedCoupon.code)}
             </span>
             <span className="text-body-md font-bold">
-              -${discount.toFixed(2)}
+              -{formatPrice(discount)}
             </span>
           </div>
         )}
@@ -102,7 +102,7 @@ export default function CartSummary() {
               <p className="text-xs text-on-surface-variant">
                 {appliedCoupon.discount_type === "percentage"
                   ? `-${appliedCoupon.discount_value}%`
-                  : `-$${appliedCoupon.discount_value}`}
+                  : `-${formatPrice(appliedCoupon.discount_value)}`}
               </p>
             </div>
             <button
@@ -136,7 +136,7 @@ export default function CartSummary() {
       <div className="bg-primary/10 rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between">
           <span className="text-body-lg font-body-lg text-on-background">{t("cart.summary.total")}</span>
-          <span className="text-h2 font-h2 text-primary">${total.toFixed(2)}</span>
+          <span className="text-h2 font-h2 text-primary">{formatPrice(total)}</span>
         </div>
       </div>
 

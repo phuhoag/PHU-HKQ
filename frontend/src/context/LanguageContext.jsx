@@ -39,8 +39,24 @@ export function LanguageProvider({ children }) {
     return typeof current === "string" ? current : pathKey;
   };
 
+  const formatPrice = (priceUSD) => {
+    const usdVal = parseFloat(priceUSD?.toString() || "0");
+    if (language === "vi") {
+      const vndVal = Math.round(usdVal * 25000);
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+        maximumFractionDigits: 0,
+      }).format(vndVal);
+    }
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(usdVal);
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, changeLanguage, t }}>
+    <LanguageContext.Provider value={{ language, changeLanguage, t, formatPrice }}>
       {children}
     </LanguageContext.Provider>
   );

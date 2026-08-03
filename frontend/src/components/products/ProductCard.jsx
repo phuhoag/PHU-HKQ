@@ -23,7 +23,7 @@ const parsePrice = (raw) => {
 export default function ProductCard({ product, badge }) {
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { addToCart } = useCart();
-  const { t } = useLanguage();
+  const { t, formatPrice } = useLanguage();
 
   // MongoDB dùng _id, fallback sang id
   const productId = product._id || product.id;
@@ -130,7 +130,7 @@ export default function ProductCard({ product, badge }) {
         {/* Price & Add to Cart */}
         <div className="mt-4 flex items-center justify-between">
           <span className="font-h3 text-h3 text-on-surface">
-            ${price.toFixed(2)}
+            {formatPrice(price)}
           </span>
           <button
             onClick={handleAddToCart}

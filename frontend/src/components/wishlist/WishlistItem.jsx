@@ -7,7 +7,7 @@ import { useLanguage } from "../../context/LanguageContext.jsx";
 export default function WishlistItem({ product }) {
   const { removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
-  const { t } = useLanguage();
+  const { t, formatPrice } = useLanguage();
 
   const handleAddToCart = async () => {
     try {
@@ -81,11 +81,11 @@ export default function WishlistItem({ product }) {
         <div className="text-right">
           {product.original_price && product.original_price > product.price && (
             <div className="text-body-sm text-on-surface-variant line-through">
-              ${product.original_price.toFixed(2)}
+              {formatPrice(product.original_price)}
             </div>
           )}
           <div className="font-h2 text-h2 text-on-surface">
-            ${product.price.toFixed(2)}
+            {formatPrice(product.price)}
           </div>
           {product.original_price && product.original_price > product.price && (
             <div className="text-body-sm text-primary font-medium">
