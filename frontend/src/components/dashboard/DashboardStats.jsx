@@ -7,12 +7,10 @@ import {
 import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function DashboardStats({ statsData }) {
-  const { t } = useLanguage();
+  const { t, formatPrice } = useLanguage();
 
   const formatRevenue = (val) => {
-    return typeof val === "number"
-      ? `$${val.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-      : "$0.00";
+    return formatPrice(val || 0);
   };
 
   const stats = [

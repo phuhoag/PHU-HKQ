@@ -66,7 +66,7 @@ const STATUS_FILTERS = [
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { t, language } = useLanguage();
+  const { t, language, formatPrice } = useLanguage();
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -381,7 +381,7 @@ export default function DashboardPage() {
             title: t("dashboard.newOrderTitle")
               .replace("{code}", o._id?.slice(-8).toUpperCase())
               .replace("{name}", custName),
-            detail: `${t("dashboard.totalPayment")}: $${parseFloat(o.total_amount || 0).toFixed(2)} (${o.payment_method?.replace(/_/g, " ").toUpperCase()})`,
+            detail: `${t("dashboard.totalPayment")}: ${formatPrice(parseFloat(o.total_amount || 0))} (${o.payment_method?.replace(/_/g, " ").toUpperCase()})`,
             date: new Date(o.createdAt).toLocaleDateString(language === "vi" ? "vi-VN" : "en-US"),
             icon: MdShoppingCart,
             color: "text-primary",
@@ -747,7 +747,7 @@ export default function DashboardPage() {
                                     {productsListStr}
                                   </td>
                                   <td className="px-6 py-4 text-body-md font-semibold text-on-background">
-                                    ${parseFloat(order.total_amount?.toString() || "0").toFixed(2)}
+                                    {formatPrice(parseFloat(order.total_amount?.toString() || "0"))}
                                   </td>
                                   <td className="px-6 py-4">
                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-body-sm font-semibold ${statusInfo.bg} ${statusInfo.color}`}>
@@ -954,7 +954,7 @@ export default function DashboardPage() {
                     <div className="space-y-2 text-body-sm text-on-surface-variant">
                       <p><span className="font-semibold text-on-surface">{t("dashboard.paymentMethod")}</span> <span className="capitalize">{selectedOrder.payment_method?.replace(/_/g, " ")}</span></p>
                       <p><span className="font-semibold text-on-surface">{t("dashboard.paymentStatus")}</span> <span className="capitalize font-semibold">{selectedOrder.payment_status || "pending"}</span></p>
-                      <p><span className="font-semibold text-on-surface">{t("dashboard.paymentTotal")}</span> <span className="text-primary font-bold text-body-md">${parseFloat(selectedOrder.total_amount?.toString() || "0").toFixed(2)}</span></p>
+                      <p><span className="font-semibold text-on-surface">{t("dashboard.paymentTotal")}</span> <span className="text-primary font-bold text-body-md">{formatPrice(parseFloat(selectedOrder.total_amount?.toString() || "0"))}</span></p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="font-semibold text-on-surface">{t("dashboard.orderStatusLabel")}</span>
                         {(() => {
@@ -1004,13 +1004,13 @@ export default function DashboardPage() {
                                 {item.product_id?.name || t("dashboard.productUnavailable")}
                               </td>
                               <td className="px-4 py-3 text-right text-body-sm text-on-surface-variant">
-                                ${price.toFixed(2)}
+                                {formatPrice(price)}
                               </td>
                               <td className="px-4 py-3 text-center text-body-sm text-on-surface font-semibold">
                                 {qty}
                               </td>
                               <td className="px-4 py-3 text-right text-body-sm font-semibold text-primary">
-                                ${(price * qty).toFixed(2)}
+                                {formatPrice(price * qty)}
                               </td>
                             </tr>
                           );

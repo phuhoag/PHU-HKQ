@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function OrderHistory({ orders }) {
-  const { t, language } = useLanguage();
+  const { t, language, formatPrice } = useLanguage();
 
   const getStatusDetails = (status) => {
     switch (status) {
@@ -86,7 +86,7 @@ export default function OrderHistory({ orders }) {
                       {itemsStr}
                     </td>
                     <td className="px-6 py-4 text-body-md font-body-md font-semibold text-on-background">
-                      ${parseFloat(order.total_amount?.toString() || "0").toFixed(2)}
+                      {formatPrice(parseFloat(order.total_amount?.toString() || "0"))}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">

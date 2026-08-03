@@ -15,7 +15,7 @@ import {
 import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function ProductsPage() {
-  const { t, language } = useLanguage();
+  const { t, language, formatPrice } = useLanguage();
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -488,7 +488,7 @@ export default function ProductsPage() {
                           <td className="px-6 py-4 font-semibold text-body-md text-on-surface">{p.name}</td>
                           <td className="px-6 py-4 text-body-md text-on-surface-variant">{p.category_id?.name || t("products.notAvailable")}</td>
                           <td className="px-6 py-4 font-semibold text-body-md text-primary">
-                            ${Number(p.price?.$numberDecimal || p.price || 0).toFixed(2)}
+                            {formatPrice(Number(p.price?.$numberDecimal || p.price || 0))}
                           </td>
                           <td className="px-6 py-4 text-body-md text-on-surface">
                             <span className={`px-2.5 py-0.5 rounded font-semibold ${p.stock > 10 ? "bg-success/15 text-success" : p.stock > 0 ? "bg-warning/15 text-warning" : "bg-error/15 text-error"}`}>
