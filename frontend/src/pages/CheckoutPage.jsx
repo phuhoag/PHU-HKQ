@@ -25,7 +25,7 @@ import { useLanguage } from "../context/LanguageContext.jsx";
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { cart, getTotalPrice, clearCart: clearLocalCart } = useCart();
+  const { cart, getTotalPrice, clearCart: clearLocalCart, appliedCoupon, setAppliedCoupon } = useCart();
   const { addToast } = useToast();
   const { t, language } = useLanguage();
 
@@ -66,7 +66,10 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("cash_on_delivery");
   const [errors, setErrors] = useState({});
 
-  const totalPrice = getTotalPrice ? getTotalPrice() : 0;
+  const subtotal = getTotalPrice ? getTotalPrice() : 0;
+  const shipping = subtotal > 50 ? 0 : 9.99;
+  const discount = appliedCoupon ? appliedCoupon.discount_amount : 0;
+  const totalPrice = Math.max(0, subtotal + shipping - discount);
 
   // ──────────── Payment options & steps inside component to access translator ────────────
   const PAYMENT_OPTIONS = [
@@ -127,10 +130,12 @@ export default function CheckoutPage() {
       const res = await orderService.createOrder({
         ...shippingForm,
         payment_method: paymentMethod,
+        coupon_code: appliedCoupon ? appliedCoupon.code : null,
       });
 
       if (res.success) {
         clearLocalCart?.();
+        setAppliedCoupon?.(null);
         setOrderSuccess(res.data.order);
         setStep(3);
         setSearchParams({ orderId: res.data.order._id }, { replace: true });
@@ -547,15 +552,25 @@ export default function CheckoutPage() {
                 <div className="border-t border-outline-variant pt-4 space-y-2">
                   <div className="flex justify-between text-body-sm text-on-surface-variant">
                     <span>{t("checkout.tempTotal")}</span>
-                    <span>${totalPrice}</span>
+                    <span>${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-body-sm text-on-surface-variant">
                     <span>{t("checkout.shipFee")}</span>
-                    <span className="text-success font-semibold">{t("checkout.free")}</span>
+                    {shipping === 0 ? (
+                      <span className="text-success font-semibold">{t("checkout.free")}</span>
+                    ) : (
+                      <span>${shipping.toFixed(2)}</span>
+                    )}
                   </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-body-sm text-success">
+                      <span>{t("cart.summary.discount").replace("{code}", appliedCoupon.code)}</span>
+                      <span>-${discount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold text-on-surface pt-2 border-t border-outline-variant">
                     <span>{t("cart.summary.total")}</span>
-                    <span className="text-primary text-xl">${totalPrice}</span>
+                    <span className="text-primary text-xl">${totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

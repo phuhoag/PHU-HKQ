@@ -40,6 +40,15 @@ const orderSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    coupon_code: {
+      type: String,
+      default: null,
+    },
+    discount_amount: {
+      type: mongoose.Schema.Types.Decimal128,
+      default: 0.0,
+      get: (value) => (value ? value.toString() : 0.0),
+    },
   },
   {
     timestamps: true,

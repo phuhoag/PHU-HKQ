@@ -9,6 +9,7 @@ import Wishlist from "./wishlist.model.js";
 import Review from "./review.model.js";
 import AuditLog from "./audit-log.model.js";
 import PaymentTransaction from "./payment-transaction.model.js";
+import Coupon from "./coupon.model.js";
 
 export {
   User,
@@ -22,4 +23,5 @@ export {
   Review,
   AuditLog,
   PaymentTransaction,
+  Coupon,
 };

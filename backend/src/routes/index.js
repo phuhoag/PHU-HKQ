@@ -9,6 +9,7 @@ import cartRoutes from "./cart.routes.js";
 import orderRoutes from "./order.routes.js";
 import paymentRoutes from "./payment.routes.js";
 import reviewRoutes from "./review.routes.js";
+import couponRoutes from "./coupon.routes.js";
 
 const router = express.Router();
 
@@ -46,6 +47,9 @@ router.use("/cart", cartRoutes);
 
 // Order routes (cần authentication)
 router.use("/orders", orderRoutes);
+
+// Coupon routes (cần authentication)
+router.use("/coupons", couponRoutes);
 
 // ============================================
 // ADMIN ROUTES (cần admin role)

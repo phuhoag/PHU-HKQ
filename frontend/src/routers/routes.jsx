@@ -33,6 +33,7 @@ const SettingsPage = React.lazy(() => import("../pages/SettingsPage"));
 const AnalyticsPage = React.lazy(() => import("../pages/AnalyticsPage"));
 const UsersPage = React.lazy(() => import("../pages/UsersPage"));
 const ReviewsManagementPage = React.lazy(() => import("../pages/ReviewsManagementPage"));
+const CouponsManagementPage = React.lazy(() => import("../pages/CouponsManagementPage"));
 
 
 const router = createBrowserRouter([
@@ -177,6 +178,16 @@ const router = createBrowserRouter([
           <ProtectedRoute>
             <ErrorBoundary>
               <LazyLoading children={<ReviewsManagementPage />} />
+            </ErrorBoundary>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/coupons-management",
+        element: (
+          <ProtectedRoute>
+            <ErrorBoundary>
+              <LazyLoading children={<CouponsManagementPage />} />
             </ErrorBoundary>
           </ProtectedRoute>
         ),

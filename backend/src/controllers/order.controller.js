@@ -2,6 +2,7 @@ import Order from "../models/order.model.js";
 import OrderItem from "../models/order-item.model.js";
 import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
+import Coupon from "../models/coupon.model.js";
 import { ORDER_STATUS } from "../constants/enums.js";
 
 // =============================================
@@ -11,7 +12,7 @@ import { ORDER_STATUS } from "../constants/enums.js";
 export const createOrder = async (req, res) => {
   try {
     const user_id = req.user.id;
-    const { shipping_address, phone, full_name, payment_method } = req.body;
+    const { shipping_address, phone, full_name, payment_method, coupon_code } = req.body;
 
     // Validate
     if (!shipping_address || !phone || !full_name || !payment_method) {
@@ -56,16 +57,80 @@ export const createOrder = async (req, res) => {
       orderItemsData.push({ product_id: product._id, quantity, price });
     }
 
+    // Validate mã giảm giá (nếu có)
+    let discountAmount = 0;
+    let validCoupon = null;
+
+    if (coupon_code) {
+      const coupon = await Coupon.findOne({ code: coupon_code.toUpperCase().trim() });
+      if (!coupon) {
+        return res.status(400).json({
+          success: false,
+          message: "Mã giảm giá không tồn tại hoặc đã hết hạn",
+        });
+      }
+
+      if (!coupon.is_active) {
+        return res.status(400).json({
+          success: false,
+          message: "Mã giảm giá này đã tạm dừng hoạt động",
+        });
+      }
+
+      if (new Date(coupon.expiry_date) < new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: "Mã giảm giá đã hết hạn sử dụng",
+        });
+      }
+
+      if (coupon.usage_limit !== null && coupon.usage_count >= coupon.usage_limit) {
+        return res.status(400).json({
+          success: false,
+          message: "Mã giảm giá này đã được sử dụng hết lượt giới hạn",
+        });
+      }
+
+      if (totalAmount < coupon.min_purchase) {
+        return res.status(400).json({
+          success: false,
+          message: `Đơn hàng chưa đạt giá trị tối thiểu $${coupon.min_purchase.toFixed(
+            2
+          )} để sử dụng mã này`,
+        });
+      }
+
+      // Tính giảm giá
+      if (coupon.discount_type === "percentage") {
+        discountAmount = totalAmount * (coupon.discount_value / 100);
+        if (coupon.max_discount !== null && discountAmount > coupon.max_discount) {
+          discountAmount = coupon.max_discount;
+        }
+      } else if (coupon.discount_type === "fixed") {
+        discountAmount = coupon.discount_value;
+      }
+
+      if (discountAmount > totalAmount) {
+        discountAmount = totalAmount;
+      }
+
+      validCoupon = coupon;
+    }
+
+    const finalAmount = totalAmount - discountAmount;
+
     // Tạo đơn hàng
     const fullAddress = `${full_name} | ${phone} | ${shipping_address}`;
     const order = await Order.create({
       user_id,
-      total_amount: totalAmount.toFixed(2),
+      total_amount: finalAmount.toFixed(2),
       status: ORDER_STATUS.PENDING,
       payment_method,
       payment_status: "pending",
       shipping_address: fullAddress,
       phone,
+      coupon_code: validCoupon ? validCoupon.code : null,
+      discount_amount: parseFloat(discountAmount.toFixed(2)),
     });
 
     // Tạo order items + giảm tồn kho
@@ -79,6 +144,13 @@ export const createOrder = async (req, res) => {
     for (const item of orderItemsData) {
       await Product.findByIdAndUpdate(item.product_id, {
         $inc: { stock: -item.quantity },
+      });
+    }
+
+    // Tăng usage_count của coupon nếu hợp lệ
+    if (validCoupon) {
+      await Coupon.findByIdAndUpdate(validCoupon._id, {
+        $inc: { usage_count: 1 },
       });
     }
 
