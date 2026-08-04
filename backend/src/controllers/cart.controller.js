@@ -2,7 +2,101 @@ import Cart from "../models/cart.model.js";
 import Product from "../models/product.model.js";
 
 // =============================================
-// THÊM SẢN PHẨM VÀO GIỎ HÀNG
+// LẤY TỔNG QUAN GIỎ HÀNG (số lượng + tổng tiền)
+// =============================================
+export const getCartSummary = async (req, res) => {
+  try {
+    const user_id = req.user.id;
+
+    const cartItems = await Cart.find({ user_id }).populate(
+      "product_id",
+      "name price stock image",
+    );
+
+    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    const totalPrice = cartItems.reduce((sum, item) => {
+      const price = parseFloat(item.product_id?.price?.toString() || "0");
+      return sum + price * item.quantity;
+    }, 0);
+    const totalProducts = cartItems.length;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalItems,
+        totalProducts,
+        totalPrice: totalPrice.toFixed(2),
+      },
+    });
+  } catch (error) {
+    console.error("getCartSummary error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy tổng quan giỏ hàng",
+    });
+  }
+};
+
+// =============================================
+// KIỂM TRA TỒN KHO TOÀN BỘ GIỎ HÀNG (trước khi checkout)
+// =============================================
+export const validateCartStock = async (req, res) => {
+  try {
+    const user_id = req.user.id;
+
+    const cartItems = await Cart.find({ user_id }).populate(
+      "product_id",
+      "name stock is_active",
+    );
+
+    const issues = [];
+
+    for (const item of cartItems) {
+      const product = item.product_id;
+
+      if (!product) {
+        issues.push({
+          cartItemId: item._id,
+          issue: "Sản phẩm không còn tồn tại",
+        });
+        continue;
+      }
+
+      if (!product.is_active) {
+        issues.push({
+          cartItemId: item._id,
+          productName: product.name,
+          issue: "Sản phẩm đã ngừng bán",
+        });
+        continue;
+      }
+
+      if (product.stock < item.quantity) {
+        issues.push({
+          cartItemId: item._id,
+          productName: product.name,
+          requested: item.quantity,
+          available: product.stock,
+          issue: `Chỉ còn ${product.stock} sản phẩm trong kho`,
+        });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      isValid: issues.length === 0,
+      issues,
+    });
+  } catch (error) {
+    console.error("validateCartStock error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi server khi kiểm tra tồn kho",
+    });
+  }
+};
+
+
 // =============================================
 export const addToCart = async (req, res) => {
   try {
