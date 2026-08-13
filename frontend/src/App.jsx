@@ -6,6 +6,8 @@ import { CartProvider } from "./context/CartContext.jsx";
 import { WishlistProvider } from "./context/WishlistContext.jsx";
 import { LanguageProvider } from "./context/LanguageContext.jsx";
 
+import ChatWidget from "./components/chatbot/ChatWidget.jsx";
+
 function App() {
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
@@ -22,6 +24,7 @@ function App() {
         <CartProvider>
           <WishlistProvider>
             <Outlet />
+            <ChatWidget />
           </WishlistProvider>
         </CartProvider>
       </ToastProvider>

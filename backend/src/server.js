@@ -1,8 +1,10 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { createServer } from "http";
 import connectDB from "./config/database.js";
 import mainRoutes from "./routes/index.js";
+import { initSocket } from "./config/socket.js";
 
 dotenv.config();
 
@@ -57,7 +59,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(port, () => {
+const server = createServer(app);
+initSocket(server);
+
+server.listen(port, () => {
   console.log(` Server running on http://localhost:${port}`);
   console.log(` API available at http://localhost:${port}/api`);
 });
