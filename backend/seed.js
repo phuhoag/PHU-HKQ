@@ -51,7 +51,7 @@ const CATEGORIES = [
   {
     name: "Monitors",
     description: "Màn hình máy tính 4K, 144Hz cho gaming và thiết kế",
-    image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400",
+    image: "https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=400",
   },
   {
     name: "Mice",
