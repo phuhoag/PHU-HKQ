@@ -14,6 +14,8 @@ import {
 } from "react-icons/md";
 import { useLanguage } from "../context/LanguageContext.jsx";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
 export default function ProductsPage() {
   const { t, language, formatPrice } = useLanguage();
   const navigate = useNavigate();
@@ -80,7 +82,7 @@ export default function ProductsPage() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch("/api/admin/upload", {
+      const response = await fetch(`${API_BASE_URL}/admin/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -123,7 +125,7 @@ export default function ProductsPage() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch("/api/admin/upload", {
+      const response = await fetch(`${API_BASE_URL}/admin/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -187,7 +189,7 @@ export default function ProductsPage() {
       if (search) query.set("search", search);
       if (category) query.set("category", category);
 
-      const response = await fetch(`/api/products?${query.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/products?${query.toString()}`);
       const res = await response.json();
       if (res.success) {
         setProducts(res.data || []);
@@ -205,7 +207,7 @@ export default function ProductsPage() {
   const fetchCategories = async (token = localStorage.getItem("token")) => {
     setLoadingCategories(true);
     try {
-      const response = await fetch("/api/categories");
+      const response = await fetch(`${API_BASE_URL}/categories`);
       const res = await response.json();
       if (res.success) {
         setCategories(res.data || []);
@@ -235,7 +237,7 @@ export default function ProductsPage() {
       return;
     }
 
-    const url = productModal.mode === "add" ? "/api/products" : `/api/products/${_id}`;
+    const url = productModal.mode === "add" ? `${API_BASE_URL}/products` : `${API_BASE_URL}/products/${_id}`;
     const method = productModal.mode === "add" ? "POST" : "PUT";
 
     try {
@@ -272,7 +274,7 @@ export default function ProductsPage() {
     if (!window.confirm(t("products.alertDeleteProductConfirm"))) return;
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -302,7 +304,7 @@ export default function ProductsPage() {
       return;
     }
 
-    const url = categoryModal.mode === "add" ? "/api/categories" : `/api/categories/${_id}`;
+    const url = categoryModal.mode === "add" ? `${API_BASE_URL}/categories` : `${API_BASE_URL}/categories/${_id}`;
     const method = categoryModal.mode === "add" ? "POST" : "PUT";
 
     try {
@@ -332,7 +334,7 @@ export default function ProductsPage() {
     if (!window.confirm(t("products.alertDeleteCategoryConfirm"))) return;
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`/api/categories/${categoryId}`, {
+      const response = await fetch(`${API_BASE_URL}/categories/${categoryId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

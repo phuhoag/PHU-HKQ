@@ -15,6 +15,8 @@ import Footer from "../components/layouts/Footer.jsx";
 import Sidebar from "../components/dashboard/Sidebar.jsx";
 import { useLanguage } from "../context/LanguageContext.jsx";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
 export default function SettingsPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -68,7 +70,7 @@ export default function SettingsPage() {
 
   const fetchSmtpSettings = async (tok) => {
     try {
-      const response = await fetch("/api/user/settings/smtp", {
+      const response = await fetch(`${API_BASE_URL}/user/settings/smtp`, {
         headers: {
           Authorization: `Bearer ${tok}`,
         },
@@ -117,7 +119,7 @@ export default function SettingsPage() {
     setErrorSmtp("");
 
     try {
-      const response = await fetch("/api/user/settings/smtp", {
+      const response = await fetch(`${API_BASE_URL}/user/settings/smtp`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -147,7 +149,7 @@ export default function SettingsPage() {
     setErrorSmtp("");
 
     try {
-      const response = await fetch("/api/user/settings/smtp/test", {
+      const response = await fetch(`${API_BASE_URL}/user/settings/smtp/test`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -174,7 +176,7 @@ export default function SettingsPage() {
   const handleClearSmtp = async () => {
     if (confirm(t("settings.smtpClearConfirm"))) {
       try {
-        const response = await fetch("/api/user/settings/smtp", {
+        const response = await fetch(`${API_BASE_URL}/user/settings/smtp`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,

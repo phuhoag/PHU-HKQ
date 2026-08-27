@@ -11,6 +11,8 @@ import Header from "../components/layouts/Header.jsx";
 import Footer from "../components/layouts/Footer.jsx";
 import { useLanguage } from "../context/LanguageContext.jsx";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
 export default function ProfilePage() {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
@@ -58,7 +60,7 @@ export default function ProfilePage() {
   const fetchProfileData = async (token) => {
     try {
       setLoading(true);
-      const response = await fetch("/api/user/profile", {
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -84,7 +86,7 @@ export default function ProfilePage() {
 
   const fetchOrderStats = async (token) => {
     try {
-      const response = await fetch("/api/orders/my-orders?limit=100", {
+      const response = await fetch(`${API_BASE_URL}/orders/my-orders?limit=100`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -120,7 +122,7 @@ export default function ProfilePage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/user/profile", {
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

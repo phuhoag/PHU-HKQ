@@ -16,6 +16,8 @@ import {
 } from "react-icons/md";
 import { useLanguage } from "../context/LanguageContext.jsx";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
 export default function UsersPage() {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
@@ -82,7 +84,7 @@ export default function UsersPage() {
     setError(null);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/admin/users", {
+      const response = await fetch(`${API_BASE_URL}/admin/users`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -108,7 +110,7 @@ export default function UsersPage() {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/admin/users", {
+      const response = await fetch(`${API_BASE_URL}/admin/users`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -150,7 +152,7 @@ export default function UsersPage() {
         delete bodyData.password;
       }
 
-      const response = await fetch(`/api/admin/users/${selectedUser._id}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/users/${selectedUser._id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -182,7 +184,7 @@ export default function UsersPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -212,7 +214,7 @@ export default function UsersPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`/api/admin/users/${userId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/status`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

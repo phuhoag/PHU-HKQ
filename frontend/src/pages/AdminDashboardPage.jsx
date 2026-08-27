@@ -11,6 +11,7 @@ import {
 } from "react-icons/md";
 
 export default function AdminDashboardPage() {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [users, setUsers] = useState([]);
@@ -35,7 +36,7 @@ export default function AdminDashboardPage() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("/api/admin/users", {
+        const response = await fetch(`${API_BASE_URL}/admin/users`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
