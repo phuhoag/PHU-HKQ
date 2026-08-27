@@ -13,14 +13,21 @@ const port = process.env.PORT || 5000;
 
 connectDB();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+];
+
+if (process.env.FRONTEND_URL) {
+  // Remove any trailing slash to ensure exact match
+  allowedOrigins.push(process.env.FRONTEND_URL.replace(/\/$/, ""));
+}
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://127.0.0.1:3000",
-      "http://127.0.0.1:3001",
-    ],
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
