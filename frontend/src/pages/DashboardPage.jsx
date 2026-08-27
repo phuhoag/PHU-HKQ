@@ -22,6 +22,8 @@ import {
 import { orderService } from "../services/orderService.js";
 import { useLanguage } from "../context/LanguageContext.jsx";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
 const STATUS_CONFIG = {
   pending: {
     label: "Chờ xác nhận",
@@ -117,7 +119,7 @@ export default function DashboardPage() {
   const fetchCustomerProfile = async (token) => {
     setLoadingProfile(true);
     try {
-      const response = await fetch("/api/user/profile", {
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -190,7 +192,7 @@ export default function DashboardPage() {
     setProfileMsg({ type: "", text: "" });
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/user/profile", {
+      const response = await fetch(`${API_BASE_URL}/user/profile`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -241,7 +243,7 @@ export default function DashboardPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/user/change-password", {
+      const response = await fetch(`${API_BASE_URL}/user/change-password`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -273,7 +275,7 @@ export default function DashboardPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/user/delete-account", {
+      const response = await fetch(`${API_BASE_URL}/user/delete-account`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -333,7 +335,7 @@ export default function DashboardPage() {
     setAdminError(null);
     try {
       // 1. Fetch analytics summary & monthly sales
-      const analyticsRes = await fetch("/api/admin/analytics", {
+      const analyticsRes = await fetch(`${API_BASE_URL}/admin/analytics`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -342,7 +344,7 @@ export default function DashboardPage() {
       const analyticsData = await analyticsRes.json();
 
       // 2. Fetch 5 recent orders
-      const ordersRes = await fetch("/api/orders/admin/all?limit=5", {
+      const ordersRes = await fetch(`${API_BASE_URL}/orders/admin/all?limit=5`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
