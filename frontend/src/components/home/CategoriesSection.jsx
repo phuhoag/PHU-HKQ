@@ -20,7 +20,7 @@ const STATIC_CATEGORIES = {
   Monitors: {
     nameKey: "home.categories.monitors",
     descKey: "home.categories.monitorsDesc",
-    image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=300&h=300&fit=crop",
     color: "from-cyan-500 to-cyan-600",
   },
   Mice: {
@@ -44,8 +44,8 @@ export default function CategoriesSection() {
           const matched = res.data
             .filter((cat) => STATIC_CATEGORIES[cat.name])
             .map((cat) => ({
-              ...cat,
               ...STATIC_CATEGORIES[cat.name],
+              ...cat,
             }));
           setCategories(matched);
         }
