@@ -18,6 +18,9 @@ async function initTransporter() {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
+      connectionTimeout: 10000, // 10s
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
     console.log(" Email transporter initialized with Gmail");
     return;
@@ -34,6 +37,9 @@ async function initTransporter() {
         user: testAccount.user,
         pass: testAccount.pass,
       },
+      connectionTimeout: 10000, // 10s
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
     console.log(
       " Email transporter initialized with Ethereal Email (Development Mode)",
@@ -78,6 +84,9 @@ export const sendPasswordResetEmail = async (
           user: userSmtpConfig.smtpEmail,
           pass: decryptedPassword,
         },
+        connectionTimeout: 10000, // 10s
+        greetingTimeout: 10000,
+        socketTimeout: 10000,
       });
       console.log(`📧 Using user SMTP: ${userSmtpConfig.smtpEmail}`);
     }
