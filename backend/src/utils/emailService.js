@@ -55,6 +55,34 @@ async function initTransporter() {
 // Initialize on module load
 const etherealAccount = await initTransporter();
 
+// Send via Resend HTTP API
+const sendViaResend = async (to, subject, html) => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing RESEND_API_KEY");
+  }
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "onboarding@resend.dev",
+      to: to,
+      subject: subject,
+      html: html,
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to send email via Resend");
+  }
+  return data;
+};
+
 /**
  * Send password reset email
  * Nếu user có SMTP config, dùng email của user
@@ -67,6 +95,51 @@ export const sendPasswordResetEmail = async (
 ) => {
   try {
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/reset-password/${resetToken}`;
+
+    if (process.env.RESEND_API_KEY) {
+      console.log(`📧 Sending password reset email to ${email} via Resend HTTP API...`);
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1976d2; margin: 0;">TechStore</h1>
+            <p style="color: #666; margin-top: 5px;">E-commerce Platform</p>
+          </div>
+
+          <h2 style="color: #333; margin-bottom: 20px;">Password Reset Request</h2>
+          
+          <p style="color: #555; line-height: 1.6; margin-bottom: 20px;">
+            We received a request to reset your password. If you didn't make this request, you can ignore this email.
+          </p>
+
+          <div style="text-align: center; margin-bottom: 30px;">
+            <a href="${resetUrl}" style="display: inline-block; padding: 12px 30px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              Reset Password
+            </a>
+          </div>
+
+          <p style="color: #666; font-size: 14px; margin-bottom: 10px;">
+            Or copy this link in your browser:
+          </p>
+          <p style="color: #1976d2; word-break: break-all; font-size: 12px; margin-bottom: 30px;">
+            ${resetUrl}
+          </p>
+
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <p style="color: #666; font-size: 14px; margin: 0;">
+              <strong>⚠️ Security Note:</strong> This link will expire in 1 hour. Never share this link with anyone. TechStore support staff will never ask for your password.
+            </p>
+          </div>
+
+          <p style="color: #999; font-size: 12px; border-top: 1px solid #ddd; padding-top: 15px; margin-top: 30px;">
+            © 2024 TechStore. All rights reserved.<br>
+            If you have any questions, contact our support team.
+          </p>
+        </div>
+      `;
+      const result = await sendViaResend(email, "Password Reset Request - TechStore", htmlContent);
+      console.log("✅ Email sent successfully via Resend:", result.id);
+      return { success: true, message: "Reset link sent to email" };
+    }
 
     // Nếu user có SMTP config, tạo transporter từ config của user
     let emailTransporter = transporter;
@@ -168,6 +241,42 @@ export const sendPasswordResetEmail = async (
  */
 export const sendWelcomeEmail = async (email, firstName) => {
   try {
+    if (process.env.RESEND_API_KEY) {
+      console.log(`📧 Sending welcome email to ${email} via Resend HTTP API...`);
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1976d2; margin: 0;">Welcome to TechStore</h1>
+          </div>
+
+          <p style="color: #555; line-height: 1.6; margin-bottom: 20px;">
+            Hi ${firstName},
+          </p>
+
+          <p style="color: #555; line-height: 1.6; margin-bottom: 20px;">
+            Thank you for creating an account with us! You're now part of the TechStore community.
+          </p>
+
+          <p style="color: #555; line-height: 1.6; margin-bottom: 20px;">
+            Start exploring our amazing collection of tech products and enjoy exclusive deals!
+          </p>
+
+          <div style="text-align: center; margin-bottom: 30px;">
+            <a href="${process.env.FRONTEND_URL || "http://localhost:3000"}" style="display: inline-block; padding: 12px 30px; background-color: #1976d2; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              Start Shopping
+            </a>
+          </div>
+
+          <p style="color: #999; font-size: 12px; border-top: 1px solid #ddd; padding-top: 15px; margin-top: 30px;">
+            © 2024 TechStore. All rights reserved.
+          </p>
+        </div>
+      `;
+      const result = await sendViaResend(email, "Welcome to TechStore!", htmlContent);
+      console.log("✅ Welcome email sent via Resend:", result.id);
+      return;
+    }
+
     const mailOptions = {
       from: process.env.EMAIL_USER || "noreply@techstore.com",
       to: email,
