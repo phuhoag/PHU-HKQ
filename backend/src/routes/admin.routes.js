@@ -78,10 +78,6 @@ router.post(
       res.status(500).json({
         success: false,
         message: "Lỗi hệ thống khi upload ảnh",
-      });
-    }
-  }
-);
         error: error.message,
       });
     }
