@@ -15,23 +15,8 @@ import Review from "../models/review.model.js";
 
 const router = express.Router();
 
-// Ensure upload directory exists in frontend public/images
-const uploadDir = path.resolve("../frontend/public/images");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Multer Storage Configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + "-" + uniqueSuffix + ext);
-  },
-});
+// Multer Memory Storage Configuration (converts to Base64 Data URI for permanent storage in MongoDB)
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
@@ -81,18 +66,22 @@ router.post(
         });
       }
 
-      // Return the file path relative to frontend public directory
-      const fileUrl = `/images/${req.file.filename}`;
+      // Return permanent Base64 Data URI
+      const base64Data = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
 
       res.status(200).json({
         success: true,
         message: "Upload ảnh thành công",
-        url: fileUrl,
+        url: base64Data,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
         message: "Lỗi hệ thống khi upload ảnh",
+      });
+    }
+  }
+);
         error: error.message,
       });
     }

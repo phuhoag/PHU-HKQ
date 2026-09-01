@@ -716,6 +716,13 @@ export default function ProductsPage() {
                 </div>
                 <div>
                   <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelImage")}</label>
+                  <input
+                    type="text"
+                    placeholder={language === "vi" ? "Dán link ảnh (https://...) hoặc tải file lên bên dưới" : "Paste image URL or upload file below"}
+                    value={productModal.data.image}
+                    onChange={(e) => setProductModal({ ...productModal, data: { ...productModal.data, image: e.target.value } })}
+                    className="w-full px-4 py-2 mb-3 border border-outline-variant rounded-lg bg-surface text-body-sm text-on-surface outline-none focus:border-primary transition"
+                  />
                   <div className="flex items-center gap-4">
                     <div className="relative w-20 h-20 rounded-lg border border-outline-variant bg-surface flex items-center justify-center overflow-hidden flex-shrink-0 group">
                       {productModal.data.image ? (
@@ -724,6 +731,7 @@ export default function ProductsPage() {
                             src={productModal.data.image}
                             alt="Preview"
                             className="w-full h-full object-cover"
+                            onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=100"; }}
                           />
                           <button
                             type="button"
@@ -756,7 +764,7 @@ export default function ProductsPage() {
                             </>
                           )}
                         </span>
-                        <span className="text-label-sm text-on-surface-variant mt-0.5">{language === "vi" ? "Tối đa 5MB" : "Max 5MB"}</span>
+                        <span className="text-label-sm text-on-surface-variant mt-0.5">{language === "vi" ? "Tải ảnh từ máy (Tối đa 5MB)" : "Upload from device (Max 5MB)"}</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -829,6 +837,13 @@ export default function ProductsPage() {
 
               <div>
                 <label className="block text-body-sm font-semibold text-on-surface-variant mb-1">{t("products.labelCategoryImage")}</label>
+                <input
+                  type="text"
+                  placeholder={language === "vi" ? "Dán link ảnh (https://...) hoặc tải file lên bên dưới" : "Paste image URL or upload file below"}
+                  value={categoryModal.data.image}
+                  onChange={(e) => setCategoryModal({ ...categoryModal, data: { ...categoryModal.data, image: e.target.value } })}
+                  className="w-full px-4 py-2 mb-3 border border-outline-variant rounded-lg bg-surface text-body-sm text-on-surface outline-none focus:border-primary transition"
+                />
                 <div className="flex items-center gap-4">
                   <div className="relative w-20 h-20 rounded-lg border border-outline-variant bg-surface flex items-center justify-center overflow-hidden flex-shrink-0 group">
                     {categoryModal.data.image ? (
@@ -837,6 +852,7 @@ export default function ProductsPage() {
                           src={categoryModal.data.image}
                           alt="Preview"
                           className="w-full h-full object-cover"
+                          onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=100"; }}
                         />
                         <button
                           type="button"
@@ -869,7 +885,7 @@ export default function ProductsPage() {
                           </>
                         )}
                       </span>
-                      <span className="text-label-sm text-on-surface-variant mt-0.5">{language === "vi" ? "Tối đa 5MB" : "Max 5MB"}</span>
+                      <span className="text-label-sm text-on-surface-variant mt-0.5">{language === "vi" ? "Tải ảnh từ máy (Tối đa 5MB)" : "Upload from device (Max 5MB)"}</span>
                       <input
                         type="file"
                         accept="image/*"
