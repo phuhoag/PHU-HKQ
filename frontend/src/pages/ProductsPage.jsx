@@ -66,7 +66,7 @@ export default function ProductsPage() {
   const [uploadingProductImage, setUploadingProductImage] = useState(false);
   const [uploadingCategoryImage, setUploadingCategoryImage] = useState(false);
 
-  const handleProductImageUpload = async (e) => {
+  const handleProductImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -74,42 +74,27 @@ export default function ProductsPage() {
       alert(t("products.alertImageSizeLimit"));
       return;
     }
-
-    const formData = new FormData();
-    formData.append("image", file);
 
     setUploadingProductImage(true);
-    const token = localStorage.getItem("token");
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setProductModal((prev) => ({
+        ...prev,
+        data: {
+          ...prev.data,
+          image: event.target.result,
         },
-        body: formData,
-      });
-
-      const res = await response.json();
-      if (response.ok && res.success) {
-        setProductModal((prev) => ({
-          ...prev,
-          data: {
-            ...prev.data,
-            image: res.url,
-          },
-        }));
-      } else {
-        alert(t("products.alertUploadFail") + (res.message || (language === "vi" ? "Lỗi không xác định" : "Unknown error")));
-      }
-    } catch (err) {
-      alert(t("products.alertUploadError") + err.message);
-    } finally {
+      }));
       setUploadingProductImage(false);
-    }
+    };
+    reader.onerror = () => {
+      alert(t("products.alertUploadError"));
+      setUploadingProductImage(false);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleCategoryImageUpload = async (e) => {
+  const handleCategoryImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -118,38 +103,23 @@ export default function ProductsPage() {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("image", file);
-
     setUploadingCategoryImage(true);
-    const token = localStorage.getItem("token");
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCategoryModal((prev) => ({
+        ...prev,
+        data: {
+          ...prev.data,
+          image: event.target.result,
         },
-        body: formData,
-      });
-
-      const res = await response.json();
-      if (response.ok && res.success) {
-        setCategoryModal((prev) => ({
-          ...prev,
-          data: {
-            ...prev.data,
-            image: res.url,
-          },
-        }));
-      } else {
-        alert(t("products.alertUploadFail") + (res.message || (language === "vi" ? "Lỗi không xác định" : "Unknown error")));
-      }
-    } catch (err) {
-      alert(t("products.alertUploadError") + err.message);
-    } finally {
+      }));
       setUploadingCategoryImage(false);
-    }
+    };
+    reader.onerror = () => {
+      alert(t("products.alertUploadError"));
+      setUploadingCategoryImage(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   // Verify Admin role on mount
@@ -731,7 +701,6 @@ export default function ProductsPage() {
                             src={productModal.data.image}
                             alt="Preview"
                             className="w-full h-full object-cover"
-                            onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=100"; }}
                           />
                           <button
                             type="button"
@@ -852,7 +821,6 @@ export default function ProductsPage() {
                           src={categoryModal.data.image}
                           alt="Preview"
                           className="w-full h-full object-cover"
-                          onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=100"; }}
                         />
                         <button
                           type="button"
