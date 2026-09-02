@@ -104,6 +104,12 @@ export const translations = {
         headphones: "Tai nghe",
         storage: "Thiết bị lưu trữ",
       },
+      newArrivals: {
+        title: "Sản phẩm mới nhất",
+        subtitle: "Khám phá các thiết bị công nghệ mới cập bến TechStore",
+        viewAll: "Xem tất cả",
+        noProducts: "Chưa có sản phẩm mới nào.",
+      },
       featured: {
         title: "Sản phẩm nổi bật",
         subtitle: "Xem qua những sản phẩm bán chạy nhất của chúng tôi",
@@ -994,6 +1000,12 @@ export const translations = {
         miceDesc: "Ergonomic & gaming",
         headphones: "Headphones",
         storage: "Storage",
+      },
+      newArrivals: {
+        title: "New Arrivals",
+        subtitle: "Discover the latest tech products just arrived at TechStore",
+        viewAll: "View All",
+        noProducts: "No new products available.",
       },
       featured: {
         title: "Featured Products",
