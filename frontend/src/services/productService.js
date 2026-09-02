@@ -362,6 +362,10 @@ export const productService = {
       return await response.json();
     } catch (error) {
       console.error("Error reordering product images:", error);
+      throw error;
+    }
+  },
+
   /**
    * Bật / tắt trạng thái nổi bật (Admin)
    * @param {string} productId
