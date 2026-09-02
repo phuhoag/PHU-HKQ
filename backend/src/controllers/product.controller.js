@@ -36,12 +36,30 @@ export const getProducts = async (req, res) => {
       if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
 
+    // Parse sort query
+    let sortOption = { createdAt: -1 }; // Default newest first
+    if (sort === "newest" || sort === "-createdAt") {
+      sortOption = { createdAt: -1 };
+    } else if (sort === "oldest" || sort === "createdAt") {
+      sortOption = { createdAt: 1 };
+    } else if (sort === "price-low" || sort === "price-asc" || sort === "price_asc") {
+      sortOption = { price: 1 };
+    } else if (sort === "price-high" || sort === "price-desc" || sort === "price_desc") {
+      sortOption = { price: -1 };
+    } else if (sort === "name-asc") {
+      sortOption = { name: 1 };
+    } else if (sort === "name-desc") {
+      sortOption = { name: -1 };
+    } else if (typeof sort === "string" && (sort.startsWith("-") || sort.startsWith("+"))) {
+      sortOption = sort;
+    }
+
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const [products, total] = await Promise.all([
       Product.find(query)
         .populate("category_id", "name")
-        .sort(sort)
+        .sort(sortOption)
         .skip(skip)
         .limit(parseInt(limit)),
       Product.countDocuments(query),
