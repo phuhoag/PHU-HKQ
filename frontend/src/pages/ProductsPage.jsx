@@ -11,8 +11,11 @@ import {
   MdArrowBack,
   MdWarning,
   MdClose,
+  MdStar,
+  MdStarBorder,
 } from "react-icons/md";
 import { useLanguage } from "../context/LanguageContext.jsx";
+import { productService } from "../services/productService.js";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
@@ -200,7 +203,7 @@ export default function ProductsPage() {
   const handleSaveProduct = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    const { _id, name, category_id, price, stock, description, image } = productModal.data;
+    const { _id, name, category_id, price, stock, description, image, is_featured } = productModal.data;
 
     if (!name || !category_id || !price) {
       alert(t("products.alertRequiredFields"));
@@ -224,6 +227,7 @@ export default function ProductsPage() {
           stock: parseInt(stock) || 0,
           description,
           image,
+          is_featured: Boolean(is_featured),
         }),
       });
 
@@ -237,6 +241,21 @@ export default function ProductsPage() {
       }
     } catch (err) {
       alert(t("products.alertError") + err.message);
+    }
+  };
+
+  const handleToggleFeatured = async (productId) => {
+    try {
+      const res = await productService.toggleFeatured(productId);
+      if (res.success) {
+        setProducts((prev) =>
+          prev.map((p) =>
+            p._id === productId ? { ...p, is_featured: res.data?.is_featured ?? !p.is_featured } : p
+          )
+        );
+      }
+    } catch (err) {
+      alert("Lỗi khi thay đổi trạng thái nổi bật: " + err.message);
     }
   };
 
@@ -468,7 +487,18 @@ export default function ProductsPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <div className="flex gap-2 justify-center">
+                            <div className="flex gap-2 justify-center items-center">
+                              <button
+                                onClick={() => handleToggleFeatured(p._id)}
+                                className={`p-2 rounded-lg transition ${
+                                  p.is_featured
+                                    ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25 ring-1 ring-amber-500/30"
+                                    : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-amber-500"
+                                }`}
+                                title={p.is_featured ? (language === "vi" ? "Bỏ nổi bật" : "Unfeature") : (language === "vi" ? "⭐ Đánh dấu nổi bật (Hiển thị Trang chủ)" : "Mark as Featured")}
+                              >
+                                {p.is_featured ? <MdStar size={18} /> : <MdStarBorder size={18} />}
+                              </button>
                               <button
                                 onClick={() =>
                                   setProductModal({
@@ -482,6 +512,7 @@ export default function ProductsPage() {
                                       stock: p.stock,
                                       description: p.description || "",
                                       image: p.image || "",
+                                      is_featured: p.is_featured || false,
                                     },
                                   })
                                 }
@@ -755,6 +786,32 @@ export default function ProductsPage() {
                   rows={4}
                   className="w-full px-4 py-2 border border-outline-variant rounded-lg bg-surface text-body-md text-on-surface outline-none focus:border-primary transition resize-none"
                 />
+              </div>
+
+              <div className="pt-2 border-t border-outline-variant/60">
+                <label className="flex items-center gap-3 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={productModal.data.is_featured || false}
+                    onChange={(e) =>
+                      setProductModal({
+                        ...productModal,
+                        data: { ...productModal.data, is_featured: e.target.checked },
+                      })
+                    }
+                    className="w-5 h-5 text-primary rounded border-outline-variant focus:ring-primary cursor-pointer accent-primary"
+                  />
+                  <div>
+                    <span className="text-body-md font-semibold text-on-surface flex items-center gap-1.5">
+                      ⭐ {language === "vi" ? "Đánh dấu là Sản phẩm nổi bật" : "Mark as Featured Product"}
+                    </span>
+                    <p className="text-label-sm text-on-surface-variant">
+                      {language === "vi"
+                        ? "Sản phẩm này sẽ được hiển thị ưu tiên tại khu vực Featured Products ở Trang chủ"
+                        : "This product will be highlighted on the Homepage Featured Products section"}
+                    </p>
+                  </div>
+                </label>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant">

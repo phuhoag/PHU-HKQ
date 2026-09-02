@@ -13,8 +13,19 @@ export default function FeaturedProductsSection() {
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const res = await productService.getProducts({ limit: 4, sort: "newest" });
-        const list = res.data?.products || [];
+        // Ưu tiên lấy các sản phẩm được Admin đánh dấu Nổi bật (is_featured: true)
+        const res = await productService.getProducts({ is_featured: true, limit: 8, sort: "newest" });
+        let list = res.data?.products || [];
+
+        // Nếu có ít hơn 4 sản phẩm nổi bật, bổ sung thêm các sản phẩm mới nhất để luôn đủ 4 vị trí
+        if (list.length < 4) {
+          const fallbackRes = await productService.getProducts({ limit: 4, sort: "newest" });
+          const fallbackList = fallbackRes.data?.products || [];
+          const existingIds = new Set(list.map((p) => p._id));
+          const additions = fallbackList.filter((p) => !existingIds.has(p._id));
+          list = [...list, ...additions];
+        }
+
         setProducts(list.slice(0, 4));
       } catch (err) {
         console.error("Failed to fetch featured products:", err);

@@ -20,6 +20,7 @@ export const productService = {
       if (params.category) query.set("category", params.category);
       if (params.minPrice) query.set("minPrice", params.minPrice);
       if (params.maxPrice) query.set("maxPrice", params.maxPrice);
+      if (params.is_featured !== undefined) query.set("is_featured", params.is_featured);
       if (params.sort) {
         const sortMap = {
           newest: "-createdAt",
@@ -361,6 +362,26 @@ export const productService = {
       return await response.json();
     } catch (error) {
       console.error("Error reordering product images:", error);
+  /**
+   * Bật / tắt trạng thái nổi bật (Admin)
+   * @param {string} productId
+   */
+  toggleFeatured: async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_BASE_URL}/products/${productId}/toggle-featured`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to toggle featured status");
+      return await response.json();
+    } catch (error) {
+      console.error("Error toggling featured status:", error);
       throw error;
     }
   },

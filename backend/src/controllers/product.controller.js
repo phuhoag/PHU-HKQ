@@ -36,6 +36,11 @@ export const getProducts = async (req, res) => {
       if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
 
+    // Filter by is_featured
+    if (req.query.is_featured !== undefined) {
+      query.is_featured = req.query.is_featured === "true" || req.query.is_featured === true;
+    }
+
     // Parse sort query
     let sortOption = { createdAt: -1 }; // Default newest first
     if (sort === "newest" || sort === "-createdAt") {
@@ -111,7 +116,7 @@ export const getProductById = async (req, res) => {
  */
 export const createProduct = async (req, res) => {
   try {
-    const { name, category_id, description, price, stock, image } = req.body;
+    const { name, category_id, description, price, stock, image, is_featured } = req.body;
 
     if (!name || !category_id || !price) {
       return res.status(400).json({
@@ -127,6 +132,7 @@ export const createProduct = async (req, res) => {
       price,
       stock: stock || 0,
       image,
+      is_featured: Boolean(is_featured),
     });
 
     const populated = await product.populate("category_id", "name");
@@ -148,11 +154,16 @@ export const createProduct = async (req, res) => {
  */
 export const updateProduct = async (req, res) => {
   try {
-    const { name, category_id, description, price, stock, image } = req.body;
+    const { name, category_id, description, price, stock, image, is_featured } = req.body;
+
+    const updateData = { name, category_id, description, price, stock, image };
+    if (is_featured !== undefined) {
+      updateData.is_featured = Boolean(is_featured);
+    }
 
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      { name, category_id, description, price, stock, image },
+      updateData,
       { new: true, runValidators: true },
     ).populate("category_id", "name");
 
@@ -165,6 +176,31 @@ export const updateProduct = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Sản phẩm đã được cập nhật",
+      data: product,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc   Bật / tắt cờ nổi bật (is_featured) cho sản phẩm
+ * @route  PATCH /api/products/:id/toggle-featured
+ * @access Admin only
+ */
+export const toggleFeatured = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Sản phẩm không tồn tại" });
+    }
+
+    product.is_featured = !product.is_featured;
+    await product.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Đã ${product.is_featured ? "đánh dấu nổi bật" : "bỏ đánh dấu nổi bật"} sản phẩm`,
       data: product,
     });
   } catch (error) {

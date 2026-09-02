@@ -28,6 +28,10 @@ const productSchema = mongoose.Schema(
     image: {
       type: String,
     },
+    is_featured: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

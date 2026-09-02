@@ -1,10 +1,10 @@
-import express from "express";
 import {
   getProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
+  toggleFeatured,
 } from "../controllers/product.controller.js";
 import {
   authenticateToken,
@@ -41,6 +41,13 @@ router.post("/", authenticateToken, authorizeAdmin, createProduct);
  * @access Admin only
  */
 router.put("/:id", authenticateToken, authorizeAdmin, updateProduct);
+
+/**
+ * @route  PATCH /api/products/:id/toggle-featured
+ * @desc   Bật / tắt cờ nổi bật của sản phẩm
+ * @access Admin only
+ */
+router.patch("/:id/toggle-featured", authenticateToken, authorizeAdmin, toggleFeatured);
 
 /**
  * @route  DELETE /api/products/:id
