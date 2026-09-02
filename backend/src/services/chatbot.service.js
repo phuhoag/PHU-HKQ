@@ -4,14 +4,81 @@ import { Product, Order, Coupon, User } from "../models/index.js";
 
 const searchProducts = async ({ query }) => {
   try {
-    const products = await Product.find({
-      $or: [
-        { name: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
-      ],
-    })
-      .populate("category_id")
-      .limit(5);
+    const qLower = (query || "").toLowerCase();
+    const keywords = [];
+
+    if (
+      qLower.includes("laptop") ||
+      qLower.includes("máy tính") ||
+      qLower.includes("macbook") ||
+      qLower.includes("notebook") ||
+      qLower.includes("dell")
+    ) {
+      keywords.push("laptop", "dell", "probook", "zenbook", "ultraslim");
+    }
+    if (
+      qLower.includes("bàn phím") ||
+      qLower.includes("keyboard") ||
+      qLower.includes("phím")
+    ) {
+      keywords.push("keyboard", "silent pro", "phím");
+    }
+    if (
+      qLower.includes("màn hình") ||
+      qLower.includes("monitor") ||
+      qLower.includes("màn") ||
+      qLower.includes("display")
+    ) {
+      keywords.push("monitor", "display", "curved", "4k");
+    }
+    if (qLower.includes("chuột") || qLower.includes("mouse")) {
+      keywords.push("mouse", "chuột", "office comfort");
+    }
+    if (
+      qLower.includes("tai nghe") ||
+      qLower.includes("headphone") ||
+      qLower.includes("audio")
+    ) {
+      keywords.push("headphone", "studio", "tai nghe");
+    }
+    if (
+      qLower.includes("ổ cứng") ||
+      qLower.includes("ssd") ||
+      qLower.includes("hdd") ||
+      qLower.includes("storage") ||
+      qLower.includes("lưu trữ") ||
+      qLower.includes("nvme")
+    ) {
+      keywords.push("ssd", "hdd", "nvme", "prodrive", "turbo");
+    }
+
+    let products = [];
+    if (keywords.length > 0) {
+      products = await Product.find({
+        $or: [
+          { name: { $regex: keywords.join("|"), $options: "i" } },
+          { description: { $regex: keywords.join("|"), $options: "i" } },
+        ],
+      })
+        .populate("category_id")
+        .limit(6);
+    } else {
+      const cleanQ = query.replace(/tư vấn|giúp tôi|khoảng giá|trong cửa hàng|tìm|sản phẩm|có bán|mua|giá|cho tôi|hỏi về/gi, "").trim();
+      products = await Product.find({
+        $or: [
+          { name: { $regex: cleanQ || query, $options: "i" } },
+          { description: { $regex: cleanQ || query, $options: "i" } },
+        ],
+      })
+        .populate("category_id")
+        .limit(6);
+    }
+
+    if (products.length === 0) {
+      products = await Product.find({})
+        .populate("category_id")
+        .limit(4);
+    }
 
     return products.map((p) => ({
       id: p._id.toString(),
@@ -107,16 +174,22 @@ const generateFallbackResponse = async (messageText) => {
   try {
     const text = messageText.toLowerCase().trim();
 
-    // 1. Chào hỏi
+    // 1. Chào hỏi thuần túy
     if (
-      text.includes("chào") ||
+      (text.includes("chào") ||
       text.includes("hello") ||
       text.includes("hi") ||
       text.includes("hey") ||
       text === "alo" ||
-      text === "test"
+      text === "test") &&
+      !text.includes("laptop") &&
+      !text.includes("màn hình") &&
+      !text.includes("phím") &&
+      !text.includes("chuột") &&
+      !text.includes("tai nghe") &&
+      !text.includes("giá")
     ) {
-      return "Xin chào! Em là trợ lý ảo TechStore. Em có thể giúp gì cho anh/chị hôm nay ạ?\n\nAnh/chị có thể hỏi em về:\n• 🔍 Tìm kiếm sản phẩm (ví dụ: 'tìm laptop', 'bàn phím', 'màn hình')\n• 🎁 Mã khuyến mãi mới nhất\n• 📦 Tra cứu tình trạng đơn hàng";
+      return "Xin chào! Em là trợ lý ảo TechStore. Em có thể giúp gì cho anh/chị hôm nay ạ?\n\nAnh/chị có thể hỏi em về:\n• 🔍 Tư vấn & tìm kiếm sản phẩm (ví dụ: 'tư vấn laptop khoảng 20tr', 'tìm bàn phím', 'màn hình 4k')\n• 🎁 Mã khuyến mãi & voucher mới nhất\n• 📦 Tra cứu tình trạng đơn hàng";
     }
 
     // 2. Khuyến mãi / mã giảm giá
@@ -167,17 +240,16 @@ const generateFallbackResponse = async (messageText) => {
       return "Để tra cứu đơn hàng, anh/chị vui lòng nhập câu hỏi kèm theo Số điện thoại hoặc Email đặt hàng nhé! (Ví dụ: 'Tra cứu đơn hàng 0987654321')";
     }
 
-    // 4. Tìm kiếm sản phẩm
-    const cleanQuery = messageText.replace(/tìm|sản phẩm|có bán|mua|giá|cho tôi|hỏi về/gi, "").trim() || messageText;
-    const searchResult = await searchProducts({ query: cleanQuery });
+    // 4. Tư vấn & Tìm kiếm sản phẩm thông minh
+    const searchResult = await searchProducts({ query: messageText });
     if (Array.isArray(searchResult) && searchResult.length > 0) {
       const list = searchResult
         .map(
-          (p) =>
-            `• **${p.name}** (${p.category}): ${(Number(p.price) * 25000).toLocaleString("vi-VN")} đ - Còn ${p.stock} sản phẩm`
+          (p, i) =>
+            `${i + 1}. **${p.name}**\n   - **Danh mục:** ${p.category}\n   - **Giá bán:** ${(Number(p.price) * 25000).toLocaleString("vi-VN")} đ\n   - **Tình trạng:** Còn ${p.stock} sản phẩm trong kho`
         )
-        .join("\n");
-      return `Dưới đây là một số sản phẩm phù hợp tại TechStore:\n\n${list}\n\nAnh/chị có thể vào mục Cửa hàng (Shop) để xem chi tiết và đặt mua nhé!`;
+        .join("\n\n");
+      return `Dạ chào anh/chị! Dưới đây là các sản phẩm phù hợp đang có sẵn tại TechStore để anh/chị tham khảo ạ:\n\n${list}\n\nAnh/chị có thể truy cập mục **Cửa hàng (Shop)** để xem hình ảnh và bấm đặt mua nhé!`;
     }
 
     return "Cảm ơn anh/chị đã nhắn tin! Anh/chị có thể hỏi em về các sản phẩm công nghệ (Laptop, Màn hình, Bàn phím, Chuột...), mã khuyến mãi hoặc tra cứu tình trạng đơn hàng nhé.";
