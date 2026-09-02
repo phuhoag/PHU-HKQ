@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   MdOutlineShoppingCart,
   MdOutlineAccountCircle,
@@ -20,12 +20,42 @@ export default function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
   const { getTotalItems, onLogout } = useCart();
   const { getWishlistCount } = useWishlist();
   const { language, changeLanguage, t } = useLanguage();
   const cartItemCount = getTotalItems();
   const wishlistCount = getWishlistCount();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const isActive = (path) => {
+    if (path === "/shop") {
+      return currentPath === "/shop";
+    }
+    if (path === "/categories") {
+      return currentPath === "/categories";
+    }
+    if (path === "/wishlist") {
+      return currentPath === "/wishlist";
+    }
+    if (path === "/about") {
+      return currentPath === "/about";
+    }
+    return currentPath === path;
+  };
+
+  const getNavLinkClass = (path) => {
+    return isActive(path)
+      ? "font-body-md text-body-md text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1 font-bold transition-all"
+      : "font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors pb-1 border-b-2 border-transparent";
+  };
+
+  const getMobileNavLinkClass = (path) => {
+    return isActive(path)
+      ? "text-body-lg font-bold text-primary dark:text-primary-fixed bg-primary/10 px-4 py-2.5 rounded-xl border-l-4 border-primary transition-all flex items-center justify-between"
+      : "text-body-lg font-semibold text-on-surface hover:text-primary transition-colors py-2.5 px-4 rounded-xl hover:bg-surface-container-low border-b border-outline-variant/30";
+  };
 
   // Lấy thông tin user từ localStorage
   const storedUser = localStorage.getItem("user");
@@ -82,25 +112,25 @@ export default function Header() {
           <nav className="hidden md:flex gap-6 items-center">
             <Link
               to="/shop"
-              className="font-body-md text-body-md text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1"
+              className={getNavLinkClass("/shop")}
             >
               {t("nav.shop")}
             </Link>
             <Link
               to="/categories"
-              className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors"
+              className={getNavLinkClass("/categories")}
             >
               {t("nav.categories")}
             </Link>
             <Link
               to="/wishlist"
-              className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors"
+              className={getNavLinkClass("/wishlist")}
             >
               {t("nav.wishlist")}
             </Link>
             <Link
               to="/about"
-              className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant hover:text-primary transition-colors"
+              className={getNavLinkClass("/about")}
             >
               {t("nav.about")}
             </Link>
@@ -278,32 +308,32 @@ export default function Header() {
             </div>
 
             {/* Navigation Links */}
-            <nav className="flex flex-col gap-5 flex-1">
+            <nav className="flex flex-col gap-2.5 flex-1">
               <Link
                 to="/shop"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-body-lg font-semibold text-on-surface hover:text-primary transition-colors py-2 border-b border-outline-variant/30"
+                className={getMobileNavLinkClass("/shop")}
               >
                 {t("nav.shop")}
               </Link>
               <Link
                 to="/categories"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-body-lg font-semibold text-on-surface hover:text-primary transition-colors py-2 border-b border-outline-variant/30"
+                className={getMobileNavLinkClass("/categories")}
               >
                 {t("nav.categories")}
               </Link>
               <Link
                 to="/wishlist"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-body-lg font-semibold text-on-surface hover:text-primary transition-colors py-2 border-b border-outline-variant/30"
+                className={getMobileNavLinkClass("/wishlist")}
               >
                 {t("nav.wishlist")}
               </Link>
               <Link
                 to="/about"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-body-lg font-semibold text-on-surface hover:text-primary transition-colors py-2 border-b border-outline-variant/30"
+                className={getMobileNavLinkClass("/about")}
               >
                 {t("nav.about")}
               </Link>
