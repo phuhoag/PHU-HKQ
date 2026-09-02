@@ -1,65 +1,55 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../products/ProductCard";
-import { MdArrowForward } from "react-icons/md";
+import { MdArrowForward, MdFiberNew } from "react-icons/md";
 import { productService } from "../../services/productService";
 import { useLanguage } from "../../context/LanguageContext.jsx";
 
-export default function FeaturedProductsSection() {
+export default function NewArrivalsSection() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
 
   useEffect(() => {
-    const fetchFeatured = async () => {
+    const fetchNewArrivals = async () => {
       try {
-        // Ưu tiên lấy các sản phẩm được Admin đánh dấu Nổi bật (is_featured: true)
-        const res = await productService.getProducts({ is_featured: true, limit: 8, sort: "newest" });
-        let list = res.data?.products || [];
-
-        // Nếu có ít hơn 4 sản phẩm nổi bật, bổ sung thêm các sản phẩm mới nhất để luôn đủ 4 vị trí
-        if (list.length < 4) {
-          const fallbackRes = await productService.getProducts({ limit: 4, sort: "newest" });
-          const fallbackList = fallbackRes.data?.products || [];
-          const existingIds = new Set(list.map((p) => p._id));
-          const additions = fallbackList.filter((p) => !existingIds.has(p._id));
-          list = [...list, ...additions];
-        }
-
+        const res = await productService.getProducts({ limit: 4, sort: "newest" });
+        const list = res.data?.products || [];
         setProducts(list.slice(0, 4));
       } catch (err) {
-        console.error("Failed to fetch featured products:", err);
+        console.error("Failed to fetch new arrivals:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchFeatured();
+    fetchNewArrivals();
   }, []);
 
-  const badge = { text: "⭐ HOT", position: "left-3", className: "bg-amber-500 text-white font-bold shadow-sm" };
+  const badge = { text: "NEW", position: "left-3", className: "bg-primary text-on-primary font-bold" };
 
   return (
-    <section className="py-stack-lg bg-surface-container-low">
+    <section className="py-stack-lg bg-surface">
       <div className="max-w-container-max mx-auto px-margin-desktop">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-stack-lg">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-3 py-1 bg-amber-500/15 text-amber-600 dark:text-amber-400 text-label-sm font-bold rounded-full flex items-center gap-1">
-                ⭐ {t("home.featured.title") || "Sản phẩm nổi bật"}
+              <span className="px-3 py-1 bg-primary/10 text-primary text-label-sm font-bold rounded-full flex items-center gap-1">
+                <MdFiberNew size={18} />
+                {t("home.newArrivals.title") || "Sản phẩm mới nhất"}
               </span>
             </div>
             <h2 className="font-h2 text-h2 text-on-surface mb-2">
-              {t("home.featured.title") || "Sản phẩm nổi bật"}
+              {t("home.newArrivals.title") || "Sản phẩm mới nhất"}
             </h2>
             <p className="font-body-md text-body-md text-on-surface-variant">
-              {t("home.featured.subtitle") || "Các sản phẩm được chọn lọc đặc biệt và đánh giá cao nhất"}
+              {t("home.newArrivals.subtitle") || "Khám phá các thiết bị công nghệ mới cập bến TechStore"}
             </p>
           </div>
           <Link
-            to="/shop"
+            to="/shop?sort=newest"
             className="inline-flex items-center gap-2 text-primary hover:text-primary-container transition-colors font-button text-button font-semibold"
           >
-            {t("home.featured.viewAll") || "Xem tất cả"}
+            {t("home.newArrivals.viewAll") || "Xem tất cả"}
             <MdArrowForward size={20} />
           </Link>
         </div>
@@ -77,8 +67,8 @@ export default function FeaturedProductsSection() {
                   <div className="h-4 bg-surface-container rounded w-3/4" />
                   <div className="h-3 bg-surface-container rounded w-1/2" />
                   <div className="flex justify-between items-center pt-2">
-                     <div className="h-6 bg-surface-container rounded w-1/4" />
-                     <div className="h-9 w-9 bg-surface-container rounded-lg" />
+                    <div className="h-6 bg-surface-container rounded w-1/4" />
+                    <div className="h-9 w-9 bg-surface-container rounded-lg" />
                   </div>
                 </div>
               </div>
@@ -86,7 +76,7 @@ export default function FeaturedProductsSection() {
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-16 text-on-surface-variant">
-            {t("home.featured.noProducts")}
+            {t("home.newArrivals.noProducts") || "Chưa có sản phẩm mới nào."}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">

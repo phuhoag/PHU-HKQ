@@ -2,6 +2,7 @@ import Header from "../components/layouts/Header";
 import Footer from "../components/layouts/Footer";
 import HeroBanner from "../components/home/HeroBanner";
 import CategoriesSection from "../components/home/CategoriesSection";
+import NewArrivalsSection from "../components/home/NewArrivalsSection";
 import FeaturedProductsSection from "../components/home/FeaturedProductsSection";
 import TestimonialsSection from "../components/home/TestimonialsSection";
 import NewsletterSection from "../components/home/NewsletterSection";
@@ -20,7 +21,10 @@ export default function HomePage() {
         {/* Categories */}
         <CategoriesSection />
 
-        {/* Featured Products */}
+        {/* 1. New Arrivals Section (Sản phẩm mới nhất) */}
+        <NewArrivalsSection />
+
+        {/* 2. Featured Products Section (Sản phẩm nổi bật do Admin chọn) */}
         <FeaturedProductsSection />
 
         {/* Testimonials */}
